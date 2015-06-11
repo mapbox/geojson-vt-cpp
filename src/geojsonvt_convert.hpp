@@ -3,11 +3,16 @@
 
 #include <mapbox/geojsonvt/geojsonvt_types.hpp>
 
+#include <rapidjson/document.h>
+
 #include <vector>
 
 namespace mapbox {
 namespace util {
 namespace geojsonvt {
+
+using JSDocument = rapidjson::Document;
+using JSValue = rapidjson::Value;
 
 class Convert {
 public:

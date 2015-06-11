@@ -3,8 +3,6 @@
 
 #include <mapbox/variant.hpp>
 
-#include <rapidjson/document.h>
-
 #include <array>
 #include <map>
 #include <string>
@@ -52,11 +50,6 @@ public:
     double y = -1;
     double z = -1;
 };
-
-#pragma mark -
-
-using JSDocument = rapidjson::Document;
-using JSValue = rapidjson::Value;
 
 #pragma mark -
 
