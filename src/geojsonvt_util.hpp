@@ -2,6 +2,7 @@
 #define MAPBOX_UTIL_GEOJSONVT_UTIL
 
 #include <unordered_map>
+#include <string>
 
 namespace mapbox { namespace util { namespace geojsonvt {
 

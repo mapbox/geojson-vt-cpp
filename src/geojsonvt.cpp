@@ -1,4 +1,4 @@
-#include "geojsonvt.hpp"
+#include <mapbox/geojsonvt/geojsonvt.hpp>
 #include "geojsonvt_clip.hpp"
 #include "geojsonvt_convert.hpp"
 #include "geojsonvt_util.hpp"

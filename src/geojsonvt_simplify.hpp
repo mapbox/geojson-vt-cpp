@@ -1,7 +1,7 @@
 #ifndef MAPBOX_UTIL_GEOJSONVT_SIMPLIFY
 #define MAPBOX_UTIL_GEOJSONVT_SIMPLIFY
 
-#include "geojsonvt_types.hpp"
+#include <mapbox/geojsonvt/geojsonvt_types.hpp>
 
 namespace mapbox { namespace util { namespace geojsonvt {
 

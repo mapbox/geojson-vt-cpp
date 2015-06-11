@@ -1,7 +1,7 @@
 #ifndef MAPBOX_UTIL_GEOJSONVT_TYPES
 #define MAPBOX_UTIL_GEOJSONVT_TYPES
 
-#include <mbgl/util/variant.hpp>
+#include <mapbox/variant.hpp>
 
 #include <rapidjson/document.h>
 
