@@ -3,16 +3,21 @@
 
 #include <mapbox/geojsonvt/geojsonvt_types.hpp>
 
-namespace mapbox { namespace util { namespace geojsonvt {
+namespace mapbox {
+namespace util {
+namespace geojsonvt {
 
 class Simplify {
 public:
-    static void simplify(ProjectedGeometryContainer &points, double tolerance);
+    static void simplify(ProjectedGeometryContainer& points, double tolerance);
 
 private:
-    static double getSqSegDist(const ProjectedPoint &p, const ProjectedPoint &a, const ProjectedPoint &b);
+    static double
+    getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const ProjectedPoint& b);
 };
 
-} /* namespace geojsonvt */ } /* namespace util */ } /* namespace mapbox */
+} // namespace geojsonvt
+} // namespace util
+} // namespace mapbox
 
 #endif // MAPBOX_UTIL_GEOJSONVT_SIMPLIFY

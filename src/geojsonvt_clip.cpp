@@ -1,8 +1,16 @@
 #include "geojsonvt_clip.hpp"
 
-namespace mapbox { namespace util { namespace geojsonvt {
+namespace mapbox {
+namespace util {
+namespace geojsonvt {
 
-std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature> features, uint32_t scale, double k1, double k2, uint8_t axis, ProjectedPoint (*intersect)(const ProjectedPoint&, const ProjectedPoint&, double)) {
+std::vector<ProjectedFeature>
+Clip::clip(const std::vector<ProjectedFeature> features,
+           uint32_t scale,
+           double k1,
+           double k2,
+           uint8_t axis,
+           ProjectedPoint (*intersect)(const ProjectedPoint&, const ProjectedPoint&, double)) {
 
     k1 /= scale;
     k2 /= scale;
@@ -34,7 +42,8 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature> fea
         if (type == ProjectedFeatureType::Point) {
             slices = clipPoints(geometry.get<ProjectedGeometryContainer>(), k1, k2, axis);
         } else {
-            slices = clipGeometry(geometry.get<ProjectedGeometryContainer>(), k1, k2, axis, intersect, (type == ProjectedFeatureType::Polygon));
+            slices = clipGeometry(geometry.get<ProjectedGeometryContainer>(), k1, k2, axis,
+                                  intersect, (type == ProjectedFeatureType::Polygon));
         }
 
         if (slices.members.size()) {
@@ -45,12 +54,13 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature> fea
     return std::move(clipped);
 }
 
-ProjectedGeometryContainer Clip::clipPoints(ProjectedGeometryContainer geometry, double k1, double k2, uint8_t axis) {
+ProjectedGeometryContainer
+Clip::clipPoints(ProjectedGeometryContainer geometry, double k1, double k2, uint8_t axis) {
 
     ProjectedGeometryContainer slice;
 
     for (size_t i = 0; i < geometry.members.size(); ++i) {
-        ProjectedPoint *a = &(geometry.members[i].get<ProjectedPoint>());
+        ProjectedPoint* a = &(geometry.members[i].get<ProjectedPoint>());
         double ak = (axis == 0 ? a->x : a->y);
 
         if (ak >= k1 && ak <= k2) {
@@ -61,7 +71,14 @@ ProjectedGeometryContainer Clip::clipPoints(ProjectedGeometryContainer geometry,
     return std::move(slice);
 }
 
-ProjectedGeometryContainer Clip::clipGeometry(ProjectedGeometryContainer geometry, double k1, double k2, uint8_t axis, ProjectedPoint (*intersect)(const ProjectedPoint&, const ProjectedPoint&, double), bool closed) {
+ProjectedGeometryContainer Clip::clipGeometry(ProjectedGeometryContainer geometry,
+                                              double k1,
+                                              double k2,
+                                              uint8_t axis,
+                                              ProjectedPoint (*intersect)(const ProjectedPoint&,
+                                                                          const ProjectedPoint&,
+                                                                          double),
+                                              bool closed) {
 
     ProjectedGeometryContainer slices;
 
@@ -70,7 +87,8 @@ ProjectedGeometryContainer Clip::clipGeometry(ProjectedGeometryContainer geometr
         double ak = 0;
         double bk = 0;
         ProjectedPoint b;
-        const ProjectedGeometryContainer *points = &(geometry.members[i].get<ProjectedGeometryContainer>());
+        const ProjectedGeometryContainer* points =
+            &(geometry.members[i].get<ProjectedGeometryContainer>());
         const double area = points->area;
         const double dist = points->dist;
         const size_t len = points->members.size();
@@ -129,8 +147,9 @@ ProjectedGeometryContainer Clip::clipGeometry(ProjectedGeometryContainer geometr
         }
 
         if (closed && slice.members.size()) {
-            const ProjectedPoint *first = &(slice.members[0].get<ProjectedPoint>());
-            const ProjectedPoint *last  = &(slice.members[slice.members.size() - 1].get<ProjectedPoint>());
+            const ProjectedPoint* first = &(slice.members[0].get<ProjectedPoint>());
+            const ProjectedPoint* last =
+                &(slice.members[slice.members.size() - 1].get<ProjectedPoint>());
             if (first != last) {
                 slice.members.push_back(ProjectedPoint(first->x, first->y, first->z));
             }
@@ -142,7 +161,10 @@ ProjectedGeometryContainer Clip::clipGeometry(ProjectedGeometryContainer geometr
     return std::move(slices);
 }
 
-ProjectedGeometryContainer Clip::newSlice(ProjectedGeometryContainer &slices, ProjectedGeometryContainer &slice, double area, double dist) {
+ProjectedGeometryContainer Clip::newSlice(ProjectedGeometryContainer& slices,
+                                          ProjectedGeometryContainer& slice,
+                                          double area,
+                                          double dist) {
 
     if (slice.members.size()) {
         slice.area = area;
@@ -153,4 +175,6 @@ ProjectedGeometryContainer Clip::newSlice(ProjectedGeometryContainer &slices, Pr
     return ProjectedGeometryContainer();
 }
 
-} /* namespace geojsonvt */ } /* namespace util */ } /* namespace mapbox */
+} // namespace geojsonvt
+} // namespace util
+} // namespace mapbox

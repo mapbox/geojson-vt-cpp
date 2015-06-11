@@ -2,9 +2,11 @@
 
 #include <stack>
 
-namespace mapbox { namespace util { namespace geojsonvt {
+namespace mapbox {
+namespace util {
+namespace geojsonvt {
 
-void Simplify::simplify(ProjectedGeometryContainer &points, double tolerance) {
+void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
 
     const double sqTolerance = tolerance * tolerance;
     const size_t len = points.members.size();
@@ -16,7 +18,7 @@ void Simplify::simplify(ProjectedGeometryContainer &points, double tolerance) {
     size_t index = 0;
 
     points.members[first].get<ProjectedPoint>().z = 1;
-    points.members[last].get<ProjectedPoint>().z  = 1;
+    points.members[last].get<ProjectedPoint>().z = 1;
 
     while (last) {
 
@@ -24,8 +26,8 @@ void Simplify::simplify(ProjectedGeometryContainer &points, double tolerance) {
 
         for (size_t i = (first + 1); i < last; ++i) {
             sqDist = getSqSegDist(points.members[i].get<ProjectedPoint>(),
-                points.members[first].get<ProjectedPoint>(),
-                points.members[last].get<ProjectedPoint>());
+                                  points.members[first].get<ProjectedPoint>(),
+                                  points.members[last].get<ProjectedPoint>());
 
             if (sqDist > maxSqDist) {
                 index = i;
@@ -57,7 +59,8 @@ void Simplify::simplify(ProjectedGeometryContainer &points, double tolerance) {
     }
 }
 
-double Simplify::getSqSegDist(const ProjectedPoint &p, const ProjectedPoint &a, const ProjectedPoint &b) {
+double
+Simplify::getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const ProjectedPoint& b) {
 
     double x = a.x;
     double y = a.y;
@@ -83,4 +86,6 @@ double Simplify::getSqSegDist(const ProjectedPoint &p, const ProjectedPoint &a, 
     return dx * dx + dy * dy;
 }
 
-} /* namespace geojsonvt */ } /* namespace util */ } /* namespace mapbox */
+} // namespace geojsonvt
+} // namespace util
+} // namespace mapbox
