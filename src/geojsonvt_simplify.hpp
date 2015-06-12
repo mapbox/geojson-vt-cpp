@@ -8,6 +8,10 @@ namespace util {
 namespace geojsonvt {
 
 class Simplify {
+private:
+    // This class has only static functions; disallow creating instances of it.
+    Simplify() = delete;
+
 public:
     static void simplify(ProjectedGeometryContainer& points, double tolerance);
 

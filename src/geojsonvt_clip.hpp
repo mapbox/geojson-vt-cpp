@@ -10,6 +10,10 @@ namespace util {
 namespace geojsonvt {
 
 class Clip {
+private:
+    // This class has only static functions; disallow creating instances of it.
+    Clip() = delete;
+
 public:
     static std::vector<ProjectedFeature>
     clip(std::vector<ProjectedFeature> features,

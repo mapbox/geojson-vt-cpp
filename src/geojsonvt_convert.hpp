@@ -15,6 +15,10 @@ using JSDocument = rapidjson::Document;
 using JSValue = rapidjson::Value;
 
 class Convert {
+private:
+    // This class has only static functions; disallow creating instances of it.
+    Convert() = delete;
+
 public:
     static std::vector<ProjectedFeature> convert(const JSDocument& data, double tolerance);
 
