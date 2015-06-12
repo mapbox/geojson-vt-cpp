@@ -63,5 +63,50 @@
         ],
       },
     },
+
+    { 'target_name': 'test',
+      'product_name': 'test',
+      'type': 'executable',
+
+      'dependencies': [
+        'geojsonvt',
+      ],
+
+      'include_dirs': [
+        'src',
+      ],
+
+      'sources': [
+        'test/test.cpp',
+        'test/util.hpp',
+        'test/test_clip.cpp',
+      ],
+
+      'variables': {
+        'cflags_cc': [
+          '<@(variant_cflags)',
+          '<@(gtest_cflags)',
+        ],
+        'ldflags': [
+          '<@(gtest_ldflags)'
+        ],
+        'libraries': [
+          '<@(gtest_static_libs)',
+        ],
+      },
+
+      'conditions': [
+        ['OS == "mac"', {
+          'libraries': [ '<@(libraries)' ],
+          'xcode_settings': {
+            'OTHER_CPLUSPLUSFLAGS': [ '<@(cflags_cc)' ],
+            'OTHER_LDFLAGS': [ '<@(ldflags)' ],
+          }
+        }, {
+          'cflags_cc': [ '<@(cflags_cc)' ],
+          'libraries': [ '<@(libraries)', '<@(ldflags)' ],
+        }]
+      ],
+    },
   ],
 }
