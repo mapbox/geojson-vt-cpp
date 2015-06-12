@@ -1,14 +1,19 @@
 BUILDTYPE ?= Release
 
-all: build
+all: lib
 
 config.gypi:
 	./configure
 
-.PHONY: build
-build: config.gypi
+.PHONY: lib
+lib: config.gypi
 	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make
-	make -C build
+	make -C build geojsonvt
+
+.PHONY: xproj
+xproj: config.gypi
+	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f xcode
+	open build/geojsonvt.xcodeproj
 
 .PHONY: clean
 clean:
