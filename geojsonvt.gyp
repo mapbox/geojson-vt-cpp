@@ -79,7 +79,9 @@
       'sources': [
         'test/test.cpp',
         'test/util.hpp',
+        'test/util.cpp',
         'test/test_clip.cpp',
+        'test/test_simplify.cpp',
       ],
 
       'variables': {
