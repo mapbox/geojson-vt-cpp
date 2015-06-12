@@ -25,7 +25,7 @@ Clip::clip(const std::vector<ProjectedFeature> features,
         double min = 0;
         double max = 0;
 
-        if (feature.minPoint) {
+        if (feature.minPoint.isValid()) {
             min = (axis == 0 ? feature.minPoint.x : feature.minPoint.y);
             max = (axis == 0 ? feature.maxPoint.x : feature.maxPoint.y);
 
@@ -97,7 +97,7 @@ ProjectedGeometryContainer Clip::clipGeometry(ProjectedGeometryContainer geometr
         ProjectedGeometryContainer slice;
 
         for (size_t j = 0; j < (len - 1); ++j) {
-            a = (b ? b : points->members[j].get<ProjectedPoint>());
+            a = (b.isValid() ? b : points->members[j].get<ProjectedPoint>());
             b = points->members[j + 1].get<ProjectedPoint>();
             ak = (bk ? bk : (axis == 0 ? a.x : a.y));
             bk = (axis == 0 ? b.x : b.y);

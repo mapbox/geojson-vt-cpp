@@ -243,7 +243,7 @@ void Convert::calcSize(ProjectedGeometryContainer& geometryContainer) {
     ProjectedPoint a, b;
 
     for (size_t i = 0; i < geometryContainer.members.size() - 1; ++i) {
-        a = (b ? b : geometryContainer.members[i].get<ProjectedPoint>());
+        a = (b.isValid() ? b : geometryContainer.members[i].get<ProjectedPoint>());
         b = geometryContainer.members[i + 1].get<ProjectedPoint>();
 
         area += a.x * b.y - b.x * a.y;

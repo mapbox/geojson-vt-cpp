@@ -35,14 +35,19 @@ using ProjectedGeometry =
 
 class ProjectedPoint {
 public:
-    ProjectedPoint(double x_ = -1, double y_ = -1, double z_ = -1) : x(x_), y(y_), z(z_) {
+    inline ProjectedPoint(double x_ = -1, double y_ = -1, double z_ = -1) : x(x_), y(y_), z(z_) {
     }
 
-    inline operator bool() const {
+    inline bool isValid() const {
         return (x >= 0 && y >= 0 && z >= 0);
     }
+
+    inline bool operator==(const ProjectedPoint& rhs) const {
+        return x == rhs.x && y == rhs.y && z == rhs.z;
+    }
+
     inline bool operator!=(const ProjectedPoint& rhs) const {
-        return (x != rhs.x || y != rhs.y || z != rhs.z);
+        return !operator==(rhs);
     }
 
 public:
