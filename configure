@@ -10,7 +10,10 @@ function finish {
 trap finish EXIT
 
 # Install mason
-git submodule update --init .mason
+if [ ! -d .mason ] ; then
+  if [ ! -d .git ] ; then curl -L https://github.com/mapbox/mason/archive/master.tar.gz | tar -xf- && mv mason-master .mason
+  else git submodule update --init .mason ; fi
+fi
 export PATH="`pwd`/.mason:${PATH}" MASON_DIR="`pwd`/.mason"
 
 function quote_flags {
