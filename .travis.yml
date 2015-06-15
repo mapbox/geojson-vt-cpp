@@ -1,0 +1,41 @@
+sudo: false
+
+matrix:
+  exclude:
+    - os: linux
+  include:
+    - os: linux
+      env: CXX=g++-4.9 BUILDTYPE=Debug
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'gdb', 'g++-4.9', 'gcc-4.9', 'libllvm3.4' ]
+    - os: linux
+      env: CXX=g++-4.9 BUILDTYPE=Release
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ 'gdb', 'g++-4.9', 'gcc-4.9', 'libllvm3.4' ]
+    - os: linux
+      env: CXX=clang++-3.5 BUILDTYPE=Debug
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5' ]
+          packages: [ 'gdb', 'clang-3.5', 'libstdc++-4.9-dev', 'libstdc++6', 'libllvm3.4' ]
+    - os: linux
+      env: CXX=clang++-3.5 BUILDTYPE=Release
+      addons:
+        apt:
+          sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5' ]
+          packages: [ 'gdb', 'clang-3.5', 'libstdc++-4.9-dev', 'libstdc++6', 'libllvm3.4' ]
+
+install:
+- ./configure
+
+script:
+- make test -j2
+- ./build/${BUILDTYPE}/test
+
+notifications:
+  slack:
+    secure: "aqkA6cy2y18F77+2holvmKEP6e5gvAOhYqjnJI5wE4UDCyxNi6EK40fb42hrYfIX5cw00TAPEdQXA9U83/lOP67JSSG9ARhlOihEDcxBo/rAnwNs2hNycYFa3orN7gKUSNIXrc5nw9lcfJIxdiVBbhj0kaCppKLQCeox29XG4R3Fdm8UW98pQXY4TACynePbNq0vPJCCvDp6Xp4HlDbKfUleyDW5NGjHPT/SSToE137LShtuQmWuBOzchmckkhDE7zCiTZu5wNbRiFOHYh8dZUatd/6RjotoDqkvP2QBEo0mRW6d7ug7zAZTNmqh0dG0tv3Wpg9V7ZdURRN5c3UDkZv1GvIuC7y3qeBh+7V+/3aYcecsJkd3BmExYHQ2YPcTr9+UvtewlxD7LkeppwbSqDNjD8WGFuO37FU3DyD7O5WBcjCcljuV5Fqil0i10WT3CtqPDm9YLz+Sfyq4HRfrcdXfrFQRe9xvyJ3Upb+Nk2qy5pZ8XFsAHKL1lfqzOUgzO/3cNOVSW1Bda4BFL1oHy+XKrKRakRc3nz8JejciKBX7pdyCKB8jueiCgFZS9mCe2JRTQxlRoA+qYrggupdvzI4rdiwzQ+tNbt7Mf58wxAdkkcngz13HBdfbUNgZ3ZOOz0v7lBWIH23agW8GxUfvJZxY6kJ3WGcw59bbquvIxvs="
