@@ -1,11 +1,10 @@
 {
   'includes': [
     'deps/common.gypi',
-    'deps/vars.gypi',
   ],
   'variables': {
-    'gtest_static_libs%': '',
-    'glfw_static_libs%': '',
+    'gtest_static_libs%': [],
+    'glfw_static_libs%': [],
   },
   'targets': [
     { 'target_name': 'geojsonvt',
