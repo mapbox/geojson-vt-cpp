@@ -7,6 +7,7 @@
     { 'target_name': 'geojsonvt',
       'product_name': 'geojsonvt',
       'type': 'static_library',
+      'standalone_static_library': 1,
 
       'include_dirs': [
         'include',
@@ -62,6 +63,19 @@
           'include',
         ],
       },
+    },
+
+    { 'target_name': 'install',
+      'type': 'none',
+      'hard_dependency': 1,
+      'dependencies': [
+        'geojsonvt',
+      ],
+
+      'copies': [
+        { 'files': [ '<(PRODUCT_DIR)/libgeojsonvt.a' ], 'destination': '<(install_prefix)/lib' },
+        { 'files': [ '<!@(find include -name "*.hpp")' ], 'destination': '<(install_prefix)/include/mapbox/geojsonvt' },
+      ],
     },
 
     { 'target_name': 'debug',

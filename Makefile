@@ -15,6 +15,9 @@ debug: config.gypi
 	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make
 	make -C build debug
 
+install: lib
+	make -C build install
+
 .PHONY: run-debug
 run-debug: debug
 	build/${BUILDTYPE}/debug
