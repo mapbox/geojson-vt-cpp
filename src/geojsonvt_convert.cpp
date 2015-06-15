@@ -167,20 +167,27 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
         if (geom.HasMember("coordinates")) {
             const JSValue& rawPolygons = geom["coordinates"];
             if (rawPolygons.IsArray()) {
-                for (rapidjson::SizeType i = 0; i < rawPolygons.Size(); ++i) {
-                    std::vector<LonLat> points;
-                    const JSValue& rawLines = rawPolygons[i];
-                    for (rapidjson::SizeType j = 0; j < rawLines.Size(); ++j) {
-                        std::array<double, 2> coordinates = { { 0, 0 } };
-                        const JSValue& rawCoordinatePairs = rawLines[i];
-                        if (rawCoordinatePairs.IsArray()) {
-                            coordinates[0] = rawCoordinatePairs[(rapidjson::SizeType)0].GetDouble();
-                            coordinates[1] = rawCoordinatePairs[(rapidjson::SizeType)1].GetDouble();
+                for (rapidjson::SizeType k = 0; k < rawPolygons.Size(); ++k) {
+                    const JSValue& rawLines = rawPolygons[k];
+                    if (rawLines.IsArray()) {
+                        for (rapidjson::SizeType i = 0; i < rawLines.Size(); ++i) {
+                            const JSValue& rawCoordinatePairs = rawLines[i];
+                            if (rawCoordinatePairs.IsArray()) {
+                                std::vector<LonLat> points;
+                                for (rapidjson::SizeType j = 0; j < rawCoordinatePairs.Size(); ++j) {
+                                    std::array<double, 2> coordinates = { { 0, 0 } };
+                                    const JSValue& rawCoordinates = rawCoordinatePairs[j];
+                                    if (rawCoordinates.IsArray()) {
+                                        coordinates[0] = rawCoordinates[(rapidjson::SizeType)0].GetDouble();
+                                        coordinates[1] = rawCoordinates[(rapidjson::SizeType)1].GetDouble();
+                                    }
+                                    points.push_back(LonLat(coordinates));
+                                }
+                                ProjectedGeometryContainer ring = project(points, tolerance);
+                                rings.members.push_back(ring);
+                            }
                         }
-                        points.push_back(LonLat(coordinates));
                     }
-                    ProjectedGeometryContainer ring = project(points, tolerance);
-                    rings.members.push_back(ring);
                 }
             }
         }
