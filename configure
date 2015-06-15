@@ -4,6 +4,12 @@ set -e
 set -o pipefail
 set -u
 
+if [ `uname -s` = 'Darwin' ]; then
+  MASON_PLATFORM=${MASON_PLATFORM:-osx}
+else
+  MASON_PLATFORM=${MASON_PLATFORM:-linux}
+fi
+
 function finish {
     >&2 echo -en "\033[0m";
 }
@@ -45,7 +51,7 @@ VARIANT_VERSION=1.0
 mason install variant ${VARIANT_VERSION}
 CONFIG+="    'variant_cflags%': $(quote_flags $(mason cflags variant ${VARIANT_VERSION})),"$LN
 
-if [[ $MASON_PLATFORM == 'osx' || $MASON_PLATFORM == 'linux' ]] ; then
+if [[ ${MASON_PLATFORM:-} == 'osx' || ${MASON_PLATFORM:-} == 'linux' ]] ; then
   GTEST_VERSION=1.7.0
   mason install gtest ${GTEST_VERSION}
   CONFIG+="    'gtest_static_libs%': $(quote_flags $(mason static_libs gtest ${GTEST_VERSION})),"$LN

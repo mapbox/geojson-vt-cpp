@@ -3,6 +3,10 @@
     'deps/common.gypi',
     'deps/vars.gypi',
   ],
+  'variables': {
+    'gtest_static_libs%': '',
+    'glfw_static_libs%': '',
+  },
   'targets': [
     { 'target_name': 'geojsonvt',
       'product_name': 'geojsonvt',
@@ -77,95 +81,104 @@
         { 'files': [ '<!@(find include -name "*.hpp")' ], 'destination': '<(install_prefix)/include/mapbox/geojsonvt' },
       ],
     },
+  ],
 
-    { 'target_name': 'debug',
-      'product_name': 'debug',
-      'type': 'executable',
+  'conditions': [
+    ['gtest_static_libs != ""', {
+      'targets': [
+        { 'target_name': 'test',
+          'product_name': 'test',
+          'type': 'executable',
 
-      'dependencies': [
-        'geojsonvt',
+          'dependencies': [
+            'geojsonvt',
+          ],
+
+          'include_dirs': [
+            'src',
+          ],
+
+          'sources': [
+            'test/test.cpp',
+            'test/util.hpp',
+            'test/util.cpp',
+            'test/test_clip.cpp',
+            'test/test_simplify.cpp',
+          ],
+
+          'variables': {
+            'cflags_cc': [
+              '<@(variant_cflags)',
+              '<@(gtest_cflags)',
+            ],
+            'ldflags': [
+              '<@(gtest_ldflags)'
+            ],
+            'libraries': [
+              '<@(gtest_static_libs)',
+            ],
+          },
+
+          'conditions': [
+            ['OS == "mac"', {
+              'libraries': [ '<@(libraries)' ],
+              'xcode_settings': {
+                'OTHER_CPLUSPLUSFLAGS': [ '<@(cflags_cc)' ],
+                'OTHER_LDFLAGS': [ '<@(ldflags)' ],
+              }
+            }, {
+              'cflags_cc': [ '<@(cflags_cc)' ],
+              'libraries': [ '<@(libraries)', '<@(ldflags)' ],
+            }]
+          ],
+        },
       ],
+    }],
+    ['glfw_static_libs != ""', {
+      'targets': [
+        { 'target_name': 'debug',
+          'product_name': 'debug',
+          'type': 'executable',
 
-      'include_dirs': [
-        'src',
+          'dependencies': [
+            'geojsonvt',
+          ],
+
+          'include_dirs': [
+            'src',
+          ],
+
+          'sources': [
+            'debug/debug.cpp',
+          ],
+
+          'variables': {
+            'cflags_cc': [
+              '<@(variant_cflags)',
+              '<@(glfw_cflags)',
+            ],
+            'ldflags': [
+              '<@(glfw_ldflags)'
+            ],
+            'libraries': [
+              '<@(glfw_static_libs)',
+            ],
+          },
+
+          'conditions': [
+            ['OS == "mac"', {
+              'libraries': [ '<@(libraries)' ],
+              'xcode_settings': {
+                'OTHER_CPLUSPLUSFLAGS': [ '<@(cflags_cc)' ],
+                'OTHER_LDFLAGS': [ '<@(ldflags)' ],
+              }
+            }, {
+              'cflags_cc': [ '<@(cflags_cc)' ],
+              'libraries': [ '<@(libraries)', '<@(ldflags)' ],
+            }]
+          ],
+        },
       ],
-
-      'sources': [
-        'debug/debug.cpp',
-      ],
-
-      'variables': {
-        'cflags_cc': [
-          '<@(variant_cflags)',
-          '<@(glfw_cflags)',
-        ],
-        'ldflags': [
-          '<@(glfw_ldflags)'
-        ],
-        'libraries': [
-          '<@(glfw_static_libs)',
-        ],
-      },
-
-      'conditions': [
-        ['OS == "mac"', {
-          'libraries': [ '<@(libraries)' ],
-          'xcode_settings': {
-            'OTHER_CPLUSPLUSFLAGS': [ '<@(cflags_cc)' ],
-            'OTHER_LDFLAGS': [ '<@(ldflags)' ],
-          }
-        }, {
-          'cflags_cc': [ '<@(cflags_cc)' ],
-          'libraries': [ '<@(libraries)', '<@(ldflags)' ],
-        }]
-      ],
-    },
-
-    { 'target_name': 'test',
-      'product_name': 'test',
-      'type': 'executable',
-
-      'dependencies': [
-        'geojsonvt',
-      ],
-
-      'include_dirs': [
-        'src',
-      ],
-
-      'sources': [
-        'test/test.cpp',
-        'test/util.hpp',
-        'test/util.cpp',
-        'test/test_clip.cpp',
-        'test/test_simplify.cpp',
-      ],
-
-      'variables': {
-        'cflags_cc': [
-          '<@(variant_cflags)',
-          '<@(gtest_cflags)',
-        ],
-        'ldflags': [
-          '<@(gtest_ldflags)'
-        ],
-        'libraries': [
-          '<@(gtest_static_libs)',
-        ],
-      },
-
-      'conditions': [
-        ['OS == "mac"', {
-          'libraries': [ '<@(libraries)' ],
-          'xcode_settings': {
-            'OTHER_CPLUSPLUSFLAGS': [ '<@(cflags_cc)' ],
-            'OTHER_LDFLAGS': [ '<@(ldflags)' ],
-          }
-        }, {
-          'cflags_cc': [ '<@(cflags_cc)' ],
-          'libraries': [ '<@(libraries)', '<@(ldflags)' ],
-        }]
-      ],
-    },
+    }],
   ],
 }
