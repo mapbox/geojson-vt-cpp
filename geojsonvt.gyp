@@ -64,6 +64,49 @@
       },
     },
 
+    { 'target_name': 'debug',
+      'product_name': 'debug',
+      'type': 'executable',
+
+      'dependencies': [
+        'geojsonvt',
+      ],
+
+      'include_dirs': [
+        'src',
+      ],
+
+      'sources': [
+        'debug/debug.cpp',
+      ],
+
+      'variables': {
+        'cflags_cc': [
+          '<@(variant_cflags)',
+          '<@(glfw_cflags)',
+        ],
+        'ldflags': [
+          '<@(glfw_ldflags)'
+        ],
+        'libraries': [
+          '<@(glfw_static_libs)',
+        ],
+      },
+
+      'conditions': [
+        ['OS == "mac"', {
+          'libraries': [ '<@(libraries)' ],
+          'xcode_settings': {
+            'OTHER_CPLUSPLUSFLAGS': [ '<@(cflags_cc)' ],
+            'OTHER_LDFLAGS': [ '<@(ldflags)' ],
+          }
+        }, {
+          'cflags_cc': [ '<@(cflags_cc)' ],
+          'libraries': [ '<@(libraries)', '<@(ldflags)' ],
+        }]
+      ],
+    },
+
     { 'target_name': 'test',
       'product_name': 'test',
       'type': 'executable',

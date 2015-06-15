@@ -10,6 +10,15 @@ lib: config.gypi
 	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make
 	make -C build geojsonvt
 
+.PHONY: debug
+debug: config.gypi
+	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make
+	make -C build debug
+
+.PHONY: run-debug
+run-debug: debug
+	build/${BUILDTYPE}/debug
+
 .PHONY: test
 test: config.gypi
 	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make
