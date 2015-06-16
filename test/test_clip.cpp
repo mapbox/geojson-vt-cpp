@@ -29,16 +29,23 @@ const auto geom1 = G{ G{ P{ 0, 0 },
                          P{ 25, 60 } } };
 const auto geom2 = G{ G{ P{ 0, 0 }, P{ 50, 0 }, P{ 50, 10 }, P{ 0, 10 } } };
 
+ProjectedPoint min1 { 0,0 };
+ProjectedPoint max1 { 50,60 };
+ProjectedPoint min2 { 0,0 };
+ProjectedPoint max2 { 50,10 };
+
 TEST(Clip, Polylines) {
     const std::map<std::string, std::string> tags1;
     const std::map<std::string, std::string> tags2;
 
     const std::vector<F> features{
-        F{ geom1, ProjectedFeatureType::LineString, tags1 },
-        F{ geom2, ProjectedFeatureType::LineString, tags2 },
+        F{ geom1, ProjectedFeatureType::LineString, tags1, min1, max1 },
+        F{ geom2, ProjectedFeatureType::LineString, tags2, min2, max2 },
     };
 
-    const auto clipped = Clip::clip(features, 1, 10, 40, 0, intersectX);
+    const auto clipped =
+        Clip::clip(features, 1, 10, 40, 0, intersectX, std::numeric_limits<double>::quiet_NaN(),
+                   std::numeric_limits<double>::quiet_NaN());
 
     const std::vector<ProjectedFeature> expected = {
         { G{
@@ -48,12 +55,16 @@ TEST(Clip, Polylines) {
              G{ P{ 10, 60 }, P{ 25, 60 } },
           },
           ProjectedFeatureType::LineString,
-          tags1 },
+          tags1,
+          min1,
+          max1 },
         { G{
              G{ P{ 10, 0 }, P{ 40, 0 } }, G{ P{ 40, 10 }, P{ 10, 10 } },
           },
           ProjectedFeatureType::LineString,
-          tags2 }
+          tags2,
+          min2,
+          max2 }
     };
 
     ASSERT_EQ(expected, clipped);
@@ -72,11 +83,13 @@ TEST(Clip, Polygon) {
     const std::map<std::string, std::string> tags2;
 
     const std::vector<F> features{
-        F{ closed(geom1), ProjectedFeatureType::Polygon, tags1 },
-        F{ closed(geom2), ProjectedFeatureType::Polygon, tags2 },
+        F{ closed(geom1), ProjectedFeatureType::Polygon, tags1, min1, max1 },
+        F{ closed(geom2), ProjectedFeatureType::Polygon, tags2, min2, max2 },
     };
 
-    const auto clipped = Clip::clip(features, 1, 10, 40, 0, intersectX);
+    const auto clipped =
+        Clip::clip(features, 1, 10, 40, 0, intersectX, std::numeric_limits<double>::quiet_NaN(),
+                   std::numeric_limits<double>::quiet_NaN());
 
     const std::vector<ProjectedFeature> expected = {
         { G{ G{ P{ 10, 0 },
@@ -98,10 +111,14 @@ TEST(Clip, Polygon) {
 
           },
           ProjectedFeatureType::Polygon,
-          tags1 },
+          tags1,
+          min1,
+          max1 },
         { G{ G{ P{ 10, 0 }, P{ 40, 0 }, P{ 40, 10 }, P{ 10, 10 }, P{ 10, 0 } } },
           ProjectedFeatureType::Polygon,
-          tags2 }
+          tags2,
+          min2,
+          max2 }
     };
 
     ASSERT_EQ(expected, clipped);
@@ -112,11 +129,13 @@ TEST(Clip, Points) {
     const std::map<std::string, std::string> tags2;
 
     const std::vector<F> features{
-        F{ geom1[0], ProjectedFeatureType::Point, tags1 },
-        F{ geom2[0], ProjectedFeatureType::Point, tags2 },
+        F{ geom1[0], ProjectedFeatureType::Point, tags1, min1, max1 },
+        F{ geom2[0], ProjectedFeatureType::Point, tags2, min2, max2 },
     };
 
-    const auto clipped = Clip::clip(features, 1, 10, 40, 0, intersectX);
+    const auto clipped =
+        Clip::clip(features, 1, 10, 40, 0, intersectX, std::numeric_limits<double>::quiet_NaN(),
+                   std::numeric_limits<double>::quiet_NaN());
 
     const std::vector<ProjectedFeature> expected = {
         { G{ P{ 20, 10 },
@@ -127,7 +146,9 @@ TEST(Clip, Points) {
              P{ 25, 50 },
              P{ 25, 60 } },
           ProjectedFeatureType::Point,
-          tags1 },
+          tags1,
+          min1,
+          max1 },
     };
 
     ASSERT_EQ(expected, clipped);

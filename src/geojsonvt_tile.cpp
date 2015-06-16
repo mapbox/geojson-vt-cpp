@@ -20,6 +20,14 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
     for (size_t i = 0; i < features.size(); ++i) {
         tile.numFeatures++;
         addFeature(tile, features[i], tolerance, noSimplify);
+
+        const auto& min = features[i].min;
+        const auto& max = features[i].max;
+
+        if (min.x < tile.min.x) tile.min.x = min.x;
+        if (min.y < tile.min.y) tile.min.y = min.y;
+        if (max.x > tile.max.x) tile.max.x = max.x;
+        if (max.y > tile.max.y) tile.max.y = max.y;
     }
 
     return std::move(tile);

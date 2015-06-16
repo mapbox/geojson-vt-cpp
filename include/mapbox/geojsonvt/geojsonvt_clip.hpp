@@ -21,7 +21,9 @@ public:
          double k1,
          double k2,
          uint8_t axis,
-         ProjectedPoint (*intersect)(const ProjectedPoint&, const ProjectedPoint&, double));
+         ProjectedPoint (*intersect)(const ProjectedPoint&, const ProjectedPoint&, double),
+         double minAll,
+         double maxAll);
 
 private:
     static ProjectedGeometryContainer

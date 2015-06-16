@@ -34,6 +34,8 @@ public:
     uint32_t tx = 0;
     uint32_t ty = 0;
     bool transformed = false;
+    ProjectedPoint min { 2, 1 };
+    ProjectedPoint max { -1, 0 };
 
     std::vector<ProjectedFeature> source;
 };

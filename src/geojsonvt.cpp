@@ -160,17 +160,17 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         std::vector<ProjectedFeature> left;
         std::vector<ProjectedFeature> right;
 
-        left  = Clip::clip(features, z2, x - k1, x + k3, 0, intersectX);
-        right = Clip::clip(features, z2, x + k2, x + k4, 0, intersectX);
+        left  = Clip::clip(features, z2, x - k1, x + k3, 0, intersectX, tile->min.x, tile->max.x);
+        right = Clip::clip(features, z2, x + k2, x + k4, 0, intersectX, tile->min.x, tile->max.x);
 
         if (left.size()) {
-            tl = Clip::clip(left, z2, y - k1, y + k3, 1, intersectY);
-            bl = Clip::clip(left, z2, y + k2, y + k4, 1, intersectY);
+            tl = Clip::clip(left, z2, y - k1, y + k3, 1, intersectY, tile->min.y, tile->max.y);
+            bl = Clip::clip(left, z2, y + k2, y + k4, 1, intersectY, tile->min.y, tile->max.y);
         }
 
         if (right.size()) {
-            tr = Clip::clip(right, z2, y - k1, y + k3, 1, intersectY);
-            br = Clip::clip(right, z2, y + k2, y + k4, 1, intersectY);
+            tr = Clip::clip(right, z2, y - k1, y + k3, 1, intersectY, tile->min.y, tile->max.y);
+            br = Clip::clip(right, z2, y + k2, y + k4, 1, intersectY, tile->min.y, tile->max.y);
         }
 
         if (this->debug) {

@@ -83,16 +83,20 @@ enum class ProjectedFeatureType : uint8_t { Point = 1, LineString = 2, Polygon =
 
 class ProjectedFeature {
 public:
-    ProjectedFeature(ProjectedGeometry geometry_, ProjectedFeatureType type_, Tags tags_)
-        : geometry(geometry_), type(type_), tags(tags_) {
+    ProjectedFeature(ProjectedGeometry geometry_,
+                     ProjectedFeatureType type_,
+                     Tags tags_,
+                     ProjectedPoint min_ = { 2, 1 }, // initial bbox values;
+                     ProjectedPoint max_ = { -1, 0 }) // note that coords are usually in [0..1] range
+        : geometry(geometry_), type(type_), tags(tags_), min(min_), max(max_) {
     }
 
 public:
     ProjectedGeometry geometry;
     ProjectedFeatureType type;
     Tags tags;
-    ProjectedPoint minPoint = ProjectedPoint();
-    ProjectedPoint maxPoint = ProjectedPoint();
+    ProjectedPoint min;
+    ProjectedPoint max;
 };
 
 #pragma mark -

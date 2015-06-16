@@ -20,6 +20,10 @@ namespace geojsonvt {
     return os << "[" << p.x << "," << p.y << "," << p.z << "]";
 }
 
+::std::ostream& operator<<(::std::ostream& os, const ProjectedFeature& f) {
+    return os << "Feature (" << f.type << "): " << f.geometry;
+}
+
 ::std::ostream& operator<<(::std::ostream& os, const ProjectedGeometryContainer& c) {
     os << "{ Container( area: " << c.area << ", dist: " << c.dist << ", members: ";
     for (const auto& member : c.members) {
@@ -31,8 +35,8 @@ namespace geojsonvt {
 bool operator==(const ProjectedFeature& a, const ProjectedFeature& b) {
     EXPECT_EQ(a.type, b.type);
     EXPECT_EQ(a.geometry, b.geometry);
-    EXPECT_EQ(a.maxPoint, b.maxPoint);
-    EXPECT_EQ(a.minPoint, b.minPoint);
+    EXPECT_EQ(a.max, b.max);
+    EXPECT_EQ(a.min, b.min);
     EXPECT_EQ(a.tags, b.tags);
     return true;
 }

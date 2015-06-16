@@ -9,6 +9,7 @@ namespace geojsonvt {
 
 ::std::ostream& operator<<(::std::ostream& os, ProjectedFeatureType t);
 ::std::ostream& operator<<(::std::ostream& os, const ProjectedPoint& p);
+::std::ostream& operator<<(::std::ostream& os, const ProjectedFeature& f);
 ::std::ostream& operator<<(::std::ostream& os, const ProjectedGeometryContainer& c);
 
 bool operator==(const ProjectedFeature& a, const ProjectedFeature& b);

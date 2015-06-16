@@ -10,10 +10,20 @@ Clip::clip(const std::vector<ProjectedFeature> features,
            double k1,
            double k2,
            uint8_t axis,
-           ProjectedPoint (*intersect)(const ProjectedPoint&, const ProjectedPoint&, double)) {
+           ProjectedPoint (*intersect)(const ProjectedPoint&, const ProjectedPoint&, double),
+           const double minAll,
+           const double maxAll) {
 
     k1 /= scale;
     k2 /= scale;
+
+    if (minAll >= k1 && maxAll <= k2) {
+        // trivial accept
+        return features;
+    } else if (minAll > k2 || maxAll < k1) {
+        // trivial reject
+        return {};
+    }
 
     std::vector<ProjectedFeature> clipped;
 
@@ -25,16 +35,14 @@ Clip::clip(const std::vector<ProjectedFeature> features,
         double min = 0;
         double max = 0;
 
-        if (feature.minPoint.isValid()) {
-            min = (axis == 0 ? feature.minPoint.x : feature.minPoint.y);
-            max = (axis == 0 ? feature.maxPoint.x : feature.maxPoint.y);
+        min = (axis == 0 ? feature.min.x : feature.min.y);
+        max = (axis == 0 ? feature.max.x : feature.max.y);
 
-            if (min >= k1 && max <= k2) {
-                clipped.push_back(feature);
-                continue;
-            } else if (min > k2 || max < k1) {
-                continue;
-            }
+        if (min >= k1 && max <= k2) { // trivial accept
+            clipped.push_back(feature);
+            continue;
+        } else if (min > k2 || max < k1) { // trivial reject
+            continue;
         }
 
         ProjectedGeometryContainer slices;
@@ -47,7 +55,8 @@ Clip::clip(const std::vector<ProjectedFeature> features,
         }
 
         if (slices.members.size()) {
-            clipped.push_back(ProjectedFeature(slices, type, features[i].tags));
+            clipped.push_back(ProjectedFeature(slices, type, features[i].tags, feature.min,
+                                               feature.max));
         }
     }
 

@@ -266,16 +266,16 @@ void Convert::calcSize(ProjectedGeometryContainer& geometryContainer) {
 void Convert::calcBBox(ProjectedFeature& feature) {
 
     ProjectedGeometryContainer* geometry = &(feature.geometry.get<ProjectedGeometryContainer>());
-    ProjectedPoint* minPoint = &(feature.minPoint);
-    ProjectedPoint* maxPoint = &(feature.maxPoint);
+    ProjectedPoint* min = &(feature.min);
+    ProjectedPoint* max = &(feature.max);
 
     if (feature.type == ProjectedFeatureType::Point) {
-        calcRingBBox(*minPoint, *maxPoint, *geometry);
+        calcRingBBox(*min, *max, *geometry);
     } else {
         for (size_t i = 0; i < geometry->members.size(); ++i) {
             ProjectedGeometryContainer* featureGeometry =
                 &(geometry->members[i].get<ProjectedGeometryContainer>());
-            calcRingBBox(*minPoint, *maxPoint, *featureGeometry);
+            calcRingBBox(*min, *max, *featureGeometry);
         }
     }
 }
