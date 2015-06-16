@@ -512,11 +512,11 @@ class XcodeSettings(object):
     else:
       assert self.configname
       archs = self.GetActiveArchs(self.configname)
-    if len(archs) != 1:
-      # TODO: Supporting fat binaries will be annoying.
-      self._WarnUnimplemented('ARCHS')
-      archs = ['i386']
-    cflags.append('-arch ' + archs[0])
+    # if len(archs) != 1:
+    #   # TODO: Supporting fat binaries will be annoying.
+    #   self._WarnUnimplemented('ARCHS')
+    #   archs = ['i386']
+    # cflags.append('-arch ' + archs[0])
 
     if archs[0] in ('i386', 'x86_64'):
       if self._Test('GCC_ENABLE_SSE3_EXTENSIONS', 'YES', default='NO'):

@@ -54,12 +54,14 @@ CONFIG+="    'variant_cflags%': $(quote_flags $(mason cflags variant ${VARIANT_V
 if [[ ${MASON_PLATFORM:-} == 'osx' || ${MASON_PLATFORM:-} == 'linux' ]] ; then
   GTEST_VERSION=1.7.0
   mason install gtest ${GTEST_VERSION}
+  CONFIG+="    'gtest%': 1,"$LN
   CONFIG+="    'gtest_static_libs%': $(quote_flags $(mason static_libs gtest ${GTEST_VERSION})),"$LN
   CONFIG+="    'gtest_cflags%': $(quote_flags $(mason cflags gtest ${GTEST_VERSION})),"$LN
   CONFIG+="    'gtest_ldflags%': $(quote_flags $(mason ldflags gtest ${GTEST_VERSION})),"$LN
 
   GLFW_VERSION=3.1
   mason install glfw ${GLFW_VERSION}
+  CONFIG+="    'glfw%': 1,"$LN
   CONFIG+="    'glfw_static_libs%': $(quote_flags $(mason static_libs glfw ${GLFW_VERSION})),"$LN
   CONFIG+="    'glfw_cflags%': $(quote_flags $(mason cflags glfw ${GLFW_VERSION})),"$LN
   CONFIG+="    'glfw_ldflags%': $(quote_flags $(mason ldflags glfw ${GLFW_VERSION})),"$LN

@@ -3,8 +3,11 @@
     'deps/common.gypi',
   ],
   'variables': {
+    'gtest%': 0,
     'gtest_static_libs%': [],
+    'glfw%': 0,
     'glfw_static_libs%': [],
+    'mason_platform': 'osx',
   },
   'targets': [
     { 'target_name': 'geojsonvt',
@@ -47,7 +50,7 @@
           },
         }, {
           'cflags_cc': [ '<@(cflags_cc)' ],
-        }]
+        }],
       ],
 
       'link_settings': {
@@ -83,7 +86,7 @@
   ],
 
   'conditions': [
-    ['gtest_static_libs != ""', {
+    ['gtest', {
       'targets': [
         { 'target_name': 'test',
           'product_name': 'test',
@@ -133,7 +136,7 @@
         },
       ],
     }],
-    ['glfw_static_libs != ""', {
+    ['glfw', {
       'targets': [
         { 'target_name': 'debug',
           'product_name': 'debug',

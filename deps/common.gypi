@@ -1,4 +1,7 @@
 {
+  'variables': {
+    'mason_platform': '<!(echo $MASON_PLATFORM)',
+  },
   'target_defaults': {
     'default_configuration': 'Release',
     'configurations': {
@@ -25,5 +28,20 @@
         }
       },
     },
+    'target_conditions': [
+      ['OS == "mac"', {
+        'conditions': [
+          ['mason_platform == "ios"', {
+            'xcode_settings': {
+              'SDKROOT': 'iphoneos',
+              'SUPPORTED_PLATFORMS': 'iphonesimulator iphoneos',
+              'IPHONEOS_DEPLOYMENT_TARGET': '7.0',
+              'TARGETED_DEVICE_FAMILY': '1,2',
+              'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
+            },
+          }],
+        ],
+      }],
+    ],
   },
 }
