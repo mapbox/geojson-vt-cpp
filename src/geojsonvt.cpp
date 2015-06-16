@@ -1,7 +1,7 @@
 #include <mapbox/geojsonvt/geojsonvt.hpp>
-#include "geojsonvt_clip.hpp"
-#include "geojsonvt_convert.hpp"
-#include "geojsonvt_util.hpp"
+#include <mapbox/geojsonvt/geojsonvt_clip.hpp>
+#include <mapbox/geojsonvt/geojsonvt_convert.hpp>
+#include <mapbox/geojsonvt/geojsonvt_util.hpp>
 
 #include <queue>
 

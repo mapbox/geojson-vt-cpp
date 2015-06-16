@@ -1,4 +1,4 @@
-#include "geojsonvt_simplify.hpp"
+#include <mapbox/geojsonvt/geojsonvt_simplify.hpp>
 
 #include <stack>
 
