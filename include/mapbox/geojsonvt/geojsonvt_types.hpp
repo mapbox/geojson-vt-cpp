@@ -129,12 +129,13 @@ typedef ProjectedFeatureType TileFeatureType;
 
 class TileFeature {
 public:
-    TileFeature(std::vector<TileGeometry> geometry_, TileFeatureType type_, Tags tags_)
+    TileFeature(std::vector<ProjectedGeometry> geometry_, TileFeatureType type_, Tags tags_)
         : geometry(geometry_), type(type_), tags(tags_) {
     }
 
 public:
-    std::vector<TileGeometry> geometry;
+    std::vector<ProjectedGeometry> geometry;
+    std::vector<TileGeometry> tileGeometry;
     TileFeatureType type;
     Tags tags;
 };

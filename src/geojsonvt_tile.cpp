@@ -9,14 +9,17 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
                       uint32_t tx,
                       uint32_t ty,
                       double tolerance,
-                      uint16_t extent,
                       bool noSimplify) {
 
     Tile tile;
 
+    tile.z2 = z2;
+    tile.tx = tx;
+    tile.ty = ty;
+
     for (size_t i = 0; i < features.size(); ++i) {
         tile.numFeatures++;
-        addFeature(tile, features[i], z2, tx, ty, tolerance, extent, noSimplify);
+        addFeature(tile, features[i], tolerance, noSimplify);
     }
 
     return std::move(tile);
@@ -24,23 +27,19 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
 
 void Tile::addFeature(Tile& tile,
                       ProjectedFeature& feature,
-                      uint32_t z2,
-                      uint32_t tx,
-                      uint32_t ty,
                       double tolerance,
-                      uint16_t extent,
                       bool noSimplify) {
 
     ProjectedGeometryContainer* geom = &(feature.geometry.get<ProjectedGeometryContainer>());
     ProjectedFeatureType type = feature.type;
-    std::vector<TileGeometry> transformed;
+    std::vector<ProjectedGeometry> simplified;
     double sqTolerance = tolerance * tolerance;
     ProjectedGeometryContainer ring;
 
     if (type == ProjectedFeatureType::Point) {
         for (size_t i = 0; i < geom->members.size(); ++i) {
             ProjectedPoint* p = &(geom->members[i].get<ProjectedPoint>());
-            transformed.push_back(transformPoint(*p, z2, tx, ty, extent));
+            simplified.push_back(*p);
             tile.numPoints++;
             tile.numSimplified++;
         }
@@ -55,34 +54,24 @@ void Tile::addFeature(Tile& tile,
                 continue;
             }
 
-            TileRing transformedRing;
+            ProjectedGeometryContainer simplifiedRing;
 
             for (size_t j = 0; j < ring.members.size(); ++j) {
                 ProjectedPoint* p = &(ring.members[j].get<ProjectedPoint>());
                 if (noSimplify || p->z > sqTolerance) {
-                    TilePoint transformedPoint = transformPoint(*p, z2, tx, ty, extent);
-                    transformedRing.points.push_back(transformedPoint);
+                    simplifiedRing.members.push_back(*p);
                     tile.numSimplified++;
                 }
                 tile.numPoints++;
             }
 
-            transformed.push_back(transformedRing);
+            simplified.push_back(simplifiedRing);
         }
     }
 
-    if (transformed.size()) {
-        tile.features.push_back(TileFeature(transformed, type, Tags(feature.tags)));
+    if (simplified.size()) {
+        tile.features.push_back(TileFeature(simplified, type, Tags(feature.tags)));
     }
-}
-
-TilePoint Tile::transformPoint(
-    const ProjectedPoint& p, uint32_t z2, uint32_t tx, uint32_t ty, uint16_t extent) {
-
-    int16_t x = extent * (p.x * z2 - tx);
-    int16_t y = extent * (p.y * z2 - ty);
-
-    return TilePoint(x, y);
 }
 
 } // namespace geojsonvt

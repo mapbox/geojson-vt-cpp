@@ -218,7 +218,7 @@ int main(void) {
                     switch (feature.type) {
                     case TileFeatureType::Polygon: {
                         glColor4f(1, 0, 0, 1);
-                        for (const auto& geom : feature.geometry) {
+                        for (const auto& geom : feature.tileGeometry) {
                             const auto& ring = geom.get<TileRing>();
                             glBegin(GL_LINE_STRIP);
                             for (const auto& pt : ring.points) {

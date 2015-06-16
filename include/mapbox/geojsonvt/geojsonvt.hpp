@@ -38,6 +38,10 @@ private:
                    int32_t cx = -1,
                    int32_t cy = -1);
 
+    static TilePoint
+    transformPoint(const ProjectedPoint& p, uint16_t extent, uint32_t z2, uint32_t tx, uint32_t ty);
+    static Tile& transformTile(Tile&, uint16_t extent);
+
     bool isClippedSquare(const std::vector<TileFeature>& features,
                          uint16_t extent,
                          uint8_t buffer) const;

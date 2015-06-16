@@ -14,31 +14,27 @@ public:
                            uint32_t tx,
                            uint32_t ty,
                            double tolerance,
-                           uint16_t extent,
                            bool noSimplify);
 
     static void addFeature(Tile& tile,
                            ProjectedFeature& feature,
-                           uint32_t z2,
-                           uint32_t tx,
-                           uint32_t ty,
                            double tolerance,
-                           uint16_t extent,
                            bool noSimplify);
 
     inline operator bool() const {
         return this->numPoints > 0;
     }
 
-private:
-    static TilePoint
-    transformPoint(const ProjectedPoint& p, uint32_t z2, uint32_t tx, uint32_t ty, uint16_t extent);
-
 public:
     std::vector<TileFeature> features;
     uint32_t numPoints = 0;
     uint32_t numSimplified = 0;
     uint32_t numFeatures = 0;
+    uint32_t z2 = 0;
+    uint32_t tx = 0;
+    uint32_t ty = 0;
+    bool transformed = false;
+
     std::vector<ProjectedFeature> source;
 };
 
