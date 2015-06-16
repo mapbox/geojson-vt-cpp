@@ -4,6 +4,7 @@
 #include <mapbox/geojsonvt/geojsonvt_util.hpp>
 
 #include <queue>
+#include <cmath>
 
 namespace mapbox {
 namespace util {
