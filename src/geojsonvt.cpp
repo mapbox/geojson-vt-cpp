@@ -119,18 +119,29 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             }
         }
 
-        if ((cz < 0 && (z == this->maxZoom || this->tiles[id].numPoints <= this->maxPoints ||
-                        isClippedSquare(tile->features, this->extent, this->buffer))) ||
-            z == this->baseZoom || z == cz) {
-            tile->source = std::vector<ProjectedFeature>(features);
-            continue;
+        // save reference to original geometry in tile so that we can drill down later if we stop now
+        tile->source = std::vector<ProjectedFeature>(features);
+
+        // stop tiling if the tile is degenerate
+        if (isClippedSquare(tile->features, extent, buffer)) continue;
+
+        // if it's the first-pass tiling
+        if (!cz) {
+            // stop tiling if we reached max zoom, or if the tile is too simple
+            if (z == maxZoom || tile->numPoints <= maxPoints) continue;
+
+        // if a drilldown to a specific tile
+        } else {
+            // stop tiling if we reached base zoom or our target tile zoom
+            if (z == baseZoom || z == cz) continue;
+
+            // stop tiling if it's not an ancestor of the target tile
+            const auto m = 1 << (cz - z);
+            if (x != std::floor(cx / m) && y != std::floor(cy / m)) continue;
         }
 
-        if (cz >= 0) {
-            tile->source = std::vector<ProjectedFeature>(features);
-        } else {
-            tile->source = {};
-        }
+        // if we slice further down, no need to keep source geometry
+        tile->source = {};
 
         if (this->debug) {
             Time::time("clipping");
@@ -147,42 +158,18 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         std::vector<ProjectedFeature> br;
         std::vector<ProjectedFeature> left;
         std::vector<ProjectedFeature> right;
-        uint32_t m = 0;
-        bool goLeft = false;
-        bool goTop = false;
 
-        if (cz >= 0) {
-            m = 1 << (cz - z);
-            goLeft = double(cx) / double(m) - double(x) < 0.5;
-            goTop = double(cy) / double(m) - double(y) < 0.5;
-        }
-
-        if (cz < 0 || goLeft) {
-            left = Clip::clip(features, z2, x - k1, x + k3, 0, intersectX);
-        }
-
-        if (cz < 0 || !goLeft) {
-            right = Clip::clip(features, z2, x + k2, x + k4, 0, intersectX);
-        }
+        left  = Clip::clip(features, z2, x - k1, x + k3, 0, intersectX);
+        right = Clip::clip(features, z2, x + k2, x + k4, 0, intersectX);
 
         if (left.size()) {
-            if (cz < 0 || goTop) {
-                tl = Clip::clip(left, z2, y - k1, y + k3, 1, intersectY);
-            }
-
-            if (cz < 0 || !goTop) {
-                bl = Clip::clip(left, z2, y + k2, y + k4, 1, intersectY);
-            }
+            tl = Clip::clip(left, z2, y - k1, y + k3, 1, intersectY);
+            bl = Clip::clip(left, z2, y + k2, y + k4, 1, intersectY);
         }
 
         if (right.size()) {
-            if (cz < 0 || goTop) {
-                tr = Clip::clip(right, z2, y - k1, y + k3, 1, intersectY);
-            }
-
-            if (cz < 0 || !goTop) {
-                br = Clip::clip(right, z2, y + k2, y + k4, 1, intersectY);
-            }
+            tr = Clip::clip(right, z2, y - k1, y + k3, 1, intersectY);
+            br = Clip::clip(right, z2, y + k2, y + k4, 1, intersectY);
         }
 
         if (this->debug) {
