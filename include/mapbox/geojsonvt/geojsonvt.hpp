@@ -22,8 +22,8 @@ public:
 
     GeoJSONVT(const std::vector<ProjectedFeature>& features_,
               uint8_t maxZoom = 14,
-              uint8_t indexMaxZoom = 4,
-              uint32_t indexMaxPoints = 100,
+              uint8_t indexMaxZoom = 5,
+              uint32_t indexMaxPoints = 100000,
               double tolerance = 3,
               bool debug = false);
 
