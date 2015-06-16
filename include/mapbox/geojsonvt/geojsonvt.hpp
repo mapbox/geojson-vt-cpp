@@ -16,14 +16,14 @@ namespace geojsonvt {
 class GeoJSONVT {
 public:
     static std::vector<ProjectedFeature> convertFeatures(const std::string& data,
-                                                         uint8_t baseZoom = 14,
+                                                         uint8_t maxZoom = 14,
                                                          double tolerance = 3,
                                                          bool debug = false);
 
     GeoJSONVT(const std::vector<ProjectedFeature>& features_,
-              uint8_t baseZoom = 14,
-              uint8_t maxZoom = 4,
-              uint32_t maxPoints = 100,
+              uint8_t maxZoom = 14,
+              uint8_t indexMaxZoom = 4,
+              uint32_t indexMaxPoints = 100,
               double tolerance = 3,
               bool debug = false);
 
@@ -68,9 +68,9 @@ private:
 
 private:
     std::mutex mtx;
-    uint8_t baseZoom;
     uint8_t maxZoom;
-    uint32_t maxPoints;
+    uint8_t indexMaxZoom;
+    uint32_t indexMaxPoints;
     double tolerance;
     bool debug;
     uint16_t extent = 4096;

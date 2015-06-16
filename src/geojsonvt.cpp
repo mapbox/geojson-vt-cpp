@@ -14,7 +14,7 @@ std::unordered_map<std::string, clock_t> Time::activities;
 #pragma mark - GeoJSONVT
 
 std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data,
-                                                         uint8_t baseZoom,
+                                                         uint8_t maxZoom,
                                                          double tolerance,
                                                          bool debug) {
 
@@ -22,7 +22,7 @@ std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data
         Time::time("preprocess data");
     }
 
-    uint32_t z2 = 1 << baseZoom;
+    uint32_t z2 = 1 << maxZoom;
 
     JSDocument deserializedData;
     deserializedData.Parse<0>(data.c_str());
@@ -45,26 +45,27 @@ std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data
 }
 
 GeoJSONVT::GeoJSONVT(const std::vector<ProjectedFeature>& features_,
-                     uint8_t baseZoom_,
                      uint8_t maxZoom_,
-                     uint32_t maxPoints_,
+                     uint8_t indexMaxZoom_,
+                     uint32_t indexMaxPoints_,
                      double tolerance_,
                      bool debug_)
-    : baseZoom(baseZoom_),
-      maxZoom(maxZoom_),
-      maxPoints(maxPoints_),
+    : maxZoom(maxZoom_),
+      indexMaxZoom(indexMaxZoom_),
+      indexMaxPoints(indexMaxPoints_),
       tolerance(tolerance_),
       debug(debug_) {
 
     if (this->debug) {
-        Time::time("generate tiles up to z" + std::to_string(maxZoom));
+        printf("index: maxZoom: %d, maxPoints: %d", indexMaxZoom, indexMaxPoints);
+        Time::time("generate tiles");
     }
 
     splitTile(features_, 0, 0, 0);
 
     if (this->debug) {
         printf("features: %i, points: %i\n", this->tiles[0].numFeatures, this->tiles[0].numPoints);
-        Time::timeEnd("generate tiles up to z" + std::to_string(maxZoom));
+        Time::timeEnd("generate tiles");
         printf("tiles generated: %i {\n", this->total);
         for (const auto& pair : this->stats) {
             printf("    z%i: %i\n", pair.first, pair.second);
@@ -95,7 +96,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         uint32_t z2 = 1 << z;
         const uint64_t id = toID(z, x, y);
         Tile* tile;
-        double tileTolerance = (z == this->baseZoom ? 0 : this->tolerance / (z2 * this->extent));
+        double tileTolerance = (z == this->maxZoom ? 0 : this->tolerance / (z2 * this->extent));
 
         if (this->tiles.count(id)) {
             tile = &this->tiles[id];
@@ -105,7 +106,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             }
 
             this->tiles[id] = std::move(
-                Tile::createTile(features, z2, x, y, tileTolerance, (z == this->baseZoom)));
+                Tile::createTile(features, z2, x, y, tileTolerance, (z == this->maxZoom)));
             tile = &this->tiles[id];
 
             if (this->debug) {
@@ -128,12 +129,12 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         // if it's the first-pass tiling
         if (!cz) {
             // stop tiling if we reached max zoom, or if the tile is too simple
-            if (z == maxZoom || tile->numPoints <= maxPoints) continue;
+            if (z == indexMaxZoom || tile->numPoints <= indexMaxPoints) continue;
 
         // if a drilldown to a specific tile
         } else {
             // stop tiling if we reached base zoom or our target tile zoom
-            if (z == baseZoom || z == cz) continue;
+            if (z == maxZoom || z == cz) continue;
 
             // stop tiling if it's not an ancestor of the target tile
             const auto m = 1 << (cz - z);
