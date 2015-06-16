@@ -241,6 +241,8 @@ ProjectedPoint Convert::projectPoint(const LonLat& p_) {
     double x = p_.lon / 360 + 0.5;
     double y = 0.5 - 0.25 * std::log((1 + sine) / (1 - sine)) / M_PI;
 
+    y = y < -1 ? -1 : y > 1 ? 1 : y;
+
     return ProjectedPoint(x, y, 0);
 }
 
