@@ -39,22 +39,21 @@ void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
             points.members[index].get<ProjectedPoint>().z = maxSqDist;
             stack.push(first);
             stack.push(index);
-            stack.push(index);
-            stack.push(last);
-        }
-
-        if (stack.size()) {
-            last = stack.top();
-            stack.pop();
+            first = index;
         } else {
-            last = 0;
-        }
+            if (stack.size()) {
+                last = stack.top();
+                stack.pop();
+            } else {
+                last = 0;
+            }
 
-        if (stack.size()) {
-            first = stack.top();
-            stack.pop();
-        } else {
-            first = 0;
+            if (stack.size()) {
+                first = stack.top();
+                stack.pop();
+            } else {
+                first = 0;
+            }
         }
     }
 }
