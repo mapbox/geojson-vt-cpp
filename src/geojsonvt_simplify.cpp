@@ -73,7 +73,7 @@ Simplify::getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const P
         if (t > 1) {
             x = b.x;
             y = b.y;
-        } else if (t) {
+        } else if (t > 0) {
             x += dx * t;
             y += dy * t;
         }
