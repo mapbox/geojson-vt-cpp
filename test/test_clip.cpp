@@ -46,8 +46,8 @@ TEST(Clip, Polylines) {
     };
 
     const auto clipped =
-        Clip::clip(features, 1, 10, 40, 0, intersectX, std::numeric_limits<double>::quiet_NaN(),
-                   std::numeric_limits<double>::quiet_NaN());
+        Clip::clip(features, 1, 10, 40, 0, intersectX, -std::numeric_limits<double>::infinity(),
+                   std::numeric_limits<double>::infinity());
 
     const std::vector<ProjectedFeature> expected = {
         { V{
@@ -90,8 +90,8 @@ TEST(Clip, Polygon) {
     };
 
     const auto clipped =
-        Clip::clip(features, 1, 10, 40, 0, intersectX, std::numeric_limits<double>::quiet_NaN(),
-                   std::numeric_limits<double>::quiet_NaN());
+        Clip::clip(features, 1, 10, 40, 0, intersectX, -std::numeric_limits<double>::infinity(),
+                   std::numeric_limits<double>::infinity());
 
     const std::vector<ProjectedFeature> expected = {
         { V{ G{ V{ P{ 10, 0 },
@@ -136,8 +136,8 @@ TEST(Clip, Points) {
     };
 
     const auto clipped =
-        Clip::clip(features, 1, 10, 40, 0, intersectX, std::numeric_limits<double>::quiet_NaN(),
-                   std::numeric_limits<double>::quiet_NaN());
+        Clip::clip(features, 1, 10, 40, 0, intersectX, -std::numeric_limits<double>::infinity(),
+                   std::numeric_limits<double>::infinity());
 
     const std::vector<ProjectedFeature> expected = {
         { G{ V{ P{ 20, 10 },
