@@ -105,11 +105,13 @@
             'test/util.hpp',
             'test/util.cpp',
             'test/test_clip.cpp',
+            'test/test_full.cpp',
             'test/test_simplify.cpp',
           ],
 
           'variables': {
             'cflags_cc': [
+              '<@(rapidjson_cflags)',
               '<@(variant_cflags)',
               '<@(gtest_cflags)',
             ],

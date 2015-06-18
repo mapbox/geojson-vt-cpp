@@ -16,6 +16,26 @@ namespace geojsonvt {
     }
 }
 
+::std::ostream& operator<<(::std::ostream& os, const TilePoint& p) {
+    return os << "[" << p.x << "," << p.y << "]";
+}
+
+::std::ostream& operator<<(::std::ostream& os, const TileRing& r) {
+    os << "Ring {";
+    for (const auto& pt : r.points) {
+        os << pt << ",";
+    }
+    return os << " }";
+}
+
+::std::ostream& operator<<(::std::ostream& os, const TileFeature& f) {
+    os << "Feature (" << f.type << ") {";
+    for (const auto& g : f.tileGeometry) {
+        os << g << ",";
+    }
+    return os << "}";
+}
+
 ::std::ostream& operator<<(::std::ostream& os, const ProjectedPoint& p) {
     return os << "[" << p.x << "," << p.y << "," << p.z << "]";
 }
@@ -30,6 +50,24 @@ namespace geojsonvt {
         os << member << ",";
     }
     return os << " }";
+}
+
+bool operator==(const TilePoint& a, const TilePoint& b) {
+    EXPECT_EQ(a.x, b.x);
+    EXPECT_EQ(a.y, b.y);
+    return true;
+}
+
+bool operator==(const TileRing& a, const TileRing& b) {
+    EXPECT_EQ(a.points, b.points);
+    return true;
+}
+
+bool operator==(const TileFeature& a, const TileFeature& b) {
+    EXPECT_EQ(a.type, b.type);
+    EXPECT_EQ(a.tileGeometry, b.tileGeometry);
+    EXPECT_EQ(a.tags, b.tags);
+    return true;
 }
 
 bool operator==(const ProjectedFeature& a, const ProjectedFeature& b) {
