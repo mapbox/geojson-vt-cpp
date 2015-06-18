@@ -9,8 +9,10 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double tolerance) {
+// converts GeoJSON feature into an intermediate projected JSON vector format with simplification
+// data
 
+std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double tolerance) {
     std::vector<ProjectedFeature> features;
     const JSValue& rawType = data["type"];
 
@@ -25,6 +27,7 @@ std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double to
             }
         }
     } else if (std::string(data["type"].GetString()) == "Feature") {
+        // single geometry or a geometry collection
         convertFeature(features, data, tolerance);
     } else {
 
@@ -48,7 +51,6 @@ std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double to
 void Convert::convertFeature(std::vector<ProjectedFeature>& features,
                              const JSValue& feature,
                              double tolerance) {
-
     const JSValue& geom = feature["geometry"];
     const JSValue& rawType = geom["type"];
     std::string type{ rawType.GetString(), rawType.GetStringLength() };
@@ -59,13 +61,32 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
         rapidjson::Value::ConstMemberIterator itr = properties.MemberBegin();
         for (; itr != properties.MemberEnd(); ++itr) {
             std::string key{ itr->name.GetString(), itr->name.GetStringLength() };
-            std::string val{ itr->value.GetString(), itr->value.GetStringLength() };
-            tags[key] = val;
+            switch (itr->value.GetType()) {
+            case rapidjson::kNullType:
+                tags.emplace(key, "null");
+                break;
+            case rapidjson::kFalseType:
+                tags.emplace(key, "false");
+                break;
+            case rapidjson::kTrueType:
+                tags.emplace(key, "true");
+                break;
+            case rapidjson::kStringType:
+                tags.emplace(key,
+                             std::string{ itr->value.GetString(), itr->value.GetStringLength() });
+                break;
+            case rapidjson::kNumberType:
+                tags.emplace(key, std::to_string(itr->value.GetDouble()));
+                break;
+            default:
+                // it's either array or object, but both of those are invalid
+                // in this context
+                break;
+            }
         }
     }
 
     if (type == "Point") {
-
         std::array<double, 2> coordinates = { { 0, 0 } };
         if (geom.HasMember("coordinates")) {
             const JSValue& rawCoordinates = geom["coordinates"];
@@ -82,7 +103,6 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
         features.push_back(create(tags, ProjectedFeatureType::Point, geometry));
 
     } else if (type == "MultiPoint") {
-
         std::vector<std::array<double, 2>> coordinatePairs;
         std::vector<LonLat> points;
         if (geom.HasMember("coordinates")) {
@@ -105,7 +125,6 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
         features.push_back(create(tags, ProjectedFeatureType::Point, geometry));
 
     } else if (type == "LineString") {
-
         std::vector<std::array<double, 2>> coordinatePairs;
         std::vector<LonLat> points;
         if (geom.HasMember("coordinates")) {
@@ -128,7 +147,6 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
         features.push_back(create(tags, ProjectedFeatureType::LineString, geometry));
 
     } else if (type == "MultiLineString" || type == "Polygon") {
-
         ProjectedGeometryContainer rings;
         if (geom.HasMember("coordinates")) {
             const JSValue& rawLines = geom["coordinates"];
@@ -162,7 +180,6 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
     }
 
     else if (type == "MultiPolygon") {
-
         ProjectedGeometryContainer rings;
         if (geom.HasMember("coordinates")) {
             const JSValue& rawPolygons = geom["coordinates"];
@@ -174,12 +191,15 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
                             const JSValue& rawCoordinatePairs = rawLines[i];
                             if (rawCoordinatePairs.IsArray()) {
                                 std::vector<LonLat> points;
-                                for (rapidjson::SizeType j = 0; j < rawCoordinatePairs.Size(); ++j) {
+                                for (rapidjson::SizeType j = 0; j < rawCoordinatePairs.Size();
+                                     ++j) {
                                     std::array<double, 2> coordinates = { { 0, 0 } };
                                     const JSValue& rawCoordinates = rawCoordinatePairs[j];
                                     if (rawCoordinates.IsArray()) {
-                                        coordinates[0] = rawCoordinates[(rapidjson::SizeType)0].GetDouble();
-                                        coordinates[1] = rawCoordinates[(rapidjson::SizeType)1].GetDouble();
+                                        coordinates[0] =
+                                            rawCoordinates[(rapidjson::SizeType)0].GetDouble();
+                                        coordinates[1] =
+                                            rawCoordinates[(rapidjson::SizeType)1].GetDouble();
                                     }
                                     points.push_back(LonLat(coordinates));
                                 }
@@ -197,7 +217,6 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
         features.push_back(create(tags, ProjectedFeatureType::Polygon, *geometry));
 
     } else if (type == "GeometryCollection") {
-
         if (geom.HasMember("geometries")) {
             const JSValue& rawGeometries = geom["geometries"];
             if (rawGeometries.IsArray()) {
@@ -208,13 +227,11 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
         }
 
     } else {
-
         printf("unsupported GeoJSON type: %s\n", geom["type"].GetString());
     }
 }
 
 ProjectedFeature Convert::create(Tags tags, ProjectedFeatureType type, ProjectedGeometry geometry) {
-
     ProjectedFeature feature(geometry, type, tags);
     calcBBox(feature);
 
@@ -246,8 +263,8 @@ ProjectedPoint Convert::projectPoint(const LonLat& p_) {
     return ProjectedPoint(x, y, 0);
 }
 
+// calculate area and length of the poly
 void Convert::calcSize(ProjectedGeometryContainer& geometryContainer) {
-
     double area = 0, dist = 0;
     ProjectedPoint a, b;
 
@@ -256,6 +273,9 @@ void Convert::calcSize(ProjectedGeometryContainer& geometryContainer) {
         b = geometryContainer.members[i + 1].get<ProjectedPoint>();
 
         area += a.x * b.y - b.x * a.y;
+
+        // use Manhattan distance instead of Euclidian one to avoid expensive square root
+        // computation
         dist += std::abs(b.x - a.x) + std::abs(b.y - a.y);
     }
 
@@ -263,19 +283,17 @@ void Convert::calcSize(ProjectedGeometryContainer& geometryContainer) {
     geometryContainer.dist = dist;
 }
 
+// calculate the feature bounding box for faster clipping later
 void Convert::calcBBox(ProjectedFeature& feature) {
-
-    ProjectedGeometryContainer* geometry = &(feature.geometry.get<ProjectedGeometryContainer>());
-    ProjectedPoint* min = &(feature.min);
-    ProjectedPoint* max = &(feature.max);
+    auto& geometry = feature.geometry.get<ProjectedGeometryContainer>();
+    auto& min = feature.min;
+    auto& max = feature.max;
 
     if (feature.type == ProjectedFeatureType::Point) {
-        calcRingBBox(*min, *max, *geometry);
+        calcRingBBox(min, max, geometry);
     } else {
-        for (size_t i = 0; i < geometry->members.size(); ++i) {
-            ProjectedGeometryContainer* featureGeometry =
-                &(geometry->members[i].get<ProjectedGeometryContainer>());
-            calcRingBBox(*min, *max, *featureGeometry);
+        for (auto& member : geometry.members) {
+            calcRingBBox(min, max, member.get<ProjectedGeometryContainer>());
         }
     }
 }
@@ -283,13 +301,12 @@ void Convert::calcBBox(ProjectedFeature& feature) {
 void Convert::calcRingBBox(ProjectedPoint& minPoint,
                            ProjectedPoint& maxPoint,
                            const ProjectedGeometryContainer& geometry) {
-
-    for (size_t i = 0; i < geometry.members.size(); ++i) {
-        const ProjectedPoint* p = &(geometry.members[i].get<ProjectedPoint>());
-        minPoint.x = std::min(p->x, minPoint.x);
-        maxPoint.x = std::max(p->x, maxPoint.x);
-        minPoint.y = std::min(p->y, minPoint.y);
-        maxPoint.y = std::max(p->y, maxPoint.y);
+    for (auto& member : geometry.members) {
+        auto& p = member.get<ProjectedPoint>();
+        minPoint.x = std::min(p.x, minPoint.x);
+        maxPoint.x = std::max(p.x, maxPoint.x);
+        minPoint.y = std::min(p.y, minPoint.y);
+        maxPoint.y = std::max(p.y, maxPoint.y);
     }
 }
 

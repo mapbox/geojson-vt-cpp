@@ -15,27 +15,29 @@ private:
     Clip() = delete;
 
 public:
-    static std::vector<ProjectedFeature>
-    clip(std::vector<ProjectedFeature> features,
-         uint32_t scale,
-         double k1,
-         double k2,
-         uint8_t axis,
-         ProjectedPoint (*intersect)(const ProjectedPoint&, const ProjectedPoint&, double),
-         double minAll,
-         double maxAll);
+    typedef ProjectedPoint (*IntersectCallback)(const ProjectedPoint&,
+                                                const ProjectedPoint&,
+                                                double);
+
+    static std::vector<ProjectedFeature> clip(const std::vector<ProjectedFeature>& features,
+                                              uint32_t scale,
+                                              double k1,
+                                              double k2,
+                                              uint8_t axis,
+                                              IntersectCallback intersect,
+                                              double minAll,
+                                              double maxAll);
 
 private:
     static ProjectedGeometryContainer
-    clipPoints(ProjectedGeometryContainer geometry, double k1, double k2, uint8_t axis);
+    clipPoints(const ProjectedGeometryContainer& geometry, double k1, double k2, uint8_t axis);
 
-    static ProjectedGeometryContainer
-    clipGeometry(ProjectedGeometryContainer geometry,
-                 double k1,
-                 double k2,
-                 uint8_t axis,
-                 ProjectedPoint (*intersect)(const ProjectedPoint&, const ProjectedPoint&, double),
-                 bool closed);
+    static ProjectedGeometryContainer clipGeometry(const ProjectedGeometryContainer& geometry,
+                                                   double k1,
+                                                   double k2,
+                                                   uint8_t axis,
+                                                   IntersectCallback intersect,
+                                                   bool closed);
 
     static ProjectedGeometryContainer newSlice(ProjectedGeometryContainer& slices,
                                                ProjectedGeometryContainer& slice,

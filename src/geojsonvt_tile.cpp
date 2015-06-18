@@ -10,51 +10,51 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
                       uint32_t ty,
                       double tolerance,
                       bool noSimplify) {
-
     Tile tile;
 
     tile.z2 = z2;
     tile.tx = tx;
     tile.ty = ty;
 
-    for (size_t i = 0; i < features.size(); ++i) {
+    for (const auto& feature : features) {
         tile.numFeatures++;
-        addFeature(tile, features[i], tolerance, noSimplify);
+        addFeature(tile, feature, tolerance, noSimplify);
 
-        const auto& min = features[i].min;
-        const auto& max = features[i].max;
+        const auto& min = feature.min;
+        const auto& max = feature.max;
 
-        if (min.x < tile.min.x) tile.min.x = min.x;
-        if (min.y < tile.min.y) tile.min.y = min.y;
-        if (max.x > tile.max.x) tile.max.x = max.x;
-        if (max.y > tile.max.y) tile.max.y = max.y;
+        if (min.x < tile.min.x)
+            tile.min.x = min.x;
+        if (min.y < tile.min.y)
+            tile.min.y = min.y;
+        if (max.x > tile.max.x)
+            tile.max.x = max.x;
+        if (max.y > tile.max.y)
+            tile.max.y = max.y;
     }
 
     return std::move(tile);
 }
 
-void Tile::addFeature(Tile& tile,
-                      ProjectedFeature& feature,
-                      double tolerance,
-                      bool noSimplify) {
-
-    ProjectedGeometryContainer* geom = &(feature.geometry.get<ProjectedGeometryContainer>());
-    ProjectedFeatureType type = feature.type;
+void
+Tile::addFeature(Tile& tile, const ProjectedFeature& feature, double tolerance, bool noSimplify) {
+    const ProjectedGeometryContainer& geom = feature.geometry.get<ProjectedGeometryContainer>();
+    const ProjectedFeatureType type = feature.type;
     std::vector<ProjectedGeometry> simplified;
-    double sqTolerance = tolerance * tolerance;
-    ProjectedGeometryContainer ring;
+    const double sqTolerance = tolerance * tolerance;
 
     if (type == ProjectedFeatureType::Point) {
-        for (size_t i = 0; i < geom->members.size(); ++i) {
-            ProjectedPoint* p = &(geom->members[i].get<ProjectedPoint>());
-            simplified.push_back(*p);
+        for (auto& member : geom.members) {
+            simplified.push_back(member.get<ProjectedPoint>());
             tile.numPoints++;
             tile.numSimplified++;
         }
     } else {
-        for (size_t i = 0; i < geom->members.size(); ++i) {
-            ring = geom->members[i].get<ProjectedGeometryContainer>();
+        // simplify and transform projected coordinates for tile geometry
+        for (auto& member : geom.members) {
+            auto& ring = member.get<ProjectedGeometryContainer>();
 
+            // filter out tiny polylines & polygons
             if (!noSimplify &&
                 ((type == ProjectedFeatureType::LineString && ring.dist < tolerance) ||
                  (type == ProjectedFeatureType::Polygon && ring.area < sqTolerance))) {
@@ -64,10 +64,11 @@ void Tile::addFeature(Tile& tile,
 
             ProjectedGeometryContainer simplifiedRing;
 
-            for (size_t j = 0; j < ring.members.size(); ++j) {
-                ProjectedPoint* p = &(ring.members[j].get<ProjectedPoint>());
-                if (noSimplify || p->z > sqTolerance) {
-                    simplifiedRing.members.push_back(*p);
+            for (auto& ringMember : ring.members) {
+                auto& p = ringMember.get<ProjectedPoint>();
+                // keep points with importance > tolerance
+                if (noSimplify || p.z > sqTolerance) {
+                    simplifiedRing.members.push_back(p);
                     tile.numSimplified++;
                 }
                 tile.numPoints++;
@@ -78,7 +79,7 @@ void Tile::addFeature(Tile& tile,
     }
 
     if (simplified.size()) {
-        tile.features.push_back(TileFeature(simplified, type, Tags(feature.tags)));
+        tile.features.push_back(TileFeature(simplified, type, feature.tags));
     }
 }
 

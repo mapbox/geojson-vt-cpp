@@ -17,7 +17,7 @@ public:
                            bool noSimplify);
 
     static void addFeature(Tile& tile,
-                           ProjectedFeature& feature,
+                           const ProjectedFeature& feature,
                            double tolerance,
                            bool noSimplify);
 

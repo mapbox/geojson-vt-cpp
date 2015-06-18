@@ -6,8 +6,9 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
+// calculate simplification data using optimized Douglas-Peucker algorithm
 
+void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
     const double sqTolerance = tolerance * tolerance;
     const size_t len = points.members.size();
     size_t first = 0;
@@ -17,9 +18,11 @@ void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
     double sqDist = 0;
     size_t index = 0;
 
+    // always retain the endpoints (1 is the max value)
     points.members[first].get<ProjectedPoint>().z = 1;
     points.members[last].get<ProjectedPoint>().z = 1;
 
+    // avoid recursion by using a stack
     while (last) {
 
         maxSqDist = 0;
@@ -36,6 +39,7 @@ void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
         }
 
         if (maxSqDist > sqTolerance) {
+            // save the point importance in squared pixels as a z coordinate
             points.members[index].get<ProjectedPoint>().z = maxSqDist;
             stack.push(first);
             stack.push(index);
@@ -58,9 +62,9 @@ void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
     }
 }
 
+// square distance from a point to a segment
 double
 Simplify::getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const ProjectedPoint& b) {
-
     double x = a.x;
     double y = a.y;
     double dx = b.x - a.x;

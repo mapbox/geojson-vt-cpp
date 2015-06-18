@@ -29,14 +29,16 @@ public:
 
     Tile& getTile(uint8_t z, uint32_t x, uint32_t y);
 
+    const std::map<uint64_t, Tile>& getAllTiles() const;
+
 private:
     void splitTile(std::vector<ProjectedFeature> features,
                    uint8_t z,
                    uint32_t x,
                    uint32_t y,
-                   int8_t cz = -1,
-                   int32_t cx = -1,
-                   int32_t cy = -1);
+                   uint8_t cz = 0,
+                   uint32_t cx = 0,
+                   uint32_t cy = 0);
 
     static TilePoint
     transformPoint(const ProjectedPoint& p, uint16_t extent, uint32_t z2, uint32_t tx, uint32_t ty);
@@ -68,13 +70,13 @@ private:
 
 private:
     std::mutex mtx;
-    uint8_t maxZoom;
-    uint8_t indexMaxZoom;
-    uint32_t indexMaxPoints;
-    double tolerance;
+    uint8_t maxZoom;         // max zoom to preserve detail on
+    uint8_t indexMaxZoom;    // max zoom in the tile index
+    uint32_t indexMaxPoints; // max number of points per tile in the tile index
+    double tolerance;        // simplification tolerance (higher means simpler)
     bool debug;
-    uint16_t extent = 4096;
-    uint8_t buffer = 64;
+    uint16_t extent = 4096;  // tile extent
+    uint8_t buffer = 64;     // tile buffer on each side
     std::map<uint64_t, Tile> tiles;
     std::map<uint8_t, uint16_t> stats;
     uint16_t total = 0;
