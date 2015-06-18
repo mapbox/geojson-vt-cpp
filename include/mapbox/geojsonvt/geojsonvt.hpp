@@ -20,7 +20,7 @@ public:
                                                          double tolerance = 3,
                                                          bool debug = false);
 
-    GeoJSONVT(const std::vector<ProjectedFeature>& features_,
+    GeoJSONVT(std::vector<ProjectedFeature> features_,
               uint8_t maxZoom = 14,
               uint8_t indexMaxZoom = 5,
               uint32_t indexMaxPoints = 100000,

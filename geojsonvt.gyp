@@ -21,17 +21,19 @@
 
       'sources': [
         'include/mapbox/geojsonvt/geojsonvt.hpp',
+        'include/mapbox/geojsonvt/geojsonvt_clip.hpp',
+        'include/mapbox/geojsonvt/geojsonvt_convert.hpp',
+        'include/mapbox/geojsonvt/geojsonvt_simplify.hpp',
         'include/mapbox/geojsonvt/geojsonvt_tile.hpp',
         'include/mapbox/geojsonvt/geojsonvt_types.hpp',
+        'include/mapbox/geojsonvt/geojsonvt_util.hpp',
+        'include/mapbox/geojsonvt/geojsonvt_wrap.hpp',
         'src/geojsonvt.cpp',
         'src/geojsonvt_clip.cpp',
-        'src/geojsonvt_clip.hpp',
         'src/geojsonvt_convert.cpp',
-        'src/geojsonvt_convert.hpp',
         'src/geojsonvt_simplify.cpp',
-        'src/geojsonvt_simplify.hpp',
         'src/geojsonvt_tile.cpp',
-        'src/geojsonvt_util.hpp',
+        'src/geojsonvt_wrap.cpp',
       ],
 
       'variables': {

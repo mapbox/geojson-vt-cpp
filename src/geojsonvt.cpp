@@ -2,6 +2,7 @@
 #include <mapbox/geojsonvt/geojsonvt_clip.hpp>
 #include <mapbox/geojsonvt/geojsonvt_convert.hpp>
 #include <mapbox/geojsonvt/geojsonvt_util.hpp>
+#include <mapbox/geojsonvt/geojsonvt_wrap.hpp>
 
 #include <queue>
 #include <cmath>
@@ -42,7 +43,7 @@ GeoJSONVT::convertFeatures(const std::string& data, uint8_t maxZoom, double tole
     return features;
 }
 
-GeoJSONVT::GeoJSONVT(const std::vector<ProjectedFeature>& features_,
+GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_,
                      uint8_t maxZoom_,
                      uint8_t indexMaxZoom_,
                      uint32_t indexMaxPoints_,
@@ -57,6 +58,8 @@ GeoJSONVT::GeoJSONVT(const std::vector<ProjectedFeature>& features_,
         printf("index: maxZoom: %d, maxPoints: %d", indexMaxZoom, indexMaxPoints);
         Time::time("generate tiles");
     }
+
+    features_ = Wrap::wrap(features_, double(buffer) / extent, intersectX);
 
     // start slicing from the top tile down
     splitTile(features_, 0, 0, 0);
