@@ -29,7 +29,6 @@ std::string loadFile(const std::string& filename) {
     throw std::runtime_error("Error opening file");
 }
 
-
 using namespace mapbox::util::geojsonvt;
 
 std::map<std::string, std::vector<TileFeature>> genTiles(const std::string& data, uint8_t maxZoom, uint32_t maxPoints) {
@@ -114,18 +113,29 @@ std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string
                 const auto& geometry = feature["geometry"];
                 EXPECT_TRUE(geometry.IsArray());
                 for (rapidjson::SizeType j = 0; j < geometry.Size(); ++j) {
-                    const auto& ring = geometry[j];
-                    EXPECT_TRUE(ring.IsArray());
-                    TileRing tileRing;
-                    for (rapidjson::SizeType i = 0; i < ring.Size(); ++i) {
-                        const auto& pt = ring[i];
+                    if (tileType == TileFeatureType::Point) {
+                        const auto& pt = geometry[j];
                         EXPECT_TRUE(pt.IsArray());
                         EXPECT_TRUE(pt.Size() >= 2);
                         EXPECT_TRUE(pt[0].IsNumber());
                         EXPECT_TRUE(pt[1].IsNumber());
-                        tileRing.points.emplace_back(pt[0].GetInt(), pt[1].GetInt());
+                        tileFeature.tileGeometry.emplace_back(
+                            TilePoint{ static_cast<int16_t>(pt[0].GetInt()),
+                                       static_cast<int16_t>(pt[1].GetInt()) });
+                    } else {
+                        const auto& ring = geometry[j];
+                        EXPECT_TRUE(ring.IsArray());
+                        TileRing tileRing;
+                        for (rapidjson::SizeType i = 0; i < ring.Size(); ++i) {
+                            const auto& pt = ring[i];
+                            EXPECT_TRUE(pt.IsArray());
+                            EXPECT_TRUE(pt.Size() >= 2);
+                            EXPECT_TRUE(pt[0].IsNumber());
+                            EXPECT_TRUE(pt[1].IsNumber());
+                            tileRing.points.emplace_back(pt[0].GetInt(), pt[1].GetInt());
+                        }
+                        tileFeature.tileGeometry.push_back(tileRing);
                     }
-                    tileFeature.tileGeometry.push_back(tileRing);
                 }
             }
 
@@ -138,14 +148,31 @@ std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string
     return result;
 }
 
-TEST(Full, Tiles) {
-    const std::string inputFile = "test/fixtures/us-states.json";
-    const std::string expectedFile = "test/fixtures/us-states-tiles.json";
-    const uint32_t maxZoom = 7;
-    const uint32_t maxPoints = 200;
+struct Arguments {
+    const std::string inputFile;
+    const std::string expectedFile;
+    const uint32_t maxZoom;
+    const uint32_t maxPoints;
+};
 
-    const auto actual = genTiles(loadFile(inputFile), maxZoom, maxPoints);
-    const auto expected = parseJSONTiles(loadFile(expectedFile));
+
+::std::ostream& operator<<(::std::ostream& os, const Arguments& a) {
+    return os << a.inputFile << " (" << a.maxZoom << ", " << a.maxPoints << ")";
+}
+
+
+class TileTest : public ::testing::TestWithParam<Arguments> {};
+
+TEST_P(TileTest, Tiles) {
+    const auto& params = GetParam();
+
+    const auto actual = genTiles(loadFile(params.inputFile), params.maxZoom, params.maxPoints);
+    const auto expected = parseJSONTiles(loadFile(params.expectedFile));
 
     ASSERT_EQ(expected, actual);
 }
+
+INSTANTIATE_TEST_CASE_P(Full, TileTest, ::testing::ValuesIn(std::vector<Arguments>{
+    { "test/fixtures/us-states.json", "test/fixtures/us-states-tiles.json", 7, 200 },
+    { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },
+}));

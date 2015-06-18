@@ -142,7 +142,7 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
             }
         }
 
-        ProjectedGeometryContainer geometry({ project(points, tolerance) });
+        const std::vector<ProjectedGeometry> geometry { project(points, tolerance) };
 
         features.push_back(create(tags, ProjectedFeatureType::LineString, geometry));
 
