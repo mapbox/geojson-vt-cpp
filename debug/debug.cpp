@@ -45,7 +45,9 @@ int main(void) {
     }
 
     static int width = 768;
+    static int fbWidth = width;
     static int height = 768;
+    static int fbHeight = height;
 
     GLFWwindow* window = glfwCreateWindow(width, height, "GeoJSON VT — Drop a GeoJSON file", NULL, NULL);
     if (!window) {
@@ -123,10 +125,15 @@ int main(void) {
         }
     });
 
-    glfwSetWindowSizeCallback(window, [](GLFWwindow*, const int w, int const h) {
+    glfwSetWindowSizeCallback(window, [](GLFWwindow* win, const int w, const int h) {
         width = w;
         height = h;
         dirty = true;
+    });
+
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, const int w, const int h) {
+        fbWidth = w;
+        fbHeight = h;
     });
 
     glfwSetCursorPosCallback(window, [](GLFWwindow*, const double x, const double y) {
@@ -163,6 +170,8 @@ int main(void) {
             }
         }
     });
+
+    glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
 
     glfwMakeContextCurrent(window);
 
@@ -204,7 +213,7 @@ int main(void) {
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glViewport(0, 0, width, height);
+            glViewport(0, 0, fbWidth, fbHeight);
 
             if (tile) {
                 // main tile
