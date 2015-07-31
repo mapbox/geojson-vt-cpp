@@ -45,17 +45,13 @@ void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
             stack.push(index);
             first = index;
         } else {
-            if (stack.size()) {
+            if (!stack.empty()) {
                 last = stack.top();
                 stack.pop();
-            } else {
-                last = 0;
-            }
-
-            if (stack.size()) {
                 first = stack.top();
                 stack.pop();
             } else {
+                last = 0;
                 first = 0;
             }
         }

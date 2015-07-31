@@ -85,7 +85,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
     std::queue<FeatureStackItem> stack;
     stack.emplace(features_, z_, x_, y_);
 
-    while (stack.size()) {
+    while (!stack.empty()) {
         FeatureStackItem set = stack.front();
         stack.pop();
         std::vector<ProjectedFeature> features = std::move(set.features);
@@ -169,12 +169,12 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         const auto right =
             Clip::clip(features, z2, x + k2, x + k4, 0, intersectX, tile->min.x, tile->max.x);
 
-        if (left.size()) {
+        if (!left.empty()) {
             tl = Clip::clip(left, z2, y - k1, y + k3, 1, intersectY, tile->min.y, tile->max.y);
             bl = Clip::clip(left, z2, y + k2, y + k4, 1, intersectY, tile->min.y, tile->max.y);
         }
 
-        if (right.size()) {
+        if (!right.empty()) {
             tr = Clip::clip(right, z2, y - k1, y + k3, 1, intersectY, tile->min.y, tile->max.y);
             br = Clip::clip(right, z2, y + k2, y + k4, 1, intersectY, tile->min.y, tile->max.y);
         }
@@ -183,16 +183,16 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             Time::timeEnd("clipping");
         }
 
-        if (tl.size()) {
+        if (!tl.empty()) {
             stack.emplace(std::move(tl), z + 1, x * 2, y * 2);
         }
-        if (bl.size()) {
+        if (!bl.empty()) {
             stack.emplace(std::move(bl), z + 1, x * 2, y * 2 + 1);
         }
-        if (tr.size()) {
+        if (!tr.empty()) {
             stack.emplace(std::move(tr), z + 1, x * 2 + 1, y * 2);
         }
-        if (br.size()) {
+        if (!br.empty()) {
             stack.emplace(std::move(br), z + 1, x * 2 + 1, y * 2 + 1);
         }
     }
@@ -233,7 +233,7 @@ Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     }
 
     // if we found a parent tile containing the original geometry, we can drill down from it
-    if (parent->source.size()) {
+    if (!parent->source.empty()) {
         if (isClippedSquare(parent->features, extent, buffer)) {
             return transformTile(*parent, extent);
         }

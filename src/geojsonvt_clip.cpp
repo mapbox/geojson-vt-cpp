@@ -55,7 +55,7 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature>& fe
                                   intersect, (type == ProjectedFeatureType::Polygon));
         }
 
-        if (slices.members.size()) {
+        if (!slices.members.empty()) {
             // if a feature got clipped, it will likely get clipped on the next zoom level as well,
             // so there's no need to recalculate bboxes
             clipped.emplace_back(slices, type, feature.tags, feature.min, feature.max);
@@ -154,7 +154,7 @@ ProjectedGeometryContainer Clip::clipGeometry(const ProjectedGeometryContainer& 
         }
 
         // close the polygon if its endpoints are not the same after clipping
-        if (closed && slice.members.size()) {
+        if (closed && !slice.members.empty()) {
             const auto& first = slice.members.front().get<ProjectedPoint>();
             const auto& last = slice.members.back().get<ProjectedPoint>();
             if (first != last) {
@@ -174,7 +174,7 @@ ProjectedGeometryContainer Clip::newSlice(ProjectedGeometryContainer& slices,
                                           double area,
                                           double dist) {
 
-    if (slice.members.size()) {
+    if (!slice.members.empty()) {
         // we don't recalculate the area/length of the unclipped geometry because the case where it
         // goes below the visibility threshold as a result of clipping is rare, so we avoid doing
         // unnecessary work

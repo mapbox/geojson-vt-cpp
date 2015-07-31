@@ -78,7 +78,7 @@ Tile::addFeature(Tile& tile, const ProjectedFeature& feature, double tolerance, 
         }
     }
 
-    if (simplified.size()) {
+    if (!simplified.empty()) {
         tile.features.push_back(TileFeature(simplified, type, feature.tags));
     }
 }

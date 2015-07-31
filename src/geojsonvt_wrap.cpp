@@ -12,16 +12,16 @@ std::vector<ProjectedFeature> Wrap::wrap(std::vector<ProjectedFeature>& features
     // right world copy
     const auto right = Clip::clip(features, 1, 1 - buffer, 2 + buffer, 0, intersectX, -1, 2);
 
-    if (left.size() || right.size()) {
+    if (!left.empty() || !right.empty()) {
         // center world copy
         auto merged = Clip::clip(features, 1, -buffer, 1 + buffer, 0, intersectX, -1, 2);
 
-        if (left.size()) {
+        if (!left.empty()) {
             // merge left into center
             const auto shifted = shiftFeatureCoords(left, 1);
             merged.insert(merged.begin(), shifted.begin(), shifted.end());
         }
-        if (right.size()) {
+        if (!right.empty()) {
             // merge right into center
             const auto shifted = shiftFeatureCoords(right, -1);
             merged.insert(merged.end(), shifted.begin(), shifted.end());
