@@ -233,7 +233,7 @@ Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     }
 
     // if we found a parent tile containing the original geometry, we can drill down from it
-    if (!parent->source.empty()) {
+    if (parent && !parent->source.empty()) {
         if (isClippedSquare(parent->features, extent, buffer)) {
             return transformTile(*parent, extent);
         }
