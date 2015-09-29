@@ -3,9 +3,13 @@
 
 #include <mapbox/geojsonvt/geojsonvt_types.hpp>
 
+#include <rapidjson/document.h>
+
 namespace mapbox {
 namespace util {
 namespace geojsonvt {
+
+std::string loadFile(const std::string& filename);
 
 ::std::ostream& operator<<(::std::ostream& os, ProjectedFeatureType t);
 ::std::ostream& operator<<(::std::ostream& os, const TilePoint& p);
@@ -21,6 +25,10 @@ bool operator==(const TileFeature& a, const TileFeature& b);
 
 bool operator==(const ProjectedFeature& a, const ProjectedFeature& b);
 bool operator==(const ProjectedGeometryContainer& a, const ProjectedGeometryContainer& b);
+
+std::vector<TileFeature> parseJSONTile(const rapidjson::Value& tile);
+std::vector<TileFeature> parseJSONTile(const std::string& data);
+std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string& data);
 
 } // namespace geojsonvt
 } // namespace util

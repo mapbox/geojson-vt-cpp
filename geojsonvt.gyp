@@ -108,6 +108,7 @@
             'test/util.cpp',
             'test/test_clip.cpp',
             'test/test_full.cpp',
+            'test/test_get_tile.cpp',
             'test/test_simplify.cpp',
           ],
 

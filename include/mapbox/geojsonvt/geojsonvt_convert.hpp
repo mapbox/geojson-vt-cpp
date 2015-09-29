@@ -33,6 +33,11 @@ private:
                                const JSValue& feature,
                                double tolerance);
 
+    static void convertGeometry(std::vector<ProjectedFeature>& features,
+                                const Tags& tags,
+                                const JSValue& geometry,
+                                double tolerance);
+
     static ProjectedPoint projectPoint(const LonLat& p);
 
     static void calcSize(ProjectedGeometryContainer& geometryContainer);

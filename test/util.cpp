@@ -4,9 +4,27 @@
 
 #include <mapbox/variant_io.hpp>
 
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/error/en.h>
+
+#include <fstream>
+#include <sstream>
+
 namespace mapbox {
 namespace util {
 namespace geojsonvt {
+
+std::string loadFile(const std::string& filename) {
+    std::ifstream in(filename, std::ios::in | std::ios::binary);
+    if (in) {
+        std::ostringstream contents;
+        contents << in.rdbuf();
+        in.close();
+        return contents.str();
+    }
+    throw std::runtime_error("Error opening file");
+}
 
 ::std::ostream& operator<<(::std::ostream& os, ProjectedFeatureType t) {
     switch (t) {
@@ -85,6 +103,123 @@ bool operator==(const ProjectedGeometryContainer& a, const ProjectedGeometryCont
     EXPECT_EQ(a.members, b.members);
     return true;
 }
+
+std::vector<TileFeature> parseJSONTile(const rapidjson::Value& tile) {
+    std::vector<TileFeature> features;
+    EXPECT_TRUE(tile.IsArray());
+    for (rapidjson::SizeType k = 0; k < tile.Size(); ++k) {
+        const auto& feature = tile[k];
+
+        TileFeatureType tileType = TileFeatureType::Point;
+        if (feature.HasMember("type")) {
+            const auto& type = feature["type"];
+            EXPECT_TRUE(type.IsInt());
+            tileType = TileFeatureType(type.GetInt());
+        }
+
+        std::map<std::string, std::string> tileTags;
+        if (feature.HasMember("tags")) {
+            const auto& tags = feature["tags"];
+            EXPECT_TRUE(tags.IsObject());
+            for (auto jt = tags.MemberBegin(); jt != tags.MemberEnd(); jt++) {
+                const std::string tagKey{ jt->name.GetString(), jt->name.GetStringLength() };
+                switch (jt->value.GetType()) {
+                case rapidjson::kNullType:
+                    tileTags.emplace(tagKey, "null");
+                    break;
+                case rapidjson::kFalseType:
+                    tileTags.emplace(tagKey, "false");
+                    break;
+                case rapidjson::kTrueType:
+                    tileTags.emplace(tagKey, "true");
+                    break;
+                case rapidjson::kStringType:
+                    tileTags.emplace(tagKey, std::string{ jt->value.GetString(),
+                                                          jt->value.GetStringLength() });
+                    break;
+                case rapidjson::kNumberType:
+                    tileTags.emplace(tagKey, std::to_string(jt->value.GetDouble()));
+                    break;
+                default:
+                    EXPECT_TRUE(false) << "invalid JSON type";
+                }
+            }
+        }
+
+        TileFeature tileFeature{ {}, tileType, tileTags };
+        EXPECT_TRUE(feature.IsObject());
+        if (feature.HasMember("geometry")) {
+            const auto& geometry = feature["geometry"];
+            EXPECT_TRUE(geometry.IsArray());
+            for (rapidjson::SizeType j = 0; j < geometry.Size(); ++j) {
+                if (tileType == TileFeatureType::Point) {
+                    const auto& pt = geometry[j];
+                    EXPECT_TRUE(pt.IsArray());
+                    EXPECT_TRUE(pt.Size() >= 2);
+                    EXPECT_TRUE(pt[0].IsNumber());
+                    EXPECT_TRUE(pt[1].IsNumber());
+                    tileFeature.tileGeometry.emplace_back(
+                        TilePoint{ static_cast<int16_t>(pt[0].GetInt()),
+                                   static_cast<int16_t>(pt[1].GetInt()) });
+                } else {
+                    const auto& ring = geometry[j];
+                    EXPECT_TRUE(ring.IsArray());
+                    TileRing tileRing;
+                    for (rapidjson::SizeType i = 0; i < ring.Size(); ++i) {
+                        const auto& pt = ring[i];
+                        EXPECT_TRUE(pt.IsArray());
+                        EXPECT_TRUE(pt.Size() >= 2);
+                        EXPECT_TRUE(pt[0].IsNumber());
+                        EXPECT_TRUE(pt[1].IsNumber());
+                        tileRing.points.emplace_back(pt[0].GetInt(), pt[1].GetInt());
+                    }
+                    tileFeature.tileGeometry.push_back(tileRing);
+                }
+            }
+        }
+
+        features.emplace_back(std::move(tileFeature));
+    }
+
+    return std::move(features);
+}
+
+std::vector<TileFeature> parseJSONTile(const std::string& data) {
+    rapidjson::Document d;
+    d.Parse<0>(data.c_str());
+
+    if (d.HasParseError()) {
+        std::stringstream message;
+        message << "JSON error at " << d.GetErrorOffset() << " - "
+                << rapidjson::GetParseError_En(d.GetParseError());
+        throw std::runtime_error(message.str());
+    }
+    return parseJSONTile(d);
+}
+
+std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string& data) {
+    std::map<std::string, std::vector<TileFeature>> result;
+    rapidjson::Document d;
+    d.Parse<0>(data.c_str());
+
+    if (d.HasParseError()) {
+        std::stringstream message;
+        message << "JSON error at " << d.GetErrorOffset() << " - "
+                << rapidjson::GetParseError_En(d.GetParseError());
+        throw std::runtime_error(message.str());
+    }
+    EXPECT_TRUE(d.IsObject());
+    for (auto it = d.MemberBegin(); it != d.MemberEnd(); it++) {
+        const std::string key{ it->name.GetString(), it->name.GetStringLength() };
+        const auto& tile = it->value;
+
+
+        result.emplace(key, parseJSONTile(tile));
+    }
+
+    return result;
+}
+
 
 } // namespace geojsonvt
 } // namespace util

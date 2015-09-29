@@ -27,9 +27,21 @@ std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double to
             }
         }
     } else if (std::string(data["type"].GetString()) == "Feature") {
-        // single geometry or a geometry collection
         convertFeature(features, data, tolerance);
+    } else if (std::string(data["type"].GetString()) == "GeometryCollection") {
+        // geometry collection
+        if (data.HasMember("geometries")) {
+            const JSValue& rawGeometries = data["geometries"];
+            if (rawGeometries.IsArray()) {
+                printf("there are %i total geometries to convert\n", rawGeometries.Size());
+                Tags tags;
+                for (rapidjson::SizeType i = 0; i < rawGeometries.Size(); ++i) {
+                    convertGeometry(features, tags, rawGeometries[i], tolerance);
+                }
+            }
+        }
     } else {
+        fprintf(stderr, "unimplemented type %s\n", data["type"].GetString());
 
         /* In this case, we want to pass the entire JSON document as the
          * value for key 'geometry' in a new JSON object, like so:
@@ -51,11 +63,7 @@ std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double to
 void Convert::convertFeature(std::vector<ProjectedFeature>& features,
                              const JSValue& feature,
                              double tolerance) {
-    const JSValue& geom = feature["geometry"];
-    const JSValue& rawType = geom["type"];
-    std::string type{ rawType.GetString(), rawType.GetStringLength() };
     Tags tags;
-
     if (feature.HasMember("properties") && feature["properties"].IsObject()) {
         const JSValue& properties = feature["properties"];
         rapidjson::Value::ConstMemberIterator itr = properties.MemberBegin();
@@ -85,6 +93,18 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
             }
         }
     }
+
+    if (feature.HasMember("geometry") && feature["geometry"].IsObject()) {
+        convertGeometry(features, tags, feature["geometry"], tolerance);
+    }
+}
+
+void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
+                              const Tags& tags,
+                              const JSValue& geom,
+                              double tolerance) {
+    const JSValue& rawType = geom["type"];
+    std::string type{ rawType.GetString(), rawType.GetStringLength() };
 
     if (type == "Point") {
         std::array<double, 2> coordinates = { { 0, 0 } };
@@ -221,7 +241,7 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
             const JSValue& rawGeometries = geom["geometries"];
             if (rawGeometries.IsArray()) {
                 for (rapidjson::SizeType i = 0; i < rawGeometries.Size(); ++i) {
-                    convertFeature(features, rawGeometries[i], tolerance);
+                    convertGeometry(features, tags, rawGeometries[i], tolerance);
                 }
             }
         }
