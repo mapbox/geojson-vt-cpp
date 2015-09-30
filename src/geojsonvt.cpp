@@ -42,6 +42,8 @@ GeoJSONVT::convertFeatures(const std::string& data, uint8_t maxZoom, double tole
     return features;
 }
 
+const Tile GeoJSONVT::emptyTile {};
+
 GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_,
                      uint8_t maxZoom_,
                      uint8_t indexMaxZoom_,
@@ -198,7 +200,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
     }
 }
 
-Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
+const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     std::lock_guard<std::mutex> lock(mtx);
 
     const uint32_t z2 = 1 << z;
@@ -228,6 +230,10 @@ Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
         }
     }
 
+    if (!parent) {
+        return emptyTile;
+    }
+
     if (debug) {
         printf("found parent tile z%i-%i-%i\n", z0, x0, y0);
     }
@@ -249,6 +255,10 @@ Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
         }
     }
 
+    if (tiles.find(id) == tiles.end()) {
+        return emptyTile;
+    }
+
     return transformTile(tiles[id], extent);
 }
 
@@ -256,7 +266,7 @@ const std::map<uint64_t, Tile>& GeoJSONVT::getAllTiles() const {
     return tiles;
 }
 
-Tile& GeoJSONVT::transformTile(Tile& tile, uint16_t extent) {
+const Tile& GeoJSONVT::transformTile(Tile& tile, uint16_t extent) {
     if (tile.transformed) {
         return tile;
     }

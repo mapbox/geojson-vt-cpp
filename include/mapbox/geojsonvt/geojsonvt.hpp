@@ -28,9 +28,11 @@ public:
               double tolerance = 3,
               bool debug = false);
 
-    Tile& getTile(uint8_t z, uint32_t x, uint32_t y);
+    const Tile& getTile(uint8_t z, uint32_t x, uint32_t y);
 
     const std::map<uint64_t, Tile>& getAllTiles() const;
+
+    static const Tile emptyTile;
 
 private:
     void splitTile(std::vector<ProjectedFeature> features,
@@ -43,7 +45,7 @@ private:
 
     static TilePoint
     transformPoint(const ProjectedPoint& p, uint16_t extent, uint32_t z2, uint32_t tx, uint32_t ty);
-    static Tile& transformTile(Tile&, uint16_t extent);
+    static const Tile& transformTile(Tile&, uint16_t extent);
 
     static uint64_t toID(uint8_t z, uint32_t x, uint32_t y);
 
