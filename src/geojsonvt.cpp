@@ -4,7 +4,7 @@
 #include <mapbox/geojsonvt/geojsonvt_util.hpp>
 #include <mapbox/geojsonvt/geojsonvt_wrap.hpp>
 
-#include <queue>
+#include <stack>
 #include <cmath>
 
 namespace mapbox {
@@ -81,11 +81,11 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
                           uint8_t cz,
                           uint32_t cx,
                           uint32_t cy) {
-    std::queue<FeatureStackItem> stack;
+    std::stack<FeatureStackItem> stack;
     stack.emplace(features_, z_, x_, y_);
 
     while (!stack.empty()) {
-        FeatureStackItem set = stack.front();
+        FeatureStackItem set = stack.top();
         stack.pop();
         std::vector<ProjectedFeature> features = std::move(set.features);
         uint8_t z = set.z;
