@@ -32,6 +32,9 @@ public:
 
     const std::map<uint64_t, Tile>& getAllTiles() const;
 
+    // returns the total number of tiles generated until now.
+    uint64_t getTotal() const;
+
     static const Tile emptyTile;
 
 private:
@@ -81,7 +84,7 @@ private:
     const uint8_t buffer = 64;     // tile buffer on each side
     std::map<uint64_t, Tile> tiles;
     std::map<uint8_t, uint16_t> stats;
-    uint16_t total = 0;
+    uint64_t total = 0;
 };
 
 } // namespace geojsonvt

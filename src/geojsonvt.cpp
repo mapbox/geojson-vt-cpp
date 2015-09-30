@@ -124,8 +124,8 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
 
                 uint8_t key = z;
                 stats[key] = (stats.count(key) ? stats[key] + 1 : 1);
-                total++;
             }
+            total++;
         }
 
         // save reference to original geometry in tile so that we can drill down later if we stop
@@ -268,6 +268,10 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
 
 const std::map<uint64_t, Tile>& GeoJSONVT::getAllTiles() const {
     return tiles;
+}
+
+uint64_t GeoJSONVT::getTotal() const {
+    return total;
 }
 
 const Tile& GeoJSONVT::transformTile(Tile& tile, uint16_t extent) {
