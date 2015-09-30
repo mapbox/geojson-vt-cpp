@@ -66,13 +66,13 @@ private:
 
 private:
     std::mutex mtx;
-    uint8_t maxZoom;         // max zoom to preserve detail on
-    uint8_t indexMaxZoom;    // max zoom in the tile index
-    uint32_t indexMaxPoints; // max number of points per tile in the tile index
-    double tolerance;        // simplification tolerance (higher means simpler)
-    bool debug;
-    uint16_t extent = 4096;  // tile extent
-    uint8_t buffer = 64;     // tile buffer on each side
+    const uint8_t maxZoom;         // max zoom to preserve detail on
+    const uint8_t indexMaxZoom;    // max zoom in the tile index
+    const uint32_t indexMaxPoints; // max number of points per tile in the tile index
+    const double tolerance;        // simplification tolerance (higher means simpler)
+    const bool debug;
+    const uint16_t extent = 4096;  // tile extent
+    const uint8_t buffer = 64;     // tile buffer on each side
     std::map<uint64_t, Tile> tiles;
     std::map<uint8_t, uint16_t> stats;
     uint16_t total = 0;
