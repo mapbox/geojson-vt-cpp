@@ -46,11 +46,13 @@ GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_,
                      uint8_t maxZoom_,
                      uint8_t indexMaxZoom_,
                      uint32_t indexMaxPoints_,
+                     bool solidChildren_,
                      double tolerance_,
                      bool debug_)
     : maxZoom(maxZoom_),
       indexMaxZoom(indexMaxZoom_),
       indexMaxPoints(indexMaxPoints_),
+      solidChildren(solidChildren_),
       tolerance(tolerance_),
       debug(debug_) {
     if (debug) {
@@ -123,6 +125,9 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         // save reference to original geometry in tile so that we can drill down later if we stop
         // now
         tile->source = std::vector<ProjectedFeature>(features);
+
+        // stop tiling if the tile is solid clipped square
+        if (!solidChildren && isClippedSquare(*tile, extent, buffer)) continue;
 
         // if it's the first-pass tiling
         if (!cz) {
@@ -229,6 +234,10 @@ Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
 
     // if we found a parent tile containing the original geometry, we can drill down from it
     if (parent && !parent->source.empty()) {
+        if (isClippedSquare(*parent, extent, buffer)) {
+            return transformTile(*parent, extent);
+        }
+
         if (debug) {
             Time::time("drilling down");
         }
@@ -311,6 +320,37 @@ ProjectedPoint GeoJSONVT::intersectY(const ProjectedPoint& a, const ProjectedPoi
     double r3 = 1;
 
     return ProjectedPoint(r1, r2, r3);
+}
+
+// checks whether a tile is a whole-area fill after clipping; if it is, there's no sense slicing it
+// further
+bool GeoJSONVT::isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
+    const auto& features = tile.source;
+    if (features.size() != 1) {
+        return false;
+    }
+
+    const auto& feature = features.front();
+    const auto& geometries = feature.geometry.get<ProjectedGeometryContainer>();
+    if (feature.type != ProjectedFeatureType::Polygon || geometries.members.size() > 1) {
+        return false;
+    }
+
+    const auto& geometry = geometries.members.front().get<ProjectedGeometryContainer>();
+
+    if (geometry.members.size() != 5) {
+        return false;
+    }
+
+    for (const auto& pt : geometry.members) {
+        auto p = transformPoint(pt.get<ProjectedPoint>(), extent, tile.z2, tile.tx, tile.ty);
+        if ((p.x != -buffer && p.x != extent + buffer) ||
+            (p.y != -buffer && p.y != extent + buffer)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 } // namespace geojsonvt

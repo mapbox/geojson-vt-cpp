@@ -24,6 +24,7 @@ public:
               uint8_t maxZoom = 14,
               uint8_t indexMaxZoom = 5,
               uint32_t indexMaxPoints = 100000,
+              bool solidChildren = false,
               double tolerance = 3,
               bool debug = false);
 
@@ -50,6 +51,8 @@ private:
 
     static ProjectedPoint intersectY(const ProjectedPoint& a, const ProjectedPoint& b, double y);
 
+    static bool isClippedSquare(Tile& tile, uint16_t extent, uint8_t buffer);
+
     struct FeatureStackItem {
         std::vector<ProjectedFeature> features;
         uint8_t z;
@@ -69,6 +72,7 @@ private:
     const uint8_t maxZoom;         // max zoom to preserve detail on
     const uint8_t indexMaxZoom;    // max zoom in the tile index
     const uint32_t indexMaxPoints; // max number of points per tile in the tile index
+    const bool solidChildren;      // whether to tile solid square tiles further
     const double tolerance;        // simplification tolerance (higher means simpler)
     const bool debug;
     const uint16_t extent = 4096;  // tile extent

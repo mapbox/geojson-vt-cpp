@@ -39,6 +39,10 @@
               'TARGETED_DEVICE_FAMILY': '1,2',
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
             },
+          }, {
+            'xcode_settings': {
+              'MACOSX_DEPLOYMENT_TARGET': '10.9',
+            },
           }],
         ],
       }],
