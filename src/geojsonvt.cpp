@@ -65,10 +65,14 @@ GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_,
     features_ = Wrap::wrap(features_, double(buffer) / extent, intersectX);
 
     // start slicing from the top tile down
-    splitTile(features_, 0, 0, 0);
+    if (!features_.empty()) {
+        splitTile(features_, 0, 0, 0);
+    }
 
     if (debug) {
-        printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
+        if (!features_.empty()) {
+            printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
+        }
         Time::timeEnd("generate tiles");
         printf("tiles generated: %i {\n", total);
         for (const auto& pair : stats) {

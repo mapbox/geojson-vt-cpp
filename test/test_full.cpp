@@ -64,6 +64,11 @@ TEST(GenTiles, InvalidGeoJSON) {
     }
 }
 
+TEST(GenTiles, EmptyGeoJSON) {
+    const auto tiles = genTiles(loadFile("test/fixtures/empty.json"));
+    ASSERT_EQ(0, tiles.size());
+}
+
 INSTANTIATE_TEST_CASE_P(Full, TileTest, ::testing::ValuesIn(std::vector<Arguments>{
     { "test/fixtures/us-states.json", "test/fixtures/us-states-tiles.json", 7, 200 },
     { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },
