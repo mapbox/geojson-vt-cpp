@@ -44,10 +44,6 @@ private:
     transformPoint(const ProjectedPoint& p, uint16_t extent, uint32_t z2, uint32_t tx, uint32_t ty);
     static Tile& transformTile(Tile&, uint16_t extent);
 
-    bool isClippedSquare(const std::vector<TileFeature>& features,
-                         uint16_t extent,
-                         uint8_t buffer) const;
-
     static uint64_t toID(uint8_t z, uint32_t x, uint32_t y);
 
     static ProjectedPoint intersectX(const ProjectedPoint& a, const ProjectedPoint& b, double x);

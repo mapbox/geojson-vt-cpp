@@ -124,10 +124,6 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         // now
         tile->source = std::vector<ProjectedFeature>(features);
 
-        // stop tiling if the tile is degenerate
-        if (isClippedSquare(tile->features, extent, buffer))
-            continue;
-
         // if it's the first-pass tiling
         if (!cz) {
             // stop tiling if we reached max zoom, or if the tile is too simple
@@ -233,10 +229,6 @@ Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
 
     // if we found a parent tile containing the original geometry, we can drill down from it
     if (parent && !parent->source.empty()) {
-        if (isClippedSquare(parent->features, extent, buffer)) {
-            return transformTile(*parent, extent);
-        }
-
         if (debug) {
             Time::time("drilling down");
         }
@@ -299,34 +291,6 @@ TilePoint GeoJSONVT::transformPoint(
     int16_t y = std::round(extent * (p.y * z2 - ty));
 
     return TilePoint(x, y);
-}
-
-// checks whether a tile is a whole-area fill after clipping; if it is, there's no sense slicing it
-// further
-bool GeoJSONVT::isClippedSquare(const std::vector<TileFeature>& features,
-                                uint16_t extent_,
-                                uint8_t buffer_) const {
-    if (features.size() != 1) {
-        return false;
-    }
-
-    const auto& feature = features.front();
-
-    if (feature.type != TileFeatureType::Polygon || feature.geometry.size() > 1) {
-        return false;
-    }
-
-    const auto& container = feature.geometry.front().get<ProjectedGeometryContainer>();
-
-    for (const auto& member : container.members) {
-        const ProjectedPoint& p = member.get<ProjectedPoint>();
-        if ((p.x != -buffer_ && p.x != extent_ + buffer_) ||
-            (p.y != -buffer_ && p.y != extent_ + buffer_)) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 uint64_t GeoJSONVT::toID(uint8_t z, uint32_t x, uint32_t y) {
