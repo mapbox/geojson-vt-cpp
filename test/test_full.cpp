@@ -55,6 +55,15 @@ TEST_P(TileTest, Tiles) {
     ASSERT_EQ(expected, actual);
 }
 
+TEST(GenTiles, InvalidGeoJSON) {
+    try {
+        genTiles("{\"type\": \"Pologon\"}");
+        FAIL() << "Expected exception";
+    } catch (const std::runtime_error& ex) {
+        ASSERT_STREQ("Input data is not a valid GeoJSON object", ex.what());
+    }
+}
+
 INSTANTIATE_TEST_CASE_P(Full, TileTest, ::testing::ValuesIn(std::vector<Arguments>{
     { "test/fixtures/us-states.json", "test/fixtures/us-states-tiles.json", 7, 200 },
     { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },

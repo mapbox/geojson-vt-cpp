@@ -41,20 +41,7 @@ std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double to
             }
         }
     } else {
-        fprintf(stderr, "unimplemented type %s\n", data["type"].GetString());
-
-        /* In this case, we want to pass the entire JSON document as the
-         * value for key 'geometry' in a new JSON object, like so:
-         *
-         * convertFeature(features, ["geometry": data], tolerance); (pseudo-code)
-         *
-         * Currently this fails due to lack of a proper copy constructor.
-         * Maybe use move semantics? */
-
-        //        JSValue feature;
-        //        feature.SetObject();
-        //        feature.AddMember("geometry", data, data.GetAllocator());
-        //        convertFeature(features, feature, tolerance);
+        throw std::runtime_error("Input data is not a valid GeoJSON object");
     }
 
     return std::move(features);
@@ -247,7 +234,7 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
         }
 
     } else {
-        printf("unsupported GeoJSON type: %s\n", geom["type"].GetString());
+        throw std::runtime_error("Input data is not a valid GeoJSON object");
     }
 }
 

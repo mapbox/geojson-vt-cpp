@@ -27,8 +27,7 @@ GeoJSONVT::convertFeatures(const std::string& data, uint8_t maxZoom, double tole
     deserializedData.Parse<0>(data.c_str());
 
     if (deserializedData.HasParseError()) {
-        printf("invalid GeoJSON\n");
-        return std::vector<ProjectedFeature>();
+        throw std::runtime_error("Invalid GeoJSON");
     }
 
     const uint16_t extent = 4096;
