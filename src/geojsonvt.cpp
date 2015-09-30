@@ -149,7 +149,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
 
             // stop tiling if it's not an ancestor of the target tile
             const auto m = 1 << (cz - z);
-            if (x != std::floor(cx / m) && y != std::floor(cy / m))
+            if (x != std::floor(cx / m) || y != std::floor(cy / m))
                 continue;
         }
 

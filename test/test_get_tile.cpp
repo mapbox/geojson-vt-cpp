@@ -30,4 +30,6 @@ TEST(GetTile, USStates) {
 
     // This test does not make sense in C++, since the parameters are cast to integers anyway.
     // ASSERT_EQ(GeoJSONVT::emptyTile, index.getTile(-5, 123.25, 400.25)); // invalid tile
+
+    ASSERT_EQ(29, index.getTotal());
 }
