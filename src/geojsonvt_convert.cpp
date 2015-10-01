@@ -20,7 +20,6 @@ std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double to
         if (data.HasMember("features")) {
             const JSValue& rawFeatures = data["features"];
             if (rawFeatures.IsArray()) {
-                printf("there are %i total features to convert\n", rawFeatures.Size());
                 for (rapidjson::SizeType i = 0; i < rawFeatures.Size(); ++i) {
                     convertFeature(features, rawFeatures[i], tolerance);
                 }
@@ -33,7 +32,6 @@ std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double to
         if (data.HasMember("geometries")) {
             const JSValue& rawGeometries = data["geometries"];
             if (rawGeometries.IsArray()) {
-                printf("there are %i total geometries to convert\n", rawGeometries.Size());
                 Tags tags;
                 for (rapidjson::SizeType i = 0; i < rawGeometries.Size(); ++i) {
                     convertGeometry(features, tags, rawGeometries[i], tolerance);

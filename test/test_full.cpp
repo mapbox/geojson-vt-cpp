@@ -32,10 +32,16 @@ std::map<std::string, std::vector<TileFeature>> genTiles(const std::string& data
 }
 
 struct Arguments {
+    Arguments(const std::string inputFile_, const std::string expectedFile_, const uint32_t maxZoom_ = 0, const uint32_t maxPoints_ = 10000)
+    : inputFile(inputFile_),
+    expectedFile(expectedFile_),
+    maxZoom(maxZoom_),
+    maxPoints(maxPoints_) {};
+    
     const std::string inputFile;
     const std::string expectedFile;
-    const uint32_t maxZoom = 0;
-    const uint32_t maxPoints = 10000;
+    const uint32_t maxZoom;
+    const uint32_t maxPoints;
 };
 
 
