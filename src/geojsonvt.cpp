@@ -16,10 +16,10 @@ std::unordered_map<std::string, clock_t> Time::activities;
 #pragma mark - GeoJSONVT
 
 std::vector<ProjectedFeature>
-GeoJSONVT::convertFeatures(const std::string& data, uint8_t maxZoom, double tolerance, bool debug) {
-    if (debug) {
-        Time::time("preprocess data");
-    }
+GeoJSONVT::convertFeatures(const std::string& data, uint8_t maxZoom, double tolerance) {
+#ifdef DEBUG
+    Time::time("preprocess data");
+#endif
 
     uint32_t z2 = 1 << maxZoom; // 2^z
 
@@ -35,9 +35,9 @@ GeoJSONVT::convertFeatures(const std::string& data, uint8_t maxZoom, double tole
     std::vector<ProjectedFeature> features =
         Convert::convert(deserializedData, tolerance / (z2 * extent));
 
-    if (debug) {
-        Time::timeEnd("preprocess data");
-    }
+#ifdef DEBUG
+    Time::timeEnd("preprocess data");
+#endif
 
     return features;
 }
@@ -49,18 +49,16 @@ GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_,
                      uint8_t indexMaxZoom_,
                      uint32_t indexMaxPoints_,
                      bool solidChildren_,
-                     double tolerance_,
-                     bool debug_)
+                     double tolerance_)
     : maxZoom(maxZoom_),
       indexMaxZoom(indexMaxZoom_),
       indexMaxPoints(indexMaxPoints_),
       solidChildren(solidChildren_),
-      tolerance(tolerance_),
-      debug(debug_) {
-    if (debug) {
-        printf("index: maxZoom: %d, maxPoints: %d", indexMaxZoom, indexMaxPoints);
-        Time::time("generate tiles");
-    }
+      tolerance(tolerance_) {
+#ifdef DEBUG
+    printf("index: maxZoom: %d, maxPoints: %d", indexMaxZoom, indexMaxPoints);
+    Time::time("generate tiles");
+#endif
 
     features_ = Wrap::wrap(features_, double(buffer) / extent, intersectX);
 
@@ -69,17 +67,17 @@ GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_,
         splitTile(features_, 0, 0, 0);
     }
 
-    if (debug) {
-        if (!features_.empty()) {
-            printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
-        }
-        Time::timeEnd("generate tiles");
-        printf("tiles generated: %i {\n", static_cast<int>(total));
-        for (const auto& pair : stats) {
-            printf("    z%i: %i\n", pair.first, pair.second);
-        }
-        printf("}\n");
+#ifdef DEBUG
+    if (!features_.empty()) {
+        printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
     }
+    Time::timeEnd("generate tiles");
+    printf("tiles generated: %i {\n", static_cast<int>(total));
+    for (const auto& pair : stats) {
+        printf("    z%i: %i\n", pair.first, pair.second);
+    }
+    printf("}\n");
+#endif
 }
 
 void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
@@ -109,22 +107,23 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         double tileTolerance = (z == maxZoom ? 0 : tolerance / (z2 * extent));
 
         if (!tile) {
-            if (debug) {
-                Time::time("creation");
-            }
+#ifdef DEBUG
+            Time::time("creation");
+#endif
 
             tiles[id] =
                 std::move(Tile::createTile(features, z2, x, y, tileTolerance, (z == maxZoom)));
             tile = &tiles[id];
 
-            if (debug) {
-                printf("tile z%i-%i-%i (features: %i, points: %i, simplified: %i\n", z, x, y,
-                       tile->numFeatures, tile->numPoints, tile->numSimplified);
-                Time::timeEnd("creation");
+#ifdef DEBUG
+            printf("tile z%i-%i-%i (features: %i, points: %i, simplified: %i\n", z, x, y,
+                   tile->numFeatures, tile->numPoints, tile->numSimplified);
+            Time::timeEnd("creation");
 
-                uint8_t key = z;
-                stats[key] = (stats.count(key) ? stats[key] + 1 : 1);
-            }
+            uint8_t key = z;
+            stats[key] = (stats.count(key) ? stats[key] + 1 : 1);
+#endif
+
             total++;
         }
 
@@ -156,9 +155,9 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         // if we slice further down, no need to keep source geometry
         tile->source = {};
 
-        if (debug) {
-            Time::time("clipping");
-        }
+#ifdef DEBUG
+        Time::time("clipping");
+#endif
 
         const double k1 = 0.5 * buffer / extent;
         const double k2 = 0.5 - k1;
@@ -185,9 +184,9 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             br = Clip::clip(right, z2, y + k2, y + k4, 1, intersectY, tile->min.y, tile->max.y);
         }
 
-        if (debug) {
-            Time::timeEnd("clipping");
-        }
+#ifdef DEBUG
+        Time::timeEnd("clipping");
+#endif
 
         if (!tl.empty()) {
             stack.emplace(std::move(tl), z + 1, x * 2, y * 2);
@@ -215,9 +214,9 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
         return transformTile(tiles.find(id)->second, extent);
     }
 
-    if (debug) {
-        printf("drilling down to z%i-%i-%i\n", z, x, y);
-    }
+#ifdef DEBUG
+    printf("drilling down to z%i-%i-%i\n", z, x, y);
+#endif
 
     uint8_t z0 = z;
     uint32_t x0 = x;
@@ -238,9 +237,9 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
         return emptyTile;
     }
 
-    if (debug) {
-        printf("found parent tile z%i-%i-%i\n", z0, x0, y0);
-    }
+#ifdef DEBUG
+    printf("found parent tile z%i-%i-%i\n", z0, x0, y0);
+#endif
 
     // if we found a parent tile containing the original geometry, we can drill down from it
     if (parent && !parent->source.empty()) {
@@ -248,15 +247,15 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
             return transformTile(*parent, extent);
         }
 
-        if (debug) {
-            Time::time("drilling down");
-        }
+#ifdef DEBUG
+        Time::time("drilling down");
+#endif
 
         splitTile(parent->source, z0, x0, y0, z, x, y);
 
-        if (debug) {
-            Time::timeEnd("drilling down");
-        }
+#ifdef DEBUG
+        Time::timeEnd("drilling down");
+#endif
     }
 
     if (tiles.find(id) == tiles.end()) {

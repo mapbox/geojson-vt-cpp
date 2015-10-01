@@ -17,16 +17,14 @@ class GeoJSONVT {
 public:
     static std::vector<ProjectedFeature> convertFeatures(const std::string& data,
                                                          uint8_t maxZoom = 14,
-                                                         double tolerance = 3,
-                                                         bool debug = false);
+                                                         double tolerance = 3);
 
     GeoJSONVT(std::vector<ProjectedFeature> features_,
               uint8_t maxZoom = 14,
               uint8_t indexMaxZoom = 5,
               uint32_t indexMaxPoints = 100000,
               bool solidChildren = false,
-              double tolerance = 3,
-              bool debug = false);
+              double tolerance = 3);
 
     const Tile& getTile(uint8_t z, uint32_t x, uint32_t y);
 
@@ -79,7 +77,6 @@ private:
     const uint32_t indexMaxPoints; // max number of points per tile in the tile index
     const bool solidChildren;      // whether to tile solid square tiles further
     const double tolerance;        // simplification tolerance (higher means simpler)
-    const bool debug;
     const uint16_t extent = 4096;  // tile extent
     const uint8_t buffer = 64;     // tile buffer on each side
     std::map<uint64_t, Tile> tiles;
