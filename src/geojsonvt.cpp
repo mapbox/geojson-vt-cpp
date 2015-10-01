@@ -74,7 +74,7 @@ GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_,
             printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
         }
         Time::timeEnd("generate tiles");
-        printf("tiles generated: %i {\n", total);
+        printf("tiles generated: %i {\n", static_cast<int>(total));
         for (const auto& pair : stats) {
             printf("    z%i: %i\n", pair.first, pair.second);
         }
