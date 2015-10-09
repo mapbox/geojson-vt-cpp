@@ -35,7 +35,7 @@ using ProjectedGeometry =
 
 class ProjectedPoint {
 public:
-    inline __attribute__((visibility("default"))) ProjectedPoint(double x_ = -1, double y_ = -1, double z_ = -1) : x(x_), y(y_), z(z_) {
+    inline ProjectedPoint(double x_ = -1, double y_ = -1, double z_ = -1) : x(x_), y(y_), z(z_) {
     }
 
     inline bool isValid() const {
