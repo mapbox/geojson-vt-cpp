@@ -12,7 +12,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-struct LonLat {
+struct __attribute__ ((visibility ("default"))) LonLat {
     LonLat(std::array<double, 2> coordinates) : lon(coordinates[0]), lat(coordinates[1]) {
     }
 
@@ -33,7 +33,7 @@ using ProjectedGeometry =
 
 #pragma mark -
 
-class ProjectedPoint {
+class __attribute__ ((visibility ("default"))) ProjectedPoint {
 public:
     inline ProjectedPoint(double x_ = -1, double y_ = -1, double z_ = -1) : x(x_), y(y_), z(z_) {
     }
@@ -58,7 +58,7 @@ public:
 
 #pragma mark -
 
-class ProjectedGeometryContainer {
+class __attribute__ ((visibility ("default"))) ProjectedGeometryContainer {
 public:
     ProjectedGeometryContainer() {
     }
@@ -81,7 +81,7 @@ enum class ProjectedFeatureType : uint8_t { Point = 1, LineString = 2, Polygon =
 
 #pragma mark -
 
-class ProjectedFeature {
+class __attribute__ ((visibility ("default"))) ProjectedFeature {
 public:
     ProjectedFeature(ProjectedGeometry geometry_,
                      ProjectedFeatureType type_,
@@ -108,7 +108,7 @@ using TileGeometry = mapbox::util::variant<geojsonvt::TilePoint, geojsonvt::Tile
 
 #pragma mark -
 
-class TilePoint {
+class __attribute__ ((visibility ("default"))) TilePoint {
 public:
     TilePoint(int16_t x_, int16_t y_) : x(x_), y(y_) {
     }
@@ -120,7 +120,7 @@ public:
 
 #pragma mark -
 
-class TileRing {
+class __attribute__ ((visibility ("default"))) TileRing {
 public:
     std::vector<TilePoint> points;
 };
@@ -131,7 +131,7 @@ typedef ProjectedFeatureType TileFeatureType;
 
 #pragma mark -
 
-class TileFeature {
+class __attribute__ ((visibility ("default"))) TileFeature {
 public:
     TileFeature(std::vector<ProjectedGeometry> geometry_, TileFeatureType type_, Tags tags_)
         : geometry(geometry_), type(type_), tags(tags_) {

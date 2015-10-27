@@ -7,7 +7,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class Simplify {
+class __attribute__ ((visibility ("default"))) Simplify {
 private:
     // This class has only static functions; disallow creating instances of it.
     Simplify() = delete;

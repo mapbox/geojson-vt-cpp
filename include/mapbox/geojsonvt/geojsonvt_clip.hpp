@@ -9,7 +9,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class Clip {
+class __attribute__ ((visibility ("default"))) Clip {
 private:
     // This class has only static functions; disallow creating instances of it.
     Clip() = delete;

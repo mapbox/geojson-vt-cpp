@@ -8,7 +8,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class Wrap {
+class __attribute__ ((visibility ("default"))) Wrap {
 public:
     static std::vector<ProjectedFeature> wrap(std::vector<ProjectedFeature>& features,
                                               double buffer,
