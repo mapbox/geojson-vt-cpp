@@ -13,7 +13,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class GeoJSONVT {
+class __attribute__ ((visibility ("default"))) GeoJSONVT {
 public:
     static std::vector<ProjectedFeature> convertFeatures(const std::string& data,
                                                          uint8_t maxZoom = 14,

@@ -8,7 +8,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class Time {
+class __attribute__ ((visibility ("default"))) Time {
 public:
     inline static void time(std::string activity) {
         Time::activities[activity] = clock();

@@ -14,7 +14,7 @@ namespace geojsonvt {
 using JSDocument = rapidjson::Document;
 using JSValue = rapidjson::Value;
 
-class Convert {
+class __attribute__ ((visibility ("default"))) Convert {
 private:
     // This class has only static functions; disallow creating instances of it.
     Convert() = delete;

@@ -7,7 +7,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class Tile {
+class __attribute__ ((visibility ("default"))) Tile {
 public:
     static Tile createTile(std::vector<ProjectedFeature>& features,
                            uint32_t z2,
