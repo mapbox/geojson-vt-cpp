@@ -14,8 +14,12 @@
 using namespace mapbox::util::geojsonvt;
 
 std::map<std::string, std::vector<TileFeature>> genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 10000) {
-    const auto features = GeoJSONVT::convertFeatures(data);
-    GeoJSONVT index { features, 14, maxZoom, maxPoints };
+    Options options;
+    options.maxZoom = 14;
+    options.indexMaxZoom = maxZoom;
+    options.indexMaxPoints = maxPoints;
+
+    GeoJSONVT index { data, options };
 
     std::map<std::string, std::vector<TileFeature>> output;
 

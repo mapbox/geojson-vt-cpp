@@ -13,18 +13,34 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
+struct Options {
+    // max zoom to preserve detail on
+    uint8_t maxZoom = 14;
+
+    // max zoom in the tile index
+    uint8_t indexMaxZoom = 5;
+
+    // max number of points per tile in the tile index
+    uint32_t indexMaxPoints = 100000; 
+
+    // whether to tile solid square tiles further
+    bool solidChildren = false;
+
+    // simplification tolerance (higher means simpler)
+    double tolerance = 3;
+
+    // tile extent
+    uint16_t extent = 4096;
+
+    // tile buffer on each side
+    uint8_t buffer = 64;
+};
+
 class __attribute__ ((visibility ("default"))) GeoJSONVT {
 public:
-    static std::vector<ProjectedFeature> convertFeatures(const std::string& data,
-                                                         uint8_t maxZoom = 14,
-                                                         double tolerance = 3);
+    static const Tile emptyTile;
 
-    GeoJSONVT(std::vector<ProjectedFeature> features_,
-              uint8_t maxZoom = 14,
-              uint8_t indexMaxZoom = 5,
-              uint32_t indexMaxPoints = 100000,
-              bool solidChildren = false,
-              double tolerance = 3);
+    GeoJSONVT(const std::string&, Options = Options());
 
     const Tile& getTile(uint8_t z, uint32_t x, uint32_t y);
 
@@ -33,9 +49,9 @@ public:
     // returns the total number of tiles generated until now.
     uint64_t getTotal() const;
 
-    static const Tile emptyTile;
-
 private:
+    std::vector<ProjectedFeature> convertFeatures(const std::string& data);
+
     void splitTile(std::vector<ProjectedFeature> features,
                    uint8_t z,
                    uint32_t x,
@@ -72,13 +88,7 @@ private:
 
 private:
     std::mutex mtx;
-    const uint8_t maxZoom;         // max zoom to preserve detail on
-    const uint8_t indexMaxZoom;    // max zoom in the tile index
-    const uint32_t indexMaxPoints; // max number of points per tile in the tile index
-    const bool solidChildren;      // whether to tile solid square tiles further
-    const double tolerance;        // simplification tolerance (higher means simpler)
-    const uint16_t extent = 4096;  // tile extent
-    const uint8_t buffer = 64;     // tile buffer on each side
+    const Options options;
     std::map<uint64_t, Tile> tiles;
     std::map<uint8_t, uint16_t> stats;
     uint64_t total = 0;

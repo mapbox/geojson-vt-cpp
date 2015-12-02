@@ -16,8 +16,7 @@ using namespace mapbox::util::geojsonvt;
 const auto square = parseJSONTile(loadFile("test/fixtures/us-states-square.json"));
 
 TEST(GetTile, USStates) {
-    const auto features = GeoJSONVT::convertFeatures(loadFile("test/fixtures/us-states.json"));
-    GeoJSONVT index{ features };
+    GeoJSONVT index { loadFile("test/fixtures/us-states.json") };
 
     ASSERT_EQ(parseJSONTile(loadFile("test/fixtures/us-states-z7-37-48.json")),
               index.getTile(7, 37, 48).features);
