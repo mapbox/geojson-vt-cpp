@@ -307,11 +307,13 @@ void Convert::calcRingBBox(ProjectedPoint& minPoint,
                            ProjectedPoint& maxPoint,
                            const ProjectedGeometryContainer& geometry) {
     for (auto& member : geometry.members) {
-        auto& p = member.get<ProjectedPoint>();
-        minPoint.x = std::min(p.x, minPoint.x);
-        maxPoint.x = std::max(p.x, maxPoint.x);
-        minPoint.y = std::min(p.y, minPoint.y);
-        maxPoint.y = std::max(p.y, maxPoint.y);
+        if (member.is<ProjectedPoint>()) {
+            auto& p = member.get<ProjectedPoint>();
+            minPoint.x = std::min(p.x, minPoint.x);
+            maxPoint.x = std::max(p.x, maxPoint.x);
+            minPoint.y = std::min(p.y, minPoint.y);
+            maxPoint.y = std::max(p.y, maxPoint.y);
+        }
     }
 }
 
