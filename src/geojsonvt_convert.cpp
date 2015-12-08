@@ -244,8 +244,8 @@ ProjectedFeature Convert::create(Tags tags, ProjectedFeatureType type, Projected
 ProjectedRing Convert::projectRing(const std::vector<LonLat>& lonlats, double tolerance) {
 
     ProjectedRing ring;
-    for (size_t i = 0; i < lonlats.size(); ++i) {
-        ring.points.push_back(projectPoint(lonlats[i]));
+    for (auto lonlat : lonlats) {
+        ring.points.push_back(projectPoint(lonlat));
     }
 
     Simplify::simplify(ring.points, tolerance);

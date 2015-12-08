@@ -34,10 +34,10 @@ private:
 
     static void convertGeometry(std::vector<ProjectedFeature>& features,
                                 const Tags& tags,
-                                const JSValue& geometry,
+                                const JSValue& geom,
                                 double tolerance);
 
-    static ProjectedPoint projectPoint(const LonLat& p);
+    static ProjectedPoint projectPoint(const LonLat& p_);
 
     static void calcSize(ProjectedRing& ring);
 
