@@ -28,9 +28,7 @@ void Simplify::simplify(ProjectedPoints& points, double tolerance) {
         maxSqDist = 0;
 
         for (size_t i = (first + 1); i < last; ++i) {
-            sqDist = getSqSegDist(points[i],
-                                  points[first],
-                                  points[last]);
+            sqDist = getSqSegDist(points[i], points[first], points[last]);
 
             if (sqDist > maxSqDist) {
                 index = i;

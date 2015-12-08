@@ -24,17 +24,20 @@ class Timer {
     using SystemClock = std::chrono::system_clock;
 
     using TimePoint = Clock::time_point;
-    using Duration  = Clock::duration;
+    using Duration = Clock::duration;
 
     TimePoint start = Clock::now();
 
 public:
-    void report(const std::string &name) {
+    void report(const std::string& name) {
         Duration duration = Clock::now() - start;
-        std::cerr << name << ": " << double(std::chrono::duration_cast<std::chrono::microseconds>(duration).count()) / 1000 << "ms" << std::endl;
+        std::cerr << name << ": "
+                  << double(
+                         std::chrono::duration_cast<std::chrono::microseconds>(duration).count()) /
+                         1000
+                  << "ms" << std::endl;
         start += duration;
     }
-
 };
 
 using namespace mapbox::util::geojsonvt;
@@ -49,7 +52,8 @@ int main(void) {
     static int height = 768;
     static int fbHeight = height;
 
-    GLFWwindow* window = glfwCreateWindow(width, height, "GeoJSON VT — Drop a GeoJSON file", NULL, NULL);
+    GLFWwindow* window =
+        glfwCreateWindow(width, height, "GeoJSON VT — Drop a GeoJSON file", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -63,7 +67,6 @@ int main(void) {
         int x;
         int y;
     } pos = { 0, 0, 0 };
-
 
     enum class Horizontal { Left, Right, Outside };
     enum class Vertical { Top, Bottom, Outside };
@@ -85,7 +88,7 @@ int main(void) {
         dirty = true;
     };
 
-    static const auto loadGeoJSON = [&] (const std::string& filename) {
+    static const auto loadGeoJSON = [&](const std::string& filename) {
         Timer timer;
         const std::string data = loadFile(filename);
         timer.report("loadFile");
@@ -94,7 +97,8 @@ int main(void) {
         updateTile();
     };
 
-    static const auto updateLocation = [] (const Horizontal newHorizontal, const Vertical newVertical) {
+    static const auto updateLocation = [](const Horizontal newHorizontal,
+                                          const Vertical newVertical) {
         if (newHorizontal != horizontal || newVertical != vertical) {
             dirty = true;
             horizontal = newHorizontal;
@@ -108,20 +112,21 @@ int main(void) {
         }
     });
 
-    glfwSetKeyCallback(window, [](GLFWwindow* w, const int key, const int, const int action, const int) {
-        if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
-            glfwSetWindowShouldClose(w, true);
-        }
-        if ((key == GLFW_KEY_BACKSPACE || key == GLFW_KEY_ESCAPE) && action == GLFW_RELEASE) {
-            // zoom out
-            if (pos.z > 0) {
-                pos.z--;
-                pos.x /= 2;
-                pos.y /= 2;
-                updateTile();
+    glfwSetKeyCallback(
+        window, [](GLFWwindow* w, const int key, const int, const int action, const int) {
+            if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
+                glfwSetWindowShouldClose(w, true);
             }
-        }
-    });
+            if ((key == GLFW_KEY_BACKSPACE || key == GLFW_KEY_ESCAPE) && action == GLFW_RELEASE) {
+                // zoom out
+                if (pos.z > 0) {
+                    pos.z--;
+                    pos.x /= 2;
+                    pos.y /= 2;
+                    updateTile();
+                }
+            }
+        });
 
     glfwSetWindowSizeCallback(window, [](GLFWwindow* win, const int w, const int h) {
         width = w;
@@ -141,7 +146,7 @@ int main(void) {
                                              : Vertical::Outside);
     });
 
-    glfwSetCursorEnterCallback(window, [](GLFWwindow *, int entered) {
+    glfwSetCursorEnterCallback(window, [](GLFWwindow*, int entered) {
         if (!entered) {
             updateLocation(Horizontal::Outside, Vertical::Outside);
         }
@@ -154,8 +159,10 @@ int main(void) {
                 pos.z++;
                 pos.x *= 2;
                 pos.y *= 2;
-                if (horizontal == Horizontal::Right) pos.x++;
-                if (vertical == Vertical::Bottom) pos.y++;
+                if (horizontal == Horizontal::Right)
+                    pos.x++;
+                if (vertical == Vertical::Bottom)
+                    pos.y++;
                 updateTile();
             }
         } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE) {
@@ -195,7 +202,6 @@ int main(void) {
     glLoadIdentity();
 
     glEnable(GL_DEPTH_TEST);
-
 
     loadGeoJSON("data/countries.geojson");
 
@@ -264,7 +270,6 @@ int main(void) {
                 glOrtho(-4096 - 256, 8192 + 256 - 4096, 8192 + 256 - 4096, -256 - 4096, 10, -10);
                 drawTile(horizontal == Horizontal::Right && vertical == Vertical::Bottom);
             } else {
-
             }
 
             glfwSwapBuffers(window);

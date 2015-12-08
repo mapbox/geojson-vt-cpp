@@ -28,9 +28,12 @@ std::string loadFile(const std::string& filename) {
 
 ::std::ostream& operator<<(::std::ostream& os, ProjectedFeatureType t) {
     switch (t) {
-        case ProjectedFeatureType::Point: return os << "Point";
-        case ProjectedFeatureType::LineString: return os << "LineString";
-        case ProjectedFeatureType::Polygon: return os << "Polygon";
+    case ProjectedFeatureType::Point:
+        return os << "Point";
+    case ProjectedFeatureType::LineString:
+        return os << "LineString";
+    case ProjectedFeatureType::Polygon:
+        return os << "Polygon";
     }
 }
 
@@ -150,8 +153,8 @@ std::vector<TileFeature> parseJSONTile(const rapidjson::Value& tile) {
                     tileTags.emplace(tagKey, "true");
                     break;
                 case rapidjson::kStringType:
-                    tileTags.emplace(tagKey, std::string{ jt->value.GetString(),
-                                                          jt->value.GetStringLength() });
+                    tileTags.emplace(
+                        tagKey, std::string{ jt->value.GetString(), jt->value.GetStringLength() });
                     break;
                 case rapidjson::kNumberType:
                     tileTags.emplace(tagKey, std::to_string(jt->value.GetDouble()));
@@ -229,13 +232,11 @@ std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string
         const std::string key{ it->name.GetString(), it->name.GetStringLength() };
         const auto& tile = it->value;
 
-
         result.emplace(key, parseJSONTile(tile));
     }
 
     return result;
 }
-
 
 } // namespace geojsonvt
 } // namespace util

@@ -13,13 +13,14 @@
 
 using namespace mapbox::util::geojsonvt;
 
-std::map<std::string, std::vector<TileFeature>> genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 10000) {
+std::map<std::string, std::vector<TileFeature>>
+genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 10000) {
     Options options;
     options.maxZoom = 14;
     options.indexMaxZoom = maxZoom;
     options.indexMaxPoints = maxPoints;
 
-    GeoJSONVT index { data, options };
+    GeoJSONVT index{ data, options };
 
     std::map<std::string, std::vector<TileFeature>> output;
 
@@ -36,23 +37,24 @@ std::map<std::string, std::vector<TileFeature>> genTiles(const std::string& data
 }
 
 struct Arguments {
-    Arguments(const std::string inputFile_, const std::string expectedFile_, const uint32_t maxZoom_ = 0, const uint32_t maxPoints_ = 10000)
-    : inputFile(inputFile_),
-    expectedFile(expectedFile_),
-    maxZoom(maxZoom_),
-    maxPoints(maxPoints_) {};
-    
+    Arguments(const std::string inputFile_,
+              const std::string expectedFile_,
+              const uint32_t maxZoom_ = 0,
+              const uint32_t maxPoints_ = 10000)
+        : inputFile(inputFile_),
+          expectedFile(expectedFile_),
+          maxZoom(maxZoom_),
+          maxPoints(maxPoints_){};
+
     const std::string inputFile;
     const std::string expectedFile;
     const uint32_t maxZoom;
     const uint32_t maxPoints;
 };
 
-
 ::std::ostream& operator<<(::std::ostream& os, const Arguments& a) {
     return os << a.inputFile << " (" << a.maxZoom << ", " << a.maxPoints << ")";
 }
-
 
 class TileTest : public ::testing::TestWithParam<Arguments> {};
 
@@ -79,9 +81,12 @@ TEST(GenTiles, EmptyGeoJSON) {
     ASSERT_EQ(0, tiles.size());
 }
 
-INSTANTIATE_TEST_CASE_P(Full, TileTest, ::testing::ValuesIn(std::vector<Arguments>{
-    { "test/fixtures/us-states.json", "test/fixtures/us-states-tiles.json", 7, 200 },
-    { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },
-    { "test/fixtures/feature.json", "test/fixtures/feature-tiles.json" },
-    { "test/fixtures/collection.json", "test/fixtures/collection-tiles.json" },
-}));
+INSTANTIATE_TEST_CASE_P(
+    Full,
+    TileTest,
+    ::testing::ValuesIn(std::vector<Arguments>{
+        { "test/fixtures/us-states.json", "test/fixtures/us-states-tiles.json", 7, 200 },
+        { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },
+        { "test/fixtures/feature.json", "test/fixtures/feature-tiles.json" },
+        { "test/fixtures/collection.json", "test/fixtures/collection-tiles.json" },
+    }));

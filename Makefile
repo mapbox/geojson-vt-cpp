@@ -56,7 +56,7 @@ tidy: config.gypi
 .PHONY: format
 format:
 	@command -v $(CLANG_FORMAT) >/dev/null 2>&1 || { echo >&2 "Can't execute $(CLANG_FORMAT). Set CLANG_FORMAT to the correct executable or add clang-format to your PATH."; exit 1; }
-	git ls-files *.cpp | xargs -t -n 1 $(CLANG_FORMAT) -i
+	git ls-files *.cpp *.hpp | xargs -t -n 1 $(CLANG_FORMAT) -i
 
 .PHONY: clean
 clean:

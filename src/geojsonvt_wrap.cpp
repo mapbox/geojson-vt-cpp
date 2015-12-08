@@ -63,8 +63,7 @@ Wrap::shiftFeatureCoords(const std::vector<ProjectedFeature>& features, int8_t o
     return newFeatures;
 }
 
-ProjectedPoints Wrap::shiftCoords(const ProjectedPoints& points,
-                                  int8_t offset) {
+ProjectedPoints Wrap::shiftCoords(const ProjectedPoints& points, int8_t offset) {
     ProjectedPoints newPoints;
 
     for (auto& p : points) {

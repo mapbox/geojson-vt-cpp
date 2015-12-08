@@ -36,7 +36,10 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
     return std::move(tile);
 }
 
-void Tile::addFeature(Tile& tile, const ProjectedFeature& feature, double tolerance, bool noSimplify) {
+void Tile::addFeature(Tile& tile,
+                      const ProjectedFeature& feature,
+                      double tolerance,
+                      bool noSimplify) {
     const ProjectedFeatureType type = feature.type;
     ProjectedGeometry simplified;
     const double sqTolerance = tolerance * tolerance;
@@ -47,7 +50,8 @@ void Tile::addFeature(Tile& tile, const ProjectedFeature& feature, double tolera
             tile.numPoints++;
             tile.numSimplified++;
         }
-        if (simplified.get<ProjectedPoints>().empty()) return;
+        if (simplified.get<ProjectedPoints>().empty())
+            return;
 
     } else {
         simplified.set<ProjectedRings>();
@@ -76,7 +80,8 @@ void Tile::addFeature(Tile& tile, const ProjectedFeature& feature, double tolera
             simplified.get<ProjectedRings>().push_back(simplifiedRing);
         }
 
-        if (simplified.get<ProjectedRings>().empty()) return;
+        if (simplified.get<ProjectedRings>().empty())
+            return;
     }
 
     tile.features.push_back(TileFeature(simplified, type, feature.tags));

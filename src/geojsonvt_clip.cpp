@@ -50,11 +50,13 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature>& fe
 
         if (type == ProjectedFeatureType::Point) {
             slices = clipPoints(geometry.get<ProjectedPoints>(), k1, k2, axis);
-            if (slices.get<ProjectedPoints>().empty()) continue;
+            if (slices.get<ProjectedPoints>().empty())
+                continue;
         } else {
-            slices = clipGeometry(geometry.get<ProjectedRings>(), k1, k2, axis,
-                                  intersect, (type == ProjectedFeatureType::Polygon));
-            if (slices.get<ProjectedRings>().empty()) continue;
+            slices = clipGeometry(geometry.get<ProjectedRings>(), k1, k2, axis, intersect,
+                                  (type == ProjectedFeatureType::Polygon));
+            if (slices.get<ProjectedRings>().empty())
+                continue;
         }
 
         // if a feature got clipped, it will likely get clipped on the next zoom level as well,
@@ -65,7 +67,8 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature>& fe
     return std::move(clipped);
 }
 
-ProjectedPoints Clip::clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t axis) {
+ProjectedPoints
+Clip::clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t axis) {
     ProjectedPoints slice;
 
     for (const auto& p : points) {
@@ -166,10 +169,8 @@ ProjectedRings Clip::clipGeometry(const ProjectedRings& rings,
     return std::move(slices);
 }
 
-ProjectedRing Clip::newSlice(ProjectedRings& slices,
-                             ProjectedRing& slice,
-                             double area,
-                             double dist) {
+ProjectedRing
+Clip::newSlice(ProjectedRings& slices, ProjectedRing& slice, double area, double dist) {
 
     if (!slice.points.empty()) {
         // we don't recalculate the area/length of the unclipped geometry because the case where it

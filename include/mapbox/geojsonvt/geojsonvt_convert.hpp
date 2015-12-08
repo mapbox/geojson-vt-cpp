@@ -14,7 +14,7 @@ namespace geojsonvt {
 using JSDocument = rapidjson::Document;
 using JSValue = rapidjson::Value;
 
-class __attribute__ ((visibility ("default"))) Convert {
+class __attribute__((visibility("default"))) Convert {
 private:
     // This class has only static functions; disallow creating instances of it.
     Convert() = delete;
@@ -25,8 +25,7 @@ public:
     static ProjectedFeature
     create(Tags tags, ProjectedFeatureType type, ProjectedGeometry geometry);
 
-    static ProjectedRing projectRing(const std::vector<LonLat>& lonlats,
-                                              double tolerance = 0);
+    static ProjectedRing projectRing(const std::vector<LonLat>& lonlats, double tolerance = 0);
 
 private:
     static void convertFeature(std::vector<ProjectedFeature>& features,
@@ -44,9 +43,8 @@ private:
 
     static void calcBBox(ProjectedFeature& feature);
 
-    static void calcRingBBox(ProjectedPoint& minPoint,
-                             ProjectedPoint& maxPoint,
-                             const ProjectedPoints& points);
+    static void
+    calcRingBBox(ProjectedPoint& minPoint, ProjectedPoint& maxPoint, const ProjectedPoints& points);
 };
 
 } // namespace geojsonvt

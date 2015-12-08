@@ -21,7 +21,7 @@ struct Options {
     uint8_t indexMaxZoom = 5;
 
     // max number of points per tile in the tile index
-    uint32_t indexMaxPoints = 100000; 
+    uint32_t indexMaxPoints = 100000;
 
     // whether to tile solid square tiles further
     bool solidChildren = false;
@@ -36,7 +36,7 @@ struct Options {
     uint8_t buffer = 64;
 };
 
-class __attribute__ ((visibility ("default"))) GeoJSONVT {
+class __attribute__((visibility("default"))) GeoJSONVT {
 public:
     static const Tile emptyTile;
 

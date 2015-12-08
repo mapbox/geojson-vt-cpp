@@ -142,8 +142,8 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
             }
         }
 
-        ProjectedRing ring { projectRing(points, tolerance) };
-        ProjectedRings rings { ring };
+        ProjectedRing ring{ projectRing(points, tolerance) };
+        ProjectedRings rings{ ring };
 
         features.push_back(create(tags, ProjectedFeatureType::LineString, rings));
 

@@ -15,10 +15,9 @@ std::unordered_map<std::string, clock_t> Time::activities;
 
 #pragma mark - GeoJSONVT
 
-const Tile GeoJSONVT::emptyTile {};
+const Tile GeoJSONVT::emptyTile{};
 
-GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_)
-    : options(options_) {
+GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_) : options(options_) {
 
     std::vector<ProjectedFeature> features_ = convertFeatures(data_);
 
@@ -117,8 +116,7 @@ uint64_t GeoJSONVT::getTotal() const {
     return total;
 }
 
-std::vector<ProjectedFeature>
-GeoJSONVT::convertFeatures(const std::string& data) {
+std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data) {
 #ifdef DEBUG
     Time::time("preprocess data");
 #endif
@@ -166,15 +164,16 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             const auto it = tiles.find(id);
             return it != tiles.end() ? &it->second : nullptr;
         }();
-        double tileTolerance = (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
+        double tileTolerance =
+            (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
         if (!tile) {
 #ifdef DEBUG
             Time::time("creation");
 #endif
 
-            tiles[id] =
-                std::move(Tile::createTile(features, z2, x, y, tileTolerance, (z == options.maxZoom)));
+            tiles[id] = std::move(
+                Tile::createTile(features, z2, x, y, tileTolerance, (z == options.maxZoom)));
             tile = &tiles[id];
 
 #ifdef DEBUG
@@ -194,7 +193,8 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         tile->source = std::vector<ProjectedFeature>(features);
 
         // stop tiling if the tile is solid clipped square
-        if (!options.solidChildren && isClippedSquare(*tile, options.extent, options.buffer)) continue;
+        if (!options.solidChildren && isClippedSquare(*tile, options.extent, options.buffer))
+            continue;
 
         // if it's the first-pass tiling
         if (!cz) {
@@ -290,8 +290,7 @@ const Tile& GeoJSONVT::transformTile(Tile& tile, uint16_t extent) {
 
         if (type == TileFeatureType::Point) {
             for (const auto& pt : geom.get<ProjectedPoints>()) {
-                feature.tileGeometry.push_back(
-                    transformPoint(pt, extent, z2, tx, ty));
+                feature.tileGeometry.push_back(transformPoint(pt, extent, z2, tx, ty));
             }
 
         } else {
