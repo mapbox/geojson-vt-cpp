@@ -5,7 +5,7 @@
 using namespace mapbox::util::geojsonvt;
 
 using P = ProjectedPoint;
-using C = ProjectedGeometryContainer;
+using C = ProjectedPoints;
 
 struct Point { double a, b; };
 
@@ -16,7 +16,7 @@ bool operator==(const Point& a, const Point& b) {
 }
 
 TEST(Simplify, Points) {
-    C points {{
+    C points {
          P{0.22455,0.25015}, P{0.22691,0.24419}, P{0.23331,0.24145}, P{0.23498,0.23606},
          P{0.24421,0.23276}, P{0.26259,0.21531}, P{0.26776,0.21381}, P{0.27357,0.20184},
          P{0.27312,0.19216}, P{0.27762,0.18903}, P{0.28036,0.18141}, P{0.28651,0.17774},
@@ -42,9 +42,7 @@ TEST(Simplify, Points) {
          P{0.83957,0.39040}, P{0.84559,0.39905}, P{0.84840,0.40755}, P{0.84371,0.41130},
          P{0.84409,0.41988}, P{0.83951,0.43276}, P{0.84133,0.44104}, P{0.84762,0.44922},
          P{0.84716,0.45844}, P{0.85138,0.46279}, P{0.85397,0.47115}, P{0.86636,0.48077}
-    }};
-
-    // struct Point { double x, y; };
+    };
 
     const std::vector<Point> simplified = {
         {0.22455,0.25015}, {0.26776,0.21381}, {0.29691,0.15564}, {0.33033,0.13757},
@@ -61,10 +59,9 @@ TEST(Simplify, Points) {
     Simplify::simplify(points, 0.001);
 
     std::vector<Point> result;
-    for (const auto& p : points.members) {
-        const auto& pt = p.get<P>();
-        if (pt.z > 0.005 * 0.005) {
-            result.push_back({pt.x, pt.y});
+    for (const auto& p : points) {
+        if (p.z > 0.005 * 0.005) {
+            result.push_back({p.x, p.y});
         }
     }
 

@@ -25,7 +25,7 @@ public:
     static ProjectedFeature
     create(Tags tags, ProjectedFeatureType type, ProjectedGeometry geometry);
 
-    static ProjectedGeometryContainer project(const std::vector<LonLat>& lonlats,
+    static ProjectedRing projectRing(const std::vector<LonLat>& lonlats,
                                               double tolerance = 0);
 
 private:
@@ -40,13 +40,13 @@ private:
 
     static ProjectedPoint projectPoint(const LonLat& p);
 
-    static void calcSize(ProjectedGeometryContainer& geometryContainer);
+    static void calcSize(ProjectedRing& ring);
 
     static void calcBBox(ProjectedFeature& feature);
 
     static void calcRingBBox(ProjectedPoint& minPoint,
                              ProjectedPoint& maxPoint,
-                             const ProjectedGeometryContainer& geometry);
+                             const ProjectedPoints& points);
 };
 
 } // namespace geojsonvt

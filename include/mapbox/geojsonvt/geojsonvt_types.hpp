@@ -26,10 +26,12 @@ struct __attribute__ ((visibility ("default"))) LonLat {
 #pragma mark -
 
 class ProjectedPoint;
-class ProjectedGeometryContainer;
+class ProjectedRing;
 
-using ProjectedGeometry =
-    mapbox::util::variant<geojsonvt::ProjectedPoint, geojsonvt::ProjectedGeometryContainer>;
+using ProjectedPoints = std::vector<geojsonvt::ProjectedPoint>;
+using ProjectedRings = std::vector<ProjectedRing>;
+
+using ProjectedGeometry = mapbox::util::variant<geojsonvt::ProjectedPoints, geojsonvt::ProjectedRings>;
 
 #pragma mark -
 
@@ -58,15 +60,15 @@ public:
 
 #pragma mark -
 
-class __attribute__ ((visibility ("default"))) ProjectedGeometryContainer {
+class __attribute__ ((visibility ("default"))) ProjectedRing {
 public:
-    ProjectedGeometryContainer() {
+    ProjectedRing() {
     }
-    ProjectedGeometryContainer(std::vector<ProjectedGeometry> members_) : members(members_) {
+    ProjectedRing(ProjectedPoints points_) : points(points_) {
     }
 
 public:
-    std::vector<ProjectedGeometry> members;
+    ProjectedPoints points;
     double area = 0;
     double dist = 0;
 };
@@ -133,12 +135,12 @@ typedef ProjectedFeatureType TileFeatureType;
 
 class __attribute__ ((visibility ("default"))) TileFeature {
 public:
-    TileFeature(std::vector<ProjectedGeometry> geometry_, TileFeatureType type_, Tags tags_)
+    TileFeature(ProjectedGeometry geometry_, TileFeatureType type_, Tags tags_)
         : geometry(geometry_), type(type_), tags(tags_) {
     }
 
 public:
-    std::vector<ProjectedGeometry> geometry;
+    ProjectedGeometry geometry;
     std::vector<TileGeometry> tileGeometry;
     TileFeatureType type;
     Tags tags;

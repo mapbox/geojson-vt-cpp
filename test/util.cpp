@@ -62,12 +62,28 @@ std::string loadFile(const std::string& filename) {
     return os << "Feature (" << f.type << "): " << f.geometry;
 }
 
-::std::ostream& operator<<(::std::ostream& os, const ProjectedGeometryContainer& c) {
-    os << "{ Container( area: " << c.area << ", dist: " << c.dist << ", members: ";
-    for (const auto& member : c.members) {
-        os << member << ",";
+::std::ostream& operator<<(::std::ostream& os, const ProjectedPoints& points) {
+    os << "ProjectedPoints( points: ";
+    for (const auto& p : points) {
+        os << p << ",";
     }
-    return os << " }";
+    return os << ")";
+}
+
+::std::ostream& operator<<(::std::ostream& os, const ProjectedRings& rings) {
+    os << "ProjectedRings( rings: ";
+    for (const auto& ring : rings) {
+        os << ring << ",";
+    }
+    return os << ")";
+}
+
+::std::ostream& operator<<(::std::ostream& os, const ProjectedRing& c) {
+    os << "ProjectedPoints( area: " << c.area << ", dist: " << c.dist << ", points: ";
+    for (const auto& p : c.points) {
+        os << p << ",";
+    }
+    return os << ")";
 }
 
 bool operator==(const TilePoint& a, const TilePoint& b) {
@@ -97,10 +113,10 @@ bool operator==(const ProjectedFeature& a, const ProjectedFeature& b) {
     return true;
 }
 
-bool operator==(const ProjectedGeometryContainer& a, const ProjectedGeometryContainer& b) {
+bool operator==(const ProjectedRing& a, const ProjectedRing& b) {
     EXPECT_DOUBLE_EQ(a.area, b.area);
     EXPECT_DOUBLE_EQ(a.dist, b.dist);
-    EXPECT_EQ(a.members, b.members);
+    EXPECT_EQ(a.points, b.points);
     return true;
 }
 

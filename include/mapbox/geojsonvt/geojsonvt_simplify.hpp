@@ -13,7 +13,7 @@ private:
     Simplify() = delete;
 
 public:
-    static void simplify(ProjectedGeometryContainer& points, double tolerance);
+    static void simplify(ProjectedPoints& points, double tolerance);
 
 private:
     static double

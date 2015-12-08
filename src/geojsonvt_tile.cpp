@@ -36,51 +36,50 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
     return std::move(tile);
 }
 
-void
-Tile::addFeature(Tile& tile, const ProjectedFeature& feature, double tolerance, bool noSimplify) {
-    const ProjectedGeometryContainer& geom = feature.geometry.get<ProjectedGeometryContainer>();
+void Tile::addFeature(Tile& tile, const ProjectedFeature& feature, double tolerance, bool noSimplify) {
     const ProjectedFeatureType type = feature.type;
-    std::vector<ProjectedGeometry> simplified;
+    ProjectedGeometry simplified;
     const double sqTolerance = tolerance * tolerance;
 
     if (type == ProjectedFeatureType::Point) {
-        for (auto& member : geom.members) {
-            simplified.push_back(member.get<ProjectedPoint>());
+        for (auto& p : feature.geometry.get<ProjectedPoints>()) {
+            simplified.get<ProjectedPoints>().push_back(p);
             tile.numPoints++;
             tile.numSimplified++;
         }
-    } else {
-        // simplify and transform projected coordinates for tile geometry
-        for (auto& member : geom.members) {
-            auto& ring = member.get<ProjectedGeometryContainer>();
+        if (simplified.get<ProjectedPoints>().empty()) return;
 
+    } else {
+        simplified.set<ProjectedRings>();
+
+        // simplify and transform projected coordinates for tile geometry
+        for (auto& ring : feature.geometry.get<ProjectedRings>()) {
             // filter out tiny polylines & polygons
             if (!noSimplify &&
                 ((type == ProjectedFeatureType::LineString && ring.dist < tolerance) ||
                  (type == ProjectedFeatureType::Polygon && ring.area < sqTolerance))) {
-                tile.numPoints += ring.members.size();
+                tile.numPoints += ring.points.size();
                 continue;
             }
 
-            ProjectedGeometryContainer simplifiedRing;
+            ProjectedRing simplifiedRing;
 
-            for (auto& ringMember : ring.members) {
-                auto& p = ringMember.get<ProjectedPoint>();
+            for (auto& p : ring.points) {
                 // keep points with importance > tolerance
                 if (noSimplify || p.z > sqTolerance) {
-                    simplifiedRing.members.push_back(p);
+                    simplifiedRing.points.push_back(p);
                     tile.numSimplified++;
                 }
                 tile.numPoints++;
             }
 
-            simplified.push_back(simplifiedRing);
+            simplified.get<ProjectedRings>().push_back(simplifiedRing);
         }
+
+        if (simplified.get<ProjectedRings>().empty()) return;
     }
 
-    if (!simplified.empty()) {
-        tile.features.push_back(TileFeature(simplified, type, feature.tags));
-    }
+    tile.features.push_back(TileFeature(simplified, type, feature.tags));
 }
 
 } // namespace geojsonvt

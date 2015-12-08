@@ -289,17 +289,16 @@ const Tile& GeoJSONVT::transformTile(Tile& tile, uint16_t extent) {
         const auto type = feature.type;
 
         if (type == TileFeatureType::Point) {
-            for (const auto& pt : geom) {
+            for (const auto& pt : geom.get<ProjectedPoints>()) {
                 feature.tileGeometry.push_back(
-                    transformPoint(pt.get<ProjectedPoint>(), extent, z2, tx, ty));
+                    transformPoint(pt, extent, z2, tx, ty));
             }
 
         } else {
-            for (const auto& r : geom) {
+            for (const auto& r : geom.get<ProjectedRings>()) {
                 TileRing ring;
-                for (const auto& pt : r.get<ProjectedGeometryContainer>().members) {
-                    ring.points.push_back(
-                        transformPoint(pt.get<ProjectedPoint>(), extent, z2, tx, ty));
+                for (const auto& p : r.points) {
+                    ring.points.push_back(transformPoint(p, extent, z2, tx, ty));
                 }
                 feature.tileGeometry.emplace_back(std::move(ring));
             }
@@ -340,19 +339,22 @@ bool GeoJSONVT::isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t
     }
 
     const auto& feature = features.front();
-    const auto& geometries = feature.geometry.get<ProjectedGeometryContainer>();
-    if (feature.type != ProjectedFeatureType::Polygon || geometries.members.size() > 1) {
+    if (feature.type != ProjectedFeatureType::Polygon) {
+        return false;
+    }
+    const auto& rings = feature.geometry.get<ProjectedRings>();
+    if (rings.size() > 1) {
         return false;
     }
 
-    const auto& geometry = geometries.members.front().get<ProjectedGeometryContainer>();
+    const auto& ring = rings.front();
 
-    if (geometry.members.size() != 5) {
+    if (ring.points.size() != 5) {
         return false;
     }
 
-    for (const auto& pt : geometry.members) {
-        auto p = transformPoint(pt.get<ProjectedPoint>(), extent, tile.z2, tile.tx, tile.ty);
+    for (const auto& pt : ring.points) {
+        auto p = transformPoint(pt, extent, tile.z2, tile.tx, tile.ty);
         if ((p.x != -buffer && p.x != extent + buffer) ||
             (p.y != -buffer && p.y != extent + buffer)) {
             return false;

@@ -29,20 +29,19 @@ public:
                                               double maxAll);
 
 private:
-    static ProjectedGeometryContainer
-    clipPoints(const ProjectedGeometryContainer& geometry, double k1, double k2, uint8_t axis);
+    static ProjectedPoints clipPoints(const ProjectedPoints& geometry, double k1, double k2, uint8_t axis);
 
-    static ProjectedGeometryContainer clipGeometry(const ProjectedGeometryContainer& geometry,
-                                                   double k1,
-                                                   double k2,
-                                                   uint8_t axis,
-                                                   IntersectCallback intersect,
-                                                   bool closed);
+    static ProjectedRings clipGeometry(const ProjectedRings& geometry,
+                                       double k1,
+                                       double k2,
+                                       uint8_t axis,
+                                       IntersectCallback intersect,
+                                       bool closed);
 
-    static ProjectedGeometryContainer newSlice(ProjectedGeometryContainer& slices,
-                                               ProjectedGeometryContainer& slice,
-                                               double area,
-                                               double dist);
+    static ProjectedRing newSlice(ProjectedRings& slices,
+                                  ProjectedRing& slice,
+                                  double area,
+                                  double dist);
 };
 
 } // namespace geojsonvt
