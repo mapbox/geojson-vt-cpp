@@ -87,7 +87,6 @@ private:
     };
 
 private:
-    std::mutex mtx;
     const Options options;
     std::map<uint64_t, Tile> tiles;
     std::map<uint8_t, uint16_t> stats;

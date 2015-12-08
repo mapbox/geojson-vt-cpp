@@ -47,8 +47,6 @@ GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_) : options(std::
 }
 
 const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
-    std::lock_guard<std::mutex> lock(mtx);
-
     const uint32_t z2 = 1 << z;
     x = ((x % z2) + z2) % z2; // wrap tile x coordinate
 
