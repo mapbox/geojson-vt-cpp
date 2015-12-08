@@ -28,11 +28,11 @@ struct __attribute__((visibility("default"))) LonLat {
 class ProjectedPoint;
 class ProjectedRing;
 
-using ProjectedPoints = std::vector<geojsonvt::ProjectedPoint>;
+using ProjectedPoints = std::vector<ProjectedPoint>;
 using ProjectedRings = std::vector<ProjectedRing>;
 
 using ProjectedGeometry =
-    mapbox::util::variant<geojsonvt::ProjectedPoints, geojsonvt::ProjectedRings>;
+    mapbox::util::variant<ProjectedPoints, ProjectedRings>;
 
 #pragma mark -
 
@@ -112,7 +112,7 @@ public:
 class TilePoint;
 class TileRing;
 
-using TileGeometry = mapbox::util::variant<geojsonvt::TilePoint, geojsonvt::TileRing>;
+using TileGeometry = mapbox::util::variant<TilePoint, TileRing>;
 
 #pragma mark -
 
