@@ -292,17 +292,20 @@ const Tile& GeoJSONVT::transformTile(Tile& tile, uint16_t extent) {
         const auto type = feature.type;
 
         if (type == TileFeatureType::Point) {
+            auto& tileGeom = feature.tileGeometry.get<TilePoints>();
             for (const auto& pt : geom.get<ProjectedPoints>()) {
-                feature.tileGeometry.push_back(transformPoint(pt, extent, z2, tx, ty));
+                tileGeom.push_back(transformPoint(pt, extent, z2, tx, ty));
             }
 
         } else {
+            feature.tileGeometry.set<TileRings>();
+            auto& tileGeom = feature.tileGeometry.get<TileRings>();
             for (const auto& r : geom.get<ProjectedRings>()) {
-                TileRing ring;
+                TilePoints ring;
                 for (const auto& p : r.points) {
-                    ring.points.push_back(transformPoint(p, extent, z2, tx, ty));
+                    ring.push_back(transformPoint(p, extent, z2, tx, ty));
                 }
-                feature.tileGeometry.emplace_back(std::move(ring));
+                tileGeom.push_back(std::move(ring));
             }
         }
     }
@@ -317,19 +320,13 @@ uint64_t GeoJSONVT::toID(uint8_t z, uint32_t x, uint32_t y) {
 }
 
 ProjectedPoint GeoJSONVT::intersectX(const ProjectedPoint& a, const ProjectedPoint& b, double x) {
-    double r1 = x;
-    double r2 = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
-    double r3 = 1;
-
-    return ProjectedPoint(r1, r2, r3);
+    double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
+    return ProjectedPoint(x, y, 1.0);
 }
 
 ProjectedPoint GeoJSONVT::intersectY(const ProjectedPoint& a, const ProjectedPoint& b, double y) {
-    double r1 = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
-    double r2 = y;
-    double r3 = 1;
-
-    return ProjectedPoint(r1, r2, r3);
+    double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
+    return ProjectedPoint(x, y, 1.0);
 }
 
 // checks whether a tile is a whole-area fill after clipping; if it is, there's no sense slicing it

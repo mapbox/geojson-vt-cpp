@@ -41,20 +41,24 @@ std::string loadFile(const std::string& filename) {
     return os << "[" << p.x << "," << p.y << "]";
 }
 
-::std::ostream& operator<<(::std::ostream& os, const TileRing& r) {
-    os << "Ring {";
-    for (const auto& pt : r.points) {
+::std::ostream& operator<<(::std::ostream& os, const TileFeature& f) {
+    return os << "TileFeature (" << f.type << "): " << f.tileGeometry;
+}
+
+::std::ostream& operator<<(::std::ostream& os, const TilePoints& points) {
+    os << "Points {";
+    for (const auto& pt : points) {
         os << pt << ",";
     }
     return os << " }";
 }
 
-::std::ostream& operator<<(::std::ostream& os, const TileFeature& f) {
-    os << "Feature (" << f.type << ") {";
-    for (const auto& g : f.tileGeometry) {
-        os << g << ",";
+::std::ostream& operator<<(::std::ostream& os, const TileRings& rings) {
+    os << "Rings {";
+    for (const auto& r : rings) {
+        os << r << ",";
     }
-    return os << "}";
+    return os << " }";
 }
 
 ::std::ostream& operator<<(::std::ostream& os, const ProjectedPoint& p) {
@@ -92,11 +96,6 @@ std::string loadFile(const std::string& filename) {
 bool operator==(const TilePoint& a, const TilePoint& b) {
     EXPECT_EQ(a.x, b.x);
     EXPECT_EQ(a.y, b.y);
-    return true;
-}
-
-bool operator==(const TileRing& a, const TileRing& b) {
-    EXPECT_EQ(a.points, b.points);
     return true;
 }
 
@@ -170,29 +169,33 @@ std::vector<TileFeature> parseJSONTile(const rapidjson::Value& tile) {
         if (feature.HasMember("geometry")) {
             const auto& geometry = feature["geometry"];
             EXPECT_TRUE(geometry.IsArray());
-            for (rapidjson::SizeType j = 0; j < geometry.Size(); ++j) {
-                if (tileType == TileFeatureType::Point) {
+            if (tileType == TileFeatureType::Point) {
+                for (rapidjson::SizeType j = 0; j < geometry.Size(); ++j) {
                     const auto& pt = geometry[j];
                     EXPECT_TRUE(pt.IsArray());
                     EXPECT_TRUE(pt.Size() >= 2);
                     EXPECT_TRUE(pt[0].IsNumber());
                     EXPECT_TRUE(pt[1].IsNumber());
-                    tileFeature.tileGeometry.emplace_back(
-                        TilePoint{ static_cast<int16_t>(pt[0].GetInt()),
-                                   static_cast<int16_t>(pt[1].GetInt()) });
-                } else {
+                    tileFeature.tileGeometry.get<TilePoints>().emplace_back(
+                        static_cast<int16_t>(pt[0].GetInt()), static_cast<int16_t>(pt[1].GetInt()));
+                }
+            } else {
+                tileFeature.tileGeometry.set<TileRings>();
+
+                for (rapidjson::SizeType j = 0; j < geometry.Size(); ++j) {
                     const auto& ring = geometry[j];
                     EXPECT_TRUE(ring.IsArray());
-                    TileRing tileRing;
+                    TilePoints tileRing;
                     for (rapidjson::SizeType i = 0; i < ring.Size(); ++i) {
                         const auto& pt = ring[i];
                         EXPECT_TRUE(pt.IsArray());
                         EXPECT_TRUE(pt.Size() >= 2);
                         EXPECT_TRUE(pt[0].IsNumber());
                         EXPECT_TRUE(pt[1].IsNumber());
-                        tileRing.points.emplace_back(pt[0].GetInt(), pt[1].GetInt());
+                        tileRing.emplace_back(static_cast<int16_t>(pt[0].GetInt()),
+                                              static_cast<int16_t>(pt[1].GetInt()));
                     }
-                    tileFeature.tileGeometry.push_back(tileRing);
+                    tileFeature.tileGeometry.get<TileRings>().push_back(tileRing);
                 }
             }
         }

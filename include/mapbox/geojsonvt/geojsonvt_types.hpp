@@ -31,8 +31,7 @@ class ProjectedRing;
 using ProjectedPoints = std::vector<ProjectedPoint>;
 using ProjectedRings = std::vector<ProjectedRing>;
 
-using ProjectedGeometry =
-    mapbox::util::variant<ProjectedPoints, ProjectedRings>;
+using ProjectedGeometry = mapbox::util::variant<ProjectedPoints, ProjectedRings>;
 
 #pragma mark -
 
@@ -89,9 +88,8 @@ public:
     ProjectedFeature(ProjectedGeometry geometry_,
                      ProjectedFeatureType type_,
                      Tags tags_,
-                     ProjectedPoint min_ = { 2, 1 }, // initial bbox values;
-                     ProjectedPoint max_ = { -1,
-                                             0 }) // note that coords are usually in [0..1] range
+                     ProjectedPoint min_ = { 2, 1 },  // initial bbox values;
+                     ProjectedPoint max_ = { -1, 0 }) // coords are usually in [0..1] range
         : geometry(geometry_),
           type(type_),
           tags(tags_),
@@ -109,13 +107,6 @@ public:
 
 #pragma mark -
 
-class TilePoint;
-class TileRing;
-
-using TileGeometry = mapbox::util::variant<TilePoint, TileRing>;
-
-#pragma mark -
-
 class __attribute__((visibility("default"))) TilePoint {
 public:
     TilePoint(int16_t x_, int16_t y_) : x(x_), y(y_) {
@@ -128,10 +119,9 @@ public:
 
 #pragma mark -
 
-class __attribute__((visibility("default"))) TileRing {
-public:
-    std::vector<TilePoint> points;
-};
+using TilePoints = std::vector<TilePoint>;
+using TileRings = std::vector<TilePoints>;
+using TileGeometry = mapbox::util::variant<TilePoints, TileRings>;
 
 #pragma mark -
 
@@ -147,7 +137,7 @@ public:
 
 public:
     ProjectedGeometry geometry;
-    std::vector<TileGeometry> tileGeometry;
+    TileGeometry tileGeometry;
     TileFeatureType type;
     Tags tags;
 };

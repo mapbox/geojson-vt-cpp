@@ -231,10 +231,9 @@ int main(void) {
                     switch (feature.type) {
                     case TileFeatureType::Polygon: {
                         glColor4f(1, 0, 0, 1);
-                        for (const auto& geom : feature.tileGeometry) {
-                            const auto& ring = geom.get<TileRing>();
+                        for (const auto& ring : feature.tileGeometry.get<TileRings>()) {
                             glBegin(GL_LINE_STRIP);
-                            for (const auto& pt : ring.points) {
+                            for (const auto& pt : ring) {
                                 glVertex2s(pt.x, pt.y);
                             }
                             glEnd();
