@@ -25,16 +25,6 @@ struct __attribute__((visibility("default"))) LonLat {
 
 #pragma mark -
 
-class ProjectedPoint;
-class ProjectedRing;
-
-using ProjectedPoints = std::vector<ProjectedPoint>;
-using ProjectedRings = std::vector<ProjectedRing>;
-
-using ProjectedGeometry = mapbox::util::variant<ProjectedPoints, ProjectedRings>;
-
-#pragma mark -
-
 class __attribute__((visibility("default"))) ProjectedPoint {
 public:
     inline ProjectedPoint(double x_ = -1, double y_ = -1, double z_ = -1) : x(x_), y(y_), z(z_) {
@@ -60,6 +50,8 @@ public:
 
 #pragma mark -
 
+using ProjectedPoints = std::vector<ProjectedPoint>;
+
 class __attribute__((visibility("default"))) ProjectedRing {
 public:
     ProjectedRing() {
@@ -72,6 +64,11 @@ public:
     double area = 0;
     double dist = 0;
 };
+
+#pragma mark -
+
+using ProjectedRings = std::vector<ProjectedRing>;
+using ProjectedGeometry = mapbox::util::variant<ProjectedPoints, ProjectedRings>;
 
 #pragma mark -
 
