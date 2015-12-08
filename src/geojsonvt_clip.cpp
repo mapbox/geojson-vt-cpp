@@ -22,11 +22,10 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature>& fe
     k1 /= scale;
     k2 /= scale;
 
-    if (minAll >= k1 && maxAll <= k2) {
-        // trivial accept
+    if (minAll >= k1 && maxAll <= k2) { // trivial accept
         return features;
-    } else if (minAll > k2 || maxAll < k1) {
-        // trivial reject
+    }
+    if (minAll > k2 || maxAll < k1) { // trivial reject
         return {};
     }
 
@@ -42,7 +41,8 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature>& fe
         if (min >= k1 && max <= k2) { // trivial accept
             clipped.push_back(feature);
             continue;
-        } else if (min > k2 || max < k1) { // trivial reject
+        }
+        if (min > k2 || max < k1) { // trivial reject
             continue;
         }
 
@@ -50,13 +50,15 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature>& fe
 
         if (type == ProjectedFeatureType::Point) {
             slices = clipPoints(geometry.get<ProjectedPoints>(), k1, k2, axis);
-            if (slices.get<ProjectedPoints>().empty())
+            if (slices.get<ProjectedPoints>().empty()) {
                 continue;
+            }
         } else {
             slices = clipGeometry(geometry.get<ProjectedRings>(), k1, k2, axis, intersect,
                                   (type == ProjectedFeatureType::Polygon));
-            if (slices.get<ProjectedRings>().empty())
+            if (slices.get<ProjectedRings>().empty()) {
                 continue;
+            }
         }
 
         // if a feature got clipped, it will likely get clipped on the next zoom level as well,
@@ -104,7 +106,7 @@ ProjectedRings Clip::clipGeometry(const ProjectedRings& rings,
         for (size_t j = 0; j < (len - 1); ++j) {
             a = (b.isValid() ? b : ring.points[j]);
             b = ring.points[j + 1];
-            ak = (bk ? bk : (axis == 0 ? a.x : a.y));
+            ak = (bk != 0.0 ? bk : (axis == 0 ? a.x : a.y));
             bk = (axis == 0 ? b.x : b.y);
 
             if (ak < k1) {

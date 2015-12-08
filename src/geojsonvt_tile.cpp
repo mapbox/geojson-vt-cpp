@@ -23,14 +23,18 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
         const auto& min = feature.min;
         const auto& max = feature.max;
 
-        if (min.x < tile.min.x)
+        if (min.x < tile.min.x) {
             tile.min.x = min.x;
-        if (min.y < tile.min.y)
+        }
+        if (min.y < tile.min.y) {
             tile.min.y = min.y;
-        if (max.x > tile.max.x)
+        }
+        if (max.x > tile.max.x) {
             tile.max.x = max.x;
-        if (max.y > tile.max.y)
+        }
+        if (max.y > tile.max.y) {
             tile.max.y = max.y;
+        }
     }
 
     return std::move(tile);
@@ -40,6 +44,7 @@ void Tile::addFeature(Tile& tile,
                       const ProjectedFeature& feature,
                       double tolerance,
                       bool noSimplify) {
+
     const ProjectedFeatureType type = feature.type;
     ProjectedGeometry simplified;
     const double sqTolerance = tolerance * tolerance;
@@ -50,8 +55,9 @@ void Tile::addFeature(Tile& tile,
             tile.numPoints++;
             tile.numSimplified++;
         }
-        if (simplified.get<ProjectedPoints>().empty())
+        if (simplified.get<ProjectedPoints>().empty()) {
             return;
+        }
 
     } else {
         simplified.set<ProjectedRings>();
@@ -62,6 +68,7 @@ void Tile::addFeature(Tile& tile,
             if (!noSimplify &&
                 ((type == ProjectedFeatureType::LineString && ring.dist < tolerance) ||
                  (type == ProjectedFeatureType::Polygon && ring.area < sqTolerance))) {
+
                 tile.numPoints += ring.points.size();
                 continue;
             }
@@ -80,8 +87,9 @@ void Tile::addFeature(Tile& tile,
             simplified.get<ProjectedRings>().push_back(simplifiedRing);
         }
 
-        if (simplified.get<ProjectedRings>().empty())
+        if (simplified.get<ProjectedRings>().empty()) {
             return;
+        }
     }
 
     tile.features.push_back(TileFeature(simplified, type, feature.tags));

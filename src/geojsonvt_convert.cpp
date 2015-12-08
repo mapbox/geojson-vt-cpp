@@ -96,8 +96,8 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
         if (geom.HasMember("coordinates")) {
             const JSValue& rawCoordinates = geom["coordinates"];
             if (rawCoordinates.IsArray()) {
-                coordinates[0] = rawCoordinates[(rapidjson::SizeType)0].GetDouble();
-                coordinates[1] = rawCoordinates[(rapidjson::SizeType)1].GetDouble();
+                coordinates[0] = rawCoordinates[static_cast<rapidjson::SizeType>(0)].GetDouble();
+                coordinates[1] = rawCoordinates[static_cast<rapidjson::SizeType>(1)].GetDouble();
             }
         }
         ProjectedPoints points = { projectPoint(LonLat(coordinates)) };
@@ -114,8 +114,10 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
                     std::array<double, 2> coordinates = { { 0, 0 } };
                     const JSValue& rawCoordinates = rawCoordinatePairs[i];
                     if (rawCoordinates.IsArray()) {
-                        coordinates[0] = rawCoordinates[(rapidjson::SizeType)0].GetDouble();
-                        coordinates[1] = rawCoordinates[(rapidjson::SizeType)1].GetDouble();
+                        coordinates[0] =
+                            rawCoordinates[static_cast<rapidjson::SizeType>(0)].GetDouble();
+                        coordinates[1] =
+                            rawCoordinates[static_cast<rapidjson::SizeType>(1)].GetDouble();
                     }
                     points.push_back(projectPoint(LonLat(coordinates)));
                 }
@@ -134,8 +136,10 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
                     std::array<double, 2> coordinates = { { 0, 0 } };
                     const JSValue& rawCoordinates = rawCoordinatePairs[i];
                     if (rawCoordinates.IsArray()) {
-                        coordinates[0] = rawCoordinates[(rapidjson::SizeType)0].GetDouble();
-                        coordinates[1] = rawCoordinates[(rapidjson::SizeType)1].GetDouble();
+                        coordinates[0] =
+                            rawCoordinates[static_cast<rapidjson::SizeType>(0)].GetDouble();
+                        coordinates[1] =
+                            rawCoordinates[static_cast<rapidjson::SizeType>(1)].GetDouble();
                     }
                     points.push_back(LonLat(coordinates));
                 }
@@ -160,8 +164,10 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
                             std::array<double, 2> coordinates = { { 0, 0 } };
                             const JSValue& rawCoordinates = rawCoordinatePairs[j];
                             if (rawCoordinates.IsArray()) {
-                                coordinates[0] = rawCoordinates[(rapidjson::SizeType)0].GetDouble();
-                                coordinates[1] = rawCoordinates[(rapidjson::SizeType)1].GetDouble();
+                                coordinates[0] =
+                                    rawCoordinates[static_cast<rapidjson::SizeType>(0)].GetDouble();
+                                coordinates[1] =
+                                    rawCoordinates[static_cast<rapidjson::SizeType>(1)].GetDouble();
                             }
                             points.push_back(LonLat(coordinates));
                         }
@@ -195,9 +201,11 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
                                     const JSValue& rawCoordinates = rawCoordinatePairs[j];
                                     if (rawCoordinates.IsArray()) {
                                         coordinates[0] =
-                                            rawCoordinates[(rapidjson::SizeType)0].GetDouble();
+                                            rawCoordinates[static_cast<rapidjson::SizeType>(0)]
+                                                .GetDouble();
                                         coordinates[1] =
-                                            rawCoordinates[(rapidjson::SizeType)1].GetDouble();
+                                            rawCoordinates[static_cast<rapidjson::SizeType>(1)]
+                                                .GetDouble();
                                     }
                                     points.push_back(LonLat(coordinates));
                                 }
@@ -284,6 +292,7 @@ void Convert::calcBBox(ProjectedFeature& feature) {
 
     if (feature.type == ProjectedFeatureType::Point) {
         calcRingBBox(min, max, feature.geometry.get<ProjectedPoints>());
+
     } else {
         auto& rings = feature.geometry.get<ProjectedRings>();
         for (auto& ring : rings) {

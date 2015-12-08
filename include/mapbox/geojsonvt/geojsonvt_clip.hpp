@@ -30,9 +30,9 @@ public:
 
 private:
     static ProjectedPoints
-    clipPoints(const ProjectedPoints& geometry, double k1, double k2, uint8_t axis);
+    clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t axis);
 
-    static ProjectedRings clipGeometry(const ProjectedRings& geometry,
+    static ProjectedRings clipGeometry(const ProjectedRings& rings,
                                        double k1,
                                        double k2,
                                        uint8_t axis,

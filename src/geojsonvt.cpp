@@ -17,7 +17,7 @@ std::unordered_map<std::string, clock_t> Time::activities;
 
 const Tile GeoJSONVT::emptyTile{};
 
-GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_) : options(options_) {
+GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_) : options(std::move(options_)) {
 
     std::vector<ProjectedFeature> features_ = convertFeatures(data_);
 
@@ -53,7 +53,7 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     x = ((x % z2) + z2) % z2; // wrap tile x coordinate
 
     const uint64_t id = toID(z, x, y);
-    if (tiles.count(id)) {
+    if (tiles.count(id) != 0u) {
         return transformTile(tiles.find(id)->second, options.extent);
     }
 
@@ -66,17 +66,17 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     uint32_t y0 = y;
     Tile* parent = nullptr;
 
-    while (!parent && z0) {
+    while ((parent == nullptr) && (z0 != 0u)) {
         z0--;
         x0 = x0 / 2;
         y0 = y0 / 2;
         const uint64_t checkID = toID(z0, x0, y0);
-        if (tiles.count(checkID)) {
+        if (tiles.count(checkID) != 0u) {
             parent = &tiles[checkID];
         }
     }
 
-    if (!parent) {
+    if (parent == nullptr) {
         return emptyTile;
     }
 
@@ -85,7 +85,7 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
 #endif
 
     // if we found a parent tile containing the original geometry, we can drill down from it
-    if (parent && !parent->source.empty()) {
+    if ((parent != nullptr) && !parent->source.empty()) {
         if (isClippedSquare(*parent, options.extent, options.buffer)) {
             return transformTile(*parent, options.extent);
         }
@@ -167,7 +167,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         double tileTolerance =
             (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
-        if (!tile) {
+        if (tile == nullptr) {
 #ifdef DEBUG
             Time::time("creation");
 #endif
@@ -193,25 +193,29 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         tile->source = std::vector<ProjectedFeature>(features);
 
         // stop tiling if the tile is solid clipped square
-        if (!options.solidChildren && isClippedSquare(*tile, options.extent, options.buffer))
+        if (!options.solidChildren && isClippedSquare(*tile, options.extent, options.buffer)) {
             continue;
+        }
 
         // if it's the first-pass tiling
-        if (!cz) {
+        if (cz == 0u) {
             // stop tiling if we reached max zoom, or if the tile is too simple
-            if (z == options.indexMaxZoom || tile->numPoints <= options.indexMaxPoints)
+            if (z == options.indexMaxZoom || tile->numPoints <= options.indexMaxPoints) {
                 continue;
+            }
 
             // if a drilldown to a specific tile
         } else {
             // stop tiling if we reached base zoom or our target tile zoom
-            if (z == options.maxZoom || z == cz)
+            if (z == options.maxZoom || z == cz) {
                 continue;
+            }
 
             // stop tiling if it's not an ancestor of the target tile
             const auto m = 1 << (cz - z);
-            if (x != std::floor(cx / m) || y != std::floor(cy / m))
+            if (x != std::floor(cx / m) || y != std::floor(cy / m)) {
                 continue;
+            }
         }
 
         // if we slice further down, no need to keep source geometry
@@ -283,8 +287,7 @@ const Tile& GeoJSONVT::transformTile(Tile& tile, uint16_t extent) {
     const uint32_t tx = tile.tx;
     const uint32_t ty = tile.ty;
 
-    for (size_t i = 0; i < tile.features.size(); i++) {
-        auto& feature = tile.features[i];
+    for (auto& feature : tile.features) {
         const auto& geom = feature.geometry;
         const auto type = feature.type;
 

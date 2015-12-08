@@ -23,7 +23,7 @@ void Simplify::simplify(ProjectedPoints& points, double tolerance) {
     points[last].z = 1;
 
     // avoid recursion by using a stack
-    while (last) {
+    while (last != 0u) {
 
         maxSqDist = 0;
 
@@ -42,6 +42,7 @@ void Simplify::simplify(ProjectedPoints& points, double tolerance) {
             stack.push(first);
             stack.push(index);
             first = index;
+
         } else {
             if (!stack.empty()) {
                 last = stack.top();
@@ -64,13 +65,14 @@ Simplify::getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const P
     double dx = b.x - a.x;
     double dy = b.y - a.y;
 
-    if (dx || dy) {
+    if ((dx != 0.0) || (dy != 0.0)) {
 
         const double t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy);
 
         if (t > 1) {
             x = b.x;
             y = b.y;
+
         } else if (t > 0) {
             x += dx * t;
             y += dy * t;

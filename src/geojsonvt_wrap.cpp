@@ -27,9 +27,9 @@ std::vector<ProjectedFeature> Wrap::wrap(std::vector<ProjectedFeature>& features
             merged.insert(merged.end(), shifted.begin(), shifted.end());
         }
         return merged;
-    } else {
-        return features;
     }
+
+    return features;
 }
 
 std::vector<ProjectedFeature>
@@ -43,6 +43,7 @@ Wrap::shiftFeatureCoords(const std::vector<ProjectedFeature>& features, int8_t o
 
         if (type == ProjectedFeatureType::Point) {
             newGeometry = shiftCoords(feature.geometry.get<ProjectedPoints>(), offset);
+
         } else {
             newGeometry.set<ProjectedRings>();
 
