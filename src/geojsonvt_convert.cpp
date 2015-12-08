@@ -12,7 +12,7 @@ namespace geojsonvt {
 // converts GeoJSON feature into an intermediate projected JSON vector format with simplification
 // data
 
-std::vector<ProjectedFeature> Convert::convert(const JSDocument& data, double tolerance) {
+std::vector<ProjectedFeature> Convert::convert(const JSValue& data, double tolerance) {
     std::vector<ProjectedFeature> features;
     const JSValue& rawType = data["type"];
 

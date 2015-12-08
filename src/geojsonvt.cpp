@@ -121,7 +121,7 @@ std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data
 
     uint32_t z2 = 1 << options.maxZoom; // 2^z
 
-    JSDocument deserializedData;
+    rapidjson::Document deserializedData;
     deserializedData.Parse<0>(data.c_str());
 
     if (deserializedData.HasParseError()) {

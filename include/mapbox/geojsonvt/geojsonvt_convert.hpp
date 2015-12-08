@@ -11,7 +11,6 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-using JSDocument = rapidjson::Document;
 using JSValue = rapidjson::Value;
 
 class __attribute__((visibility("default"))) Convert {
@@ -20,7 +19,7 @@ private:
     Convert() = delete;
 
 public:
-    static std::vector<ProjectedFeature> convert(const JSDocument& data, double tolerance);
+    static std::vector<ProjectedFeature> convert(const JSValue& data, double tolerance);
 
     static ProjectedFeature
     create(Tags tags, ProjectedFeatureType type, ProjectedGeometry geometry);
