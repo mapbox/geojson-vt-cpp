@@ -1,7 +1,7 @@
 #include "util.hpp"
 #include <gtest/gtest.h>
 
-#include <mapbox/geojsonvt/geojsonvt.hpp>
+#include <mapbox/geojsonvt.hpp>
 #include <mapbox/geojsonvt/convert.hpp>
 #include <mapbox/geojsonvt/tile.hpp>
 

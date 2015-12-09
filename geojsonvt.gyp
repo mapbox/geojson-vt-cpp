@@ -20,7 +20,7 @@
       ],
 
       'sources': [
-        'include/mapbox/geojsonvt/geojsonvt.hpp',
+        'include/mapbox/geojsonvt.hpp',
         'include/mapbox/geojsonvt/clip.hpp',
         'include/mapbox/geojsonvt/convert.hpp',
         'include/mapbox/geojsonvt/simplify.hpp',

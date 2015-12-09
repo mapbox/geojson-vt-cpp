@@ -1,6 +1,6 @@
 #include <GLFW/glfw3.h>
 
-#include <mapbox/geojsonvt/geojsonvt.hpp>
+#include <mapbox/geojsonvt.hpp>
 
 #include <fstream>
 #include <sstream>
