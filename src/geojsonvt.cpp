@@ -25,9 +25,8 @@ void timeEnd(std::string activity) {
 
 const Tile GeoJSONVT::emptyTile{};
 
-GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_) : options(std::move(options_)) {
-
-    std::vector<ProjectedFeature> features_ = convertFeatures(data_);
+GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
+    : options(std::move(options_)) {
 
 #ifdef DEBUG
     printf("index: maxZoom: %d, maxPoints: %d", options.indexMaxZoom, options.indexMaxPoints);
@@ -122,7 +121,7 @@ uint64_t GeoJSONVT::getTotal() const {
     return total;
 }
 
-std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data) {
+std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data, Options options) {
 #ifdef DEBUG
     time("preprocess data");
 #endif

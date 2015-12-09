@@ -92,7 +92,9 @@ int main() {
         Timer timer;
         const std::string data = loadFile(filename);
         timer.report("loadFile");
-        vt = std::make_unique<GeoJSONVT>(data);
+        const auto features = GeoJSONVT::convertFeatures(data);
+        timer.report("convertFeatures");
+        vt = std::make_unique<GeoJSONVT>(features);
         timer.report("parse");
         updateTile();
     };

@@ -20,7 +20,8 @@ genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 1000
     options.indexMaxZoom = maxZoom;
     options.indexMaxPoints = maxPoints;
 
-    GeoJSONVT index{ data, options };
+    const auto features = GeoJSONVT::convertFeatures(data, options);
+    GeoJSONVT index{ features, options };
 
     std::map<std::string, std::vector<TileFeature>> output;
 
