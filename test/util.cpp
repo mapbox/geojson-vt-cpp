@@ -12,7 +12,6 @@
 #include <sstream>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 std::string loadFile(const std::string& filename) {
@@ -242,5 +241,4 @@ std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string
 }
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox

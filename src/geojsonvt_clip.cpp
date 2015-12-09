@@ -1,7 +1,6 @@
 #include <mapbox/geojsonvt/geojsonvt_clip.hpp>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 /* clip features between two axis-parallel lines:
@@ -187,5 +186,4 @@ Clip::newSlice(ProjectedRings& slices, ProjectedRing& slice, double area, double
 }
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox

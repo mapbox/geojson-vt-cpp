@@ -3,7 +3,6 @@
 #include <stack>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 // calculate simplification data using optimized Douglas-Peucker algorithm
@@ -86,5 +85,4 @@ Simplify::getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const P
 }
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox

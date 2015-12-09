@@ -1,10 +1,9 @@
-#ifndef MAPBOX_UTIL_GEOJSONVT_SIMPLIFY
-#define MAPBOX_UTIL_GEOJSONVT_SIMPLIFY
+#ifndef MAPBOX_GEOJSONVT_SIMPLIFY
+#define MAPBOX_GEOJSONVT_SIMPLIFY
 
 #include "geojsonvt_types.hpp"
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 class __attribute__((visibility("default"))) Simplify {
@@ -21,7 +20,6 @@ private:
 };
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox
 
-#endif // MAPBOX_UTIL_GEOJSONVT_SIMPLIFY
+#endif // MAPBOX_GEOJSONVT_SIMPLIFY

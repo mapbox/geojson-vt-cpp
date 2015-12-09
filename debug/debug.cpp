@@ -40,7 +40,7 @@ public:
     }
 };
 
-using namespace mapbox::util::geojsonvt;
+using namespace mapbox::geojsonvt;
 
 int main() {
     if (glfwInit() == 0) {
@@ -161,10 +161,10 @@ int main() {
                 pos.y *= 2;
                 if (horizontal == Horizontal::Right) {
                     pos.x++;
-}
+                }
                 if (vertical == Vertical::Bottom) {
                     pos.y++;
-}
+                }
                 updateTile();
             }
         } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE) {

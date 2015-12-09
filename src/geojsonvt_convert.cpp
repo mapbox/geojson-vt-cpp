@@ -6,7 +6,6 @@
 #include <vector>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 // converts GeoJSON feature into an intermediate projected JSON vector format with simplification
@@ -313,5 +312,4 @@ void Convert::calcRingBBox(ProjectedPoint& minPoint,
 }
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox

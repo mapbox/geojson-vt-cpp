@@ -8,7 +8,6 @@
 #include <unordered_map>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 #pragma mark - GeoJSONVT
@@ -371,5 +370,4 @@ bool GeoJSONVT::isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t
 }
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox

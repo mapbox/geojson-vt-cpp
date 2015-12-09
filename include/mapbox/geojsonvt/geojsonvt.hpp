@@ -1,5 +1,5 @@
-#ifndef MAPBOX_UTIL_GEOJSONVT
-#define MAPBOX_UTIL_GEOJSONVT
+#ifndef MAPBOX_GEOJSONVT
+#define MAPBOX_GEOJSONVT
 
 #include "geojsonvt_types.hpp"
 #include "geojsonvt_tile.hpp"
@@ -10,7 +10,6 @@
 #include <vector>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 struct Options {
@@ -94,7 +93,6 @@ private:
 };
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox
 
-#endif // MAPBOX_UTIL_GEOJSONVT
+#endif // MAPBOX_GEOJSONVT

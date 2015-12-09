@@ -1,12 +1,11 @@
-#ifndef MAPBOX_UTIL_GEOJSONVT_TEST_UTIL
-#define MAPBOX_UTIL_GEOJSONVT_TEST_UTIL
+#ifndef MAPBOX_GEOJSONVT_TEST_UTIL
+#define MAPBOX_GEOJSONVT_TEST_UTIL
 
 #include <mapbox/geojsonvt/geojsonvt_types.hpp>
 
 #include <rapidjson/document.h>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 std::string loadFile(const std::string& filename);
@@ -31,7 +30,6 @@ std::vector<TileFeature> parseJSONTile(const std::string& data);
 std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string& data);
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox
 
-#endif // MAPBOX_UTIL_GEOJSONVT_TEST_UTIL
+#endif // MAPBOX_GEOJSONVT_TEST_UTIL

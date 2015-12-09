@@ -2,7 +2,7 @@
 #include <mapbox/geojsonvt/geojsonvt_clip.hpp>
 #include <gtest/gtest.h>
 
-using namespace mapbox::util::geojsonvt;
+using namespace mapbox::geojsonvt;
 
 ProjectedPoint intersectX(const ProjectedPoint& p0, const ProjectedPoint& p1, double x) {
     return { x, (x - p0.x) * (p1.y - p0.y) / (p1.x - p0.x) + p0.y };

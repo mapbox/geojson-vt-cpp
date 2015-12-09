@@ -2,7 +2,7 @@
 #include <mapbox/geojsonvt/geojsonvt_simplify.hpp>
 #include <gtest/gtest.h>
 
-using namespace mapbox::util::geojsonvt;
+using namespace mapbox::geojsonvt;
 
 using P = ProjectedPoint;
 using C = ProjectedPoints;

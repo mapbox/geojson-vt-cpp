@@ -1,5 +1,5 @@
-#ifndef MAPBOX_UTIL_GEOJSONVT_CONVERT
-#define MAPBOX_UTIL_GEOJSONVT_CONVERT
+#ifndef MAPBOX_GEOJSONVT_CONVERT
+#define MAPBOX_GEOJSONVT_CONVERT
 
 #include "geojsonvt_types.hpp"
 
@@ -8,7 +8,6 @@
 #include <vector>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 using JSValue = rapidjson::Value;
@@ -47,7 +46,6 @@ private:
 };
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox
 
-#endif // MAPBOX_UTIL_GEOJSONVT_CONVERT
+#endif // MAPBOX_GEOJSONVT_CONVERT

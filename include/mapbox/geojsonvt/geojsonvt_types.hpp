@@ -1,5 +1,5 @@
-#ifndef MAPBOX_UTIL_GEOJSONVT_TYPES
-#define MAPBOX_UTIL_GEOJSONVT_TYPES
+#ifndef MAPBOX_GEOJSONVT_TYPES
+#define MAPBOX_GEOJSONVT_TYPES
 
 #include <mapbox/variant.hpp>
 
@@ -9,7 +9,6 @@
 #include <vector>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 struct __attribute__((visibility("default"))) LonLat {
@@ -140,7 +139,6 @@ public:
 };
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox
 
-#endif // MAPBOX_UTIL_GEOJSONVT_TYPES
+#endif // MAPBOX_GEOJSONVT_TYPES

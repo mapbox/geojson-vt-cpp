@@ -1,12 +1,11 @@
-#ifndef MAPBOX_UTIL_GEOJSONVT_CLIP
-#define MAPBOX_UTIL_GEOJSONVT_CLIP
+#ifndef MAPBOX_GEOJSONVT_CLIP
+#define MAPBOX_GEOJSONVT_CLIP
 
 #include "geojsonvt_types.hpp"
 
 #include <vector>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 class __attribute__((visibility("default"))) Clip {
@@ -44,7 +43,6 @@ private:
 };
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox
 
-#endif // MAPBOX_UTIL_GEOJSONVT_CLIP
+#endif // MAPBOX_GEOJSONVT_CLIP

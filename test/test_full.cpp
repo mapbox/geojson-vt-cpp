@@ -11,7 +11,7 @@
 #include <cmath>
 #include <stdexcept>
 
-using namespace mapbox::util::geojsonvt;
+using namespace mapbox::geojsonvt;
 
 std::map<std::string, std::vector<TileFeature>>
 genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 10000) {

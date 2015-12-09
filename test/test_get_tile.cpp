@@ -11,7 +11,7 @@
 #include <cmath>
 #include <stdexcept>
 
-using namespace mapbox::util::geojsonvt;
+using namespace mapbox::geojsonvt;
 
 const auto square = parseJSONTile(loadFile("test/fixtures/us-states-square.json"));
 

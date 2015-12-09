@@ -1,7 +1,6 @@
 #include <mapbox/geojsonvt/geojsonvt_wrap.hpp>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 std::vector<ProjectedFeature> Wrap::wrap(std::vector<ProjectedFeature>& features,
@@ -74,5 +73,4 @@ ProjectedPoints Wrap::shiftCoords(const ProjectedPoints& points, int8_t offset) 
 }
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox

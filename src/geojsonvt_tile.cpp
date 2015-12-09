@@ -1,7 +1,6 @@
 #include <mapbox/geojsonvt/geojsonvt_tile.hpp>
 
 namespace mapbox {
-namespace util {
 namespace geojsonvt {
 
 Tile Tile::createTile(std::vector<ProjectedFeature>& features,
@@ -96,5 +95,4 @@ void Tile::addFeature(Tile& tile,
 }
 
 } // namespace geojsonvt
-} // namespace util
 } // namespace mapbox
