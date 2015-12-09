@@ -5,6 +5,7 @@
 #include <mapbox/geojsonvt/transform.hpp>
 
 #include <stack>
+#include <cmath>
 #include <unordered_map>
 
 namespace mapbox {
