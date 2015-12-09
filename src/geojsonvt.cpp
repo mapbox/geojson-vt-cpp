@@ -9,6 +9,7 @@
 #include <chrono>
 #include <unordered_map>
 #include <iostream>
+#include <utility>
 
 namespace mapbox {
 namespace geojsonvt {
@@ -17,34 +18,25 @@ namespace geojsonvt {
 
 const Tile GeoJSONVT::emptyTile{};
 
-struct FeatureStackItem {
-    std::vector<ProjectedFeature> features;
-    uint8_t z;
-    uint32_t x;
-    uint32_t y;
+namespace {
 
-    FeatureStackItem(std::vector<ProjectedFeature> features_, uint8_t z_, uint32_t x_, uint32_t y_)
-        : features(features_), z(z_), x(x_), y(y_) {
-    }
-};
-
-static uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
+uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
     return (((1 << z) * y + x) * 32) + z;
 }
 
-static ProjectedPoint intersectX(const ProjectedPoint& a, const ProjectedPoint& b, double x) {
+ProjectedPoint intersectX(const ProjectedPoint& a, const ProjectedPoint& b, double x) {
     double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
     return ProjectedPoint(x, y, 1.0);
 }
 
-static ProjectedPoint intersectY(const ProjectedPoint& a, const ProjectedPoint& b, double y) {
+ProjectedPoint intersectY(const ProjectedPoint& a, const ProjectedPoint& b, double y) {
     double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
     return ProjectedPoint(x, y, 1.0);
 }
 
 // checks whether a tile is a whole-area fill after clipping; if it is, there's no sense slicing it
 // further
-static bool isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
+bool isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
     const auto& features = tile.source;
     if (features.size() != 1) {
         return false;
@@ -89,6 +81,18 @@ public:
         start += duration;
     }
 };
+
+struct FeatureStackItem {
+    std::vector<ProjectedFeature> features;
+    uint8_t z;
+    uint32_t x;
+    uint32_t y;
+
+    FeatureStackItem(std::vector<ProjectedFeature> features_, uint8_t z_, uint32_t x_, uint32_t y_)
+        : features(std::move(features_)), z(z_), x(x_), y(y_) {
+    }
+};
+} // namespace
 
 GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
     : options(std::move(options_)) {
