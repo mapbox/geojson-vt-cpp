@@ -8,9 +8,9 @@ namespace geojsonvt {
 
 // calculate simplification data using optimized Douglas-Peucker algorithm
 
-void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
+void Simplify::simplify(ProjectedPoints& points, double tolerance) {
     const double sqTolerance = tolerance * tolerance;
-    const size_t len = points.members.size();
+    const size_t len = points.size();
     size_t first = 0;
     size_t last = len - 1;
     std::stack<size_t> stack;
@@ -19,18 +19,16 @@ void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
     size_t index = 0;
 
     // always retain the endpoints (1 is the max value)
-    points.members[first].get<ProjectedPoint>().z = 1;
-    points.members[last].get<ProjectedPoint>().z = 1;
+    points[first].z = 1;
+    points[last].z = 1;
 
     // avoid recursion by using a stack
-    while (last) {
+    while (last != 0u) {
 
         maxSqDist = 0;
 
         for (size_t i = (first + 1); i < last; ++i) {
-            sqDist = getSqSegDist(points.members[i].get<ProjectedPoint>(),
-                                  points.members[first].get<ProjectedPoint>(),
-                                  points.members[last].get<ProjectedPoint>());
+            sqDist = getSqSegDist(points[i], points[first], points[last]);
 
             if (sqDist > maxSqDist) {
                 index = i;
@@ -40,10 +38,11 @@ void Simplify::simplify(ProjectedGeometryContainer& points, double tolerance) {
 
         if (maxSqDist > sqTolerance) {
             // save the point importance in squared pixels as a z coordinate
-            points.members[index].get<ProjectedPoint>().z = maxSqDist;
+            points[index].z = maxSqDist;
             stack.push(first);
             stack.push(index);
             first = index;
+
         } else {
             if (!stack.empty()) {
                 last = stack.top();
@@ -66,13 +65,14 @@ Simplify::getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const P
     double dx = b.x - a.x;
     double dy = b.y - a.y;
 
-    if (dx || dy) {
+    if ((dx != 0.0) || (dy != 0.0)) {
 
         const double t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy);
 
         if (t > 1) {
             x = b.x;
             y = b.y;
+
         } else if (t > 0) {
             x += dx * t;
             y += dy * t;

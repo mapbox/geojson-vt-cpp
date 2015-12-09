@@ -9,7 +9,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class __attribute__ ((visibility ("default"))) Clip {
+class __attribute__((visibility("default"))) Clip {
 private:
     // This class has only static functions; disallow creating instances of it.
     Clip() = delete;
@@ -29,20 +29,18 @@ public:
                                               double maxAll);
 
 private:
-    static ProjectedGeometryContainer
-    clipPoints(const ProjectedGeometryContainer& geometry, double k1, double k2, uint8_t axis);
+    static ProjectedPoints
+    clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t axis);
 
-    static ProjectedGeometryContainer clipGeometry(const ProjectedGeometryContainer& geometry,
-                                                   double k1,
-                                                   double k2,
-                                                   uint8_t axis,
-                                                   IntersectCallback intersect,
-                                                   bool closed);
+    static ProjectedRings clipGeometry(const ProjectedRings& rings,
+                                       double k1,
+                                       double k2,
+                                       uint8_t axis,
+                                       IntersectCallback intersect,
+                                       bool closed);
 
-    static ProjectedGeometryContainer newSlice(ProjectedGeometryContainer& slices,
-                                               ProjectedGeometryContainer& slice,
-                                               double area,
-                                               double dist);
+    static ProjectedRing
+    newSlice(ProjectedRings& slices, ProjectedRing& slice, double area, double dist);
 };
 
 } // namespace geojsonvt

@@ -1,30 +1,38 @@
 #include <mapbox/geojsonvt/geojsonvt.hpp>
 #include <mapbox/geojsonvt/geojsonvt_clip.hpp>
 #include <mapbox/geojsonvt/geojsonvt_convert.hpp>
-#include <mapbox/geojsonvt/geojsonvt_util.hpp>
 #include <mapbox/geojsonvt/geojsonvt_wrap.hpp>
 
 #include <stack>
 #include <cmath>
+#include <unordered_map>
 
 namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-std::unordered_map<std::string, clock_t> Time::activities;
-
 #pragma mark - GeoJSONVT
 
-const Tile GeoJSONVT::emptyTile {};
+std::unordered_map<std::string, clock_t> activities;
 
-GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_)
-    : options(options_) {
+void time(std::string activity) {
+    activities[activity] = clock();
+}
+
+void timeEnd(std::string activity) {
+    printf("%s: %fms\n", activity.c_str(),
+           double(clock() - activities[activity]) / (CLOCKS_PER_SEC / 1000));
+}
+
+const Tile GeoJSONVT::emptyTile{};
+
+GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_) : options(std::move(options_)) {
 
     std::vector<ProjectedFeature> features_ = convertFeatures(data_);
 
 #ifdef DEBUG
     printf("index: maxZoom: %d, maxPoints: %d", options.indexMaxZoom, options.indexMaxPoints);
-    Time::time("generate tiles");
+    time("generate tiles");
 #endif
 
     features_ = Wrap::wrap(features_, double(options.buffer) / options.extent, intersectX);
@@ -38,7 +46,7 @@ GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_)
     if (!features_.empty()) {
         printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
     }
-    Time::timeEnd("generate tiles");
+    timeEnd("generate tiles");
     printf("tiles generated: %i {\n", static_cast<int>(total));
     for (const auto& pair : stats) {
         printf("    z%i: %i\n", pair.first, pair.second);
@@ -48,13 +56,11 @@ GeoJSONVT::GeoJSONVT(const std::string& data_, Options options_)
 }
 
 const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
-    std::lock_guard<std::mutex> lock(mtx);
-
     const uint32_t z2 = 1 << z;
     x = ((x % z2) + z2) % z2; // wrap tile x coordinate
 
     const uint64_t id = toID(z, x, y);
-    if (tiles.count(id)) {
+    if (tiles.count(id) != 0u) {
         return transformTile(tiles.find(id)->second, options.extent);
     }
 
@@ -67,17 +73,17 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     uint32_t y0 = y;
     Tile* parent = nullptr;
 
-    while (!parent && z0) {
+    while ((parent == nullptr) && (z0 != 0u)) {
         z0--;
         x0 = x0 / 2;
         y0 = y0 / 2;
         const uint64_t checkID = toID(z0, x0, y0);
-        if (tiles.count(checkID)) {
+        if (tiles.count(checkID) != 0u) {
             parent = &tiles[checkID];
         }
     }
 
-    if (!parent) {
+    if (parent == nullptr) {
         return emptyTile;
     }
 
@@ -86,19 +92,19 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
 #endif
 
     // if we found a parent tile containing the original geometry, we can drill down from it
-    if (parent && !parent->source.empty()) {
+    if ((parent != nullptr) && !parent->source.empty()) {
         if (isClippedSquare(*parent, options.extent, options.buffer)) {
             return transformTile(*parent, options.extent);
         }
 
 #ifdef DEBUG
-        Time::time("drilling down");
+        time("drilling down");
 #endif
 
         splitTile(parent->source, z0, x0, y0, z, x, y);
 
 #ifdef DEBUG
-        Time::timeEnd("drilling down");
+        timeEnd("drilling down");
 #endif
     }
 
@@ -117,15 +123,14 @@ uint64_t GeoJSONVT::getTotal() const {
     return total;
 }
 
-std::vector<ProjectedFeature>
-GeoJSONVT::convertFeatures(const std::string& data) {
+std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data) {
 #ifdef DEBUG
-    Time::time("preprocess data");
+    time("preprocess data");
 #endif
 
     uint32_t z2 = 1 << options.maxZoom; // 2^z
 
-    JSDocument deserializedData;
+    rapidjson::Document deserializedData;
     deserializedData.Parse<0>(data.c_str());
 
     if (deserializedData.HasParseError()) {
@@ -136,7 +141,7 @@ GeoJSONVT::convertFeatures(const std::string& data) {
         Convert::convert(deserializedData, options.tolerance / (z2 * options.extent));
 
 #ifdef DEBUG
-    Time::timeEnd("preprocess data");
+    timeEnd("preprocess data");
 #endif
 
     return features;
@@ -166,21 +171,22 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             const auto it = tiles.find(id);
             return it != tiles.end() ? &it->second : nullptr;
         }();
-        double tileTolerance = (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
+        double tileTolerance =
+            (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
-        if (!tile) {
+        if (tile == nullptr) {
 #ifdef DEBUG
-            Time::time("creation");
+            time("creation");
 #endif
 
-            tiles[id] =
-                std::move(Tile::createTile(features, z2, x, y, tileTolerance, (z == options.maxZoom)));
+            tiles[id] = std::move(
+                Tile::createTile(features, z2, x, y, tileTolerance, (z == options.maxZoom)));
             tile = &tiles[id];
 
 #ifdef DEBUG
             printf("tile z%i-%i-%i (features: %i, points: %i, simplified: %i\n", z, x, y,
                    tile->numFeatures, tile->numPoints, tile->numSimplified);
-            Time::timeEnd("creation");
+            timeEnd("creation");
 
             uint8_t key = z;
             stats[key] = (stats.count(key) ? stats[key] + 1 : 1);
@@ -194,31 +200,36 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         tile->source = std::vector<ProjectedFeature>(features);
 
         // stop tiling if the tile is solid clipped square
-        if (!options.solidChildren && isClippedSquare(*tile, options.extent, options.buffer)) continue;
+        if (!options.solidChildren && isClippedSquare(*tile, options.extent, options.buffer)) {
+            continue;
+        }
 
         // if it's the first-pass tiling
-        if (!cz) {
+        if (cz == 0u) {
             // stop tiling if we reached max zoom, or if the tile is too simple
-            if (z == options.indexMaxZoom || tile->numPoints <= options.indexMaxPoints)
+            if (z == options.indexMaxZoom || tile->numPoints <= options.indexMaxPoints) {
                 continue;
+            }
 
             // if a drilldown to a specific tile
         } else {
             // stop tiling if we reached base zoom or our target tile zoom
-            if (z == options.maxZoom || z == cz)
+            if (z == options.maxZoom || z == cz) {
                 continue;
+            }
 
             // stop tiling if it's not an ancestor of the target tile
             const auto m = 1 << (cz - z);
-            if (x != std::floor(cx / m) || y != std::floor(cy / m))
+            if (x != std::floor(cx / m) || y != std::floor(cy / m)) {
                 continue;
+            }
         }
 
         // if we slice further down, no need to keep source geometry
         tile->source = {};
 
 #ifdef DEBUG
-        Time::time("clipping");
+        time("clipping");
 #endif
 
         const double k1 = 0.5 * options.buffer / options.extent;
@@ -247,7 +258,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         }
 
 #ifdef DEBUG
-        Time::timeEnd("clipping");
+        timeEnd("clipping");
 #endif
 
         if (!tl.empty()) {
@@ -283,25 +294,25 @@ const Tile& GeoJSONVT::transformTile(Tile& tile, uint16_t extent) {
     const uint32_t tx = tile.tx;
     const uint32_t ty = tile.ty;
 
-    for (size_t i = 0; i < tile.features.size(); i++) {
-        auto& feature = tile.features[i];
+    for (auto& feature : tile.features) {
         const auto& geom = feature.geometry;
         const auto type = feature.type;
 
         if (type == TileFeatureType::Point) {
-            for (const auto& pt : geom) {
-                feature.tileGeometry.push_back(
-                    transformPoint(pt.get<ProjectedPoint>(), extent, z2, tx, ty));
+            auto& tileGeom = feature.tileGeometry.get<TilePoints>();
+            for (const auto& pt : geom.get<ProjectedPoints>()) {
+                tileGeom.push_back(transformPoint(pt, extent, z2, tx, ty));
             }
 
         } else {
-            for (const auto& r : geom) {
-                TileRing ring;
-                for (const auto& pt : r.get<ProjectedGeometryContainer>().members) {
-                    ring.points.push_back(
-                        transformPoint(pt.get<ProjectedPoint>(), extent, z2, tx, ty));
+            feature.tileGeometry.set<TileRings>();
+            auto& tileGeom = feature.tileGeometry.get<TileRings>();
+            for (const auto& r : geom.get<ProjectedRings>()) {
+                TilePoints ring;
+                for (const auto& p : r.points) {
+                    ring.push_back(transformPoint(p, extent, z2, tx, ty));
                 }
-                feature.tileGeometry.emplace_back(std::move(ring));
+                tileGeom.push_back(std::move(ring));
             }
         }
     }
@@ -316,19 +327,13 @@ uint64_t GeoJSONVT::toID(uint8_t z, uint32_t x, uint32_t y) {
 }
 
 ProjectedPoint GeoJSONVT::intersectX(const ProjectedPoint& a, const ProjectedPoint& b, double x) {
-    double r1 = x;
-    double r2 = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
-    double r3 = 1;
-
-    return ProjectedPoint(r1, r2, r3);
+    double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
+    return ProjectedPoint(x, y, 1.0);
 }
 
 ProjectedPoint GeoJSONVT::intersectY(const ProjectedPoint& a, const ProjectedPoint& b, double y) {
-    double r1 = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
-    double r2 = y;
-    double r3 = 1;
-
-    return ProjectedPoint(r1, r2, r3);
+    double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
+    return ProjectedPoint(x, y, 1.0);
 }
 
 // checks whether a tile is a whole-area fill after clipping; if it is, there's no sense slicing it
@@ -340,19 +345,22 @@ bool GeoJSONVT::isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t
     }
 
     const auto& feature = features.front();
-    const auto& geometries = feature.geometry.get<ProjectedGeometryContainer>();
-    if (feature.type != ProjectedFeatureType::Polygon || geometries.members.size() > 1) {
+    if (feature.type != ProjectedFeatureType::Polygon) {
+        return false;
+    }
+    const auto& rings = feature.geometry.get<ProjectedRings>();
+    if (rings.size() > 1) {
         return false;
     }
 
-    const auto& geometry = geometries.members.front().get<ProjectedGeometryContainer>();
+    const auto& ring = rings.front();
 
-    if (geometry.members.size() != 5) {
+    if (ring.points.size() != 5) {
         return false;
     }
 
-    for (const auto& pt : geometry.members) {
-        auto p = transformPoint(pt.get<ProjectedPoint>(), extent, tile.z2, tile.tx, tile.ty);
+    for (const auto& pt : ring.points) {
+        auto p = transformPoint(pt, extent, tile.z2, tile.tx, tile.ty);
         if ((p.x != -buffer && p.x != extent + buffer) ||
             (p.y != -buffer && p.y != extent + buffer)) {
             return false;

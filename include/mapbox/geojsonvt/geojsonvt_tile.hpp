@@ -7,7 +7,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class __attribute__ ((visibility ("default"))) Tile {
+class __attribute__((visibility("default"))) Tile {
 public:
     static Tile createTile(std::vector<ProjectedFeature>& features,
                            uint32_t z2,
@@ -16,10 +16,8 @@ public:
                            double tolerance,
                            bool noSimplify);
 
-    static void addFeature(Tile& tile,
-                           const ProjectedFeature& feature,
-                           double tolerance,
-                           bool noSimplify);
+    static void
+    addFeature(Tile& tile, const ProjectedFeature& feature, double tolerance, bool noSimplify);
 
     inline operator bool() const {
         return this->numPoints > 0;
@@ -34,8 +32,8 @@ public:
     uint32_t tx = 0;
     uint32_t ty = 0;
     bool transformed = false;
-    ProjectedPoint min { 2, 1 };
-    ProjectedPoint max { -1, 0 };
+    ProjectedPoint min{ 2, 1 };
+    ProjectedPoint max{ -1, 0 };
 
     std::vector<ProjectedFeature> source;
 };

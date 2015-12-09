@@ -7,13 +7,13 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class __attribute__ ((visibility ("default"))) Simplify {
+class __attribute__((visibility("default"))) Simplify {
 private:
     // This class has only static functions; disallow creating instances of it.
     Simplify() = delete;
 
 public:
-    static void simplify(ProjectedGeometryContainer& points, double tolerance);
+    static void simplify(ProjectedPoints& points, double tolerance);
 
 private:
     static double

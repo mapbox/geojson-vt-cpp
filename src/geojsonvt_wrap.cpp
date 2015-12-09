@@ -27,9 +27,9 @@ std::vector<ProjectedFeature> Wrap::wrap(std::vector<ProjectedFeature>& features
             merged.insert(merged.end(), shifted.begin(), shifted.end());
         }
         return merged;
-    } else {
-        return features;
     }
+
+    return features;
 }
 
 std::vector<ProjectedFeature>
@@ -42,14 +42,17 @@ Wrap::shiftFeatureCoords(const std::vector<ProjectedFeature>& features, int8_t o
         ProjectedGeometry newGeometry;
 
         if (type == ProjectedFeatureType::Point) {
-            newGeometry = shiftCoords(feature.geometry.get<ProjectedGeometryContainer>(), offset);
-        } else {
-            newGeometry.set<ProjectedGeometryContainer>();
+            newGeometry = shiftCoords(feature.geometry.get<ProjectedPoints>(), offset);
 
-            for (auto& member : feature.geometry.get<ProjectedGeometryContainer>().members) {
-                auto& geometry = member.get<ProjectedGeometryContainer>();
-                newGeometry.get<ProjectedGeometryContainer>().members.push_back(
-                    shiftCoords(geometry, offset));
+        } else {
+            newGeometry.set<ProjectedRings>();
+
+            for (auto& ring : feature.geometry.get<ProjectedRings>()) {
+                ProjectedRing newRing;
+                newRing.area = ring.area;
+                newRing.dist = ring.dist;
+                newRing.points = shiftCoords(ring.points, offset);
+                newGeometry.get<ProjectedRings>().push_back(newRing);
             }
         }
 
@@ -61,15 +64,11 @@ Wrap::shiftFeatureCoords(const std::vector<ProjectedFeature>& features, int8_t o
     return newFeatures;
 }
 
-ProjectedGeometryContainer Wrap::shiftCoords(const ProjectedGeometryContainer& points,
-                                             int8_t offset) {
-    ProjectedGeometryContainer newPoints;
-    newPoints.area = points.area;
-    newPoints.dist = points.dist;
+ProjectedPoints Wrap::shiftCoords(const ProjectedPoints& points, int8_t offset) {
+    ProjectedPoints newPoints;
 
-    for (auto& member : points.members) {
-        auto& point = member.get<ProjectedPoint>();
-        newPoints.members.emplace_back(ProjectedPoint{ point.x + offset, point.y, point.z });
+    for (auto& p : points) {
+        newPoints.emplace_back(ProjectedPoint{ p.x + offset, p.y, p.z });
     }
     return newPoints;
 }

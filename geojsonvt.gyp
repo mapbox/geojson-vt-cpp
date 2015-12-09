@@ -26,7 +26,6 @@
         'include/mapbox/geojsonvt/geojsonvt_simplify.hpp',
         'include/mapbox/geojsonvt/geojsonvt_tile.hpp',
         'include/mapbox/geojsonvt/geojsonvt_types.hpp',
-        'include/mapbox/geojsonvt/geojsonvt_util.hpp',
         'include/mapbox/geojsonvt/geojsonvt_wrap.hpp',
         'src/geojsonvt.cpp',
         'src/geojsonvt_clip.cpp',

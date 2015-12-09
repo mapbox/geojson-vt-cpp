@@ -21,7 +21,7 @@ struct Options {
     uint8_t indexMaxZoom = 5;
 
     // max number of points per tile in the tile index
-    uint32_t indexMaxPoints = 100000; 
+    uint32_t indexMaxPoints = 100000;
 
     // whether to tile solid square tiles further
     bool solidChildren = false;
@@ -36,7 +36,7 @@ struct Options {
     uint8_t buffer = 64;
 };
 
-class __attribute__ ((visibility ("default"))) GeoJSONVT {
+class __attribute__((visibility("default"))) GeoJSONVT {
 public:
     static const Tile emptyTile;
 
@@ -52,10 +52,10 @@ public:
 private:
     std::vector<ProjectedFeature> convertFeatures(const std::string& data);
 
-    void splitTile(std::vector<ProjectedFeature> features,
-                   uint8_t z,
-                   uint32_t x,
-                   uint32_t y,
+    void splitTile(std::vector<ProjectedFeature> features_,
+                   uint8_t z_,
+                   uint32_t x_,
+                   uint32_t y_,
                    uint8_t cz = 0,
                    uint32_t cx = 0,
                    uint32_t cy = 0);
@@ -87,7 +87,6 @@ private:
     };
 
 private:
-    std::mutex mtx;
     const Options options;
     std::map<uint64_t, Tile> tiles;
     std::map<uint8_t, uint16_t> stats;

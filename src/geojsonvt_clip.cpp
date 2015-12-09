@@ -22,11 +22,10 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature>& fe
     k1 /= scale;
     k2 /= scale;
 
-    if (minAll >= k1 && maxAll <= k2) {
-        // trivial accept
+    if (minAll >= k1 && maxAll <= k2) { // trivial accept
         return features;
-    } else if (minAll > k2 || maxAll < k1) {
-        // trivial reject
+    }
+    if (minAll > k2 || maxAll < k1) { // trivial reject
         return {};
     }
 
@@ -42,101 +41,104 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature>& fe
         if (min >= k1 && max <= k2) { // trivial accept
             clipped.push_back(feature);
             continue;
-        } else if (min > k2 || max < k1) { // trivial reject
+        }
+        if (min > k2 || max < k1) { // trivial reject
             continue;
         }
 
-        ProjectedGeometryContainer slices;
+        ProjectedGeometry slices;
 
         if (type == ProjectedFeatureType::Point) {
-            slices = clipPoints(geometry.get<ProjectedGeometryContainer>(), k1, k2, axis);
+            slices = clipPoints(geometry.get<ProjectedPoints>(), k1, k2, axis);
+            if (slices.get<ProjectedPoints>().empty()) {
+                continue;
+            }
         } else {
-            slices = clipGeometry(geometry.get<ProjectedGeometryContainer>(), k1, k2, axis,
-                                  intersect, (type == ProjectedFeatureType::Polygon));
+            slices = clipGeometry(geometry.get<ProjectedRings>(), k1, k2, axis, intersect,
+                                  (type == ProjectedFeatureType::Polygon));
+            if (slices.get<ProjectedRings>().empty()) {
+                continue;
+            }
         }
 
-        if (!slices.members.empty()) {
-            // if a feature got clipped, it will likely get clipped on the next zoom level as well,
-            // so there's no need to recalculate bboxes
-            clipped.emplace_back(slices, type, feature.tags, feature.min, feature.max);
-        }
+        // if a feature got clipped, it will likely get clipped on the next zoom level as well,
+        // so there's no need to recalculate bboxes
+        clipped.emplace_back(slices, type, feature.tags, feature.min, feature.max);
     }
 
     return std::move(clipped);
 }
 
-ProjectedGeometryContainer
-Clip::clipPoints(const ProjectedGeometryContainer& geometry, double k1, double k2, uint8_t axis) {
-    ProjectedGeometryContainer slice;
+ProjectedPoints
+Clip::clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t axis) {
+    ProjectedPoints slice;
 
-    for (const auto& member : geometry.members) {
-        auto& a = member.get<ProjectedPoint>();
-        const double ak = (axis == 0 ? a.x : a.y);
+    for (const auto& p : points) {
+        const double ak = (axis == 0 ? p.x : p.y);
 
         if (ak >= k1 && ak <= k2) {
-            slice.members.push_back(a);
+            slice.push_back(p);
         }
     }
 
     return std::move(slice);
 }
 
-ProjectedGeometryContainer Clip::clipGeometry(const ProjectedGeometryContainer& geometry,
-                                              double k1,
-                                              double k2,
-                                              uint8_t axis,
-                                              IntersectCallback intersect,
-                                              bool closed) {
-    ProjectedGeometryContainer slices;
+ProjectedRings Clip::clipGeometry(const ProjectedRings& rings,
+                                  double k1,
+                                  double k2,
+                                  uint8_t axis,
+                                  IntersectCallback intersect,
+                                  bool closed) {
+    ProjectedRings slices;
 
-    for (auto& member : geometry.members) {
+    for (auto& ring : rings) {
         double ak = 0;
         double bk = 0;
         ProjectedPoint b;
-        auto& points = member.get<ProjectedGeometryContainer>();
-        const double area = points.area;
-        const double dist = points.dist;
-        const size_t len = points.members.size();
+        const double area = ring.area;
+        const double dist = ring.dist;
+        const size_t len = ring.points.size();
         ProjectedPoint a;
 
-        ProjectedGeometryContainer slice;
+        ProjectedRing slice;
 
         for (size_t j = 0; j < (len - 1); ++j) {
-            a = (b.isValid() ? b : points.members[j].get<ProjectedPoint>());
-            b = points.members[j + 1].get<ProjectedPoint>();
-            ak = (bk ? bk : (axis == 0 ? a.x : a.y));
+            a = (b.isValid() ? b : ring.points[j]);
+            b = ring.points[j + 1];
+            ak = (bk != 0.0 ? bk : (axis == 0 ? a.x : a.y));
             bk = (axis == 0 ? b.x : b.y);
 
             if (ak < k1) {
                 if (bk > k2) { // ---|-----|-->
-                    slice.members.push_back(intersect(a, b, k1));
-                    slice.members.push_back(intersect(a, b, k2));
+                    slice.points.push_back(intersect(a, b, k1));
+                    slice.points.push_back(intersect(a, b, k2));
                     if (!closed) {
                         slice = newSlice(slices, slice, area, dist);
                     }
                 } else if (bk >= k1) { // ---|-->  |
-                    slice.members.push_back(intersect(a, b, k1));
+                    slice.points.push_back(intersect(a, b, k1));
                 }
             } else if (ak > k2) {
                 if (bk < k1) { // <--|-----|---
-                    slice.members.push_back(intersect(a, b, k2));
-                    slice.members.push_back(intersect(a, b, k1));
+                    slice.points.push_back(intersect(a, b, k2));
+                    slice.points.push_back(intersect(a, b, k1));
                     if (!closed) {
                         slice = newSlice(slices, slice, area, dist);
                     }
                 } else if (bk <= k2) { // |  <--|---
-                    slice.members.push_back(intersect(a, b, k2));
+                    slice.points.push_back(intersect(a, b, k2));
                 }
             } else {
-                slice.members.push_back(a);
+                slice.points.push_back(a);
 
                 if (bk < k1) { // <--|---  |
-                    slice.members.push_back(intersect(a, b, k1));
+                    slice.points.push_back(intersect(a, b, k1));
                     if (!closed) {
                         slice = newSlice(slices, slice, area, dist);
                     }
                 } else if (bk > k2) { // |  ---|-->
-                    slice.members.push_back(intersect(a, b, k2));
+                    slice.points.push_back(intersect(a, b, k2));
                     if (!closed) {
                         slice = newSlice(slices, slice, area, dist);
                     }
@@ -146,19 +148,19 @@ ProjectedGeometryContainer Clip::clipGeometry(const ProjectedGeometryContainer& 
         }
 
         // add the last point
-        a = points.members[len - 1].get<ProjectedPoint>();
+        a = ring.points[len - 1];
         ak = (axis == 0 ? a.x : a.y);
 
         if (ak >= k1 && ak <= k2) {
-            slice.members.push_back(a);
+            slice.points.push_back(a);
         }
 
         // close the polygon if its endpoints are not the same after clipping
-        if (closed && !slice.members.empty()) {
-            const auto& first = slice.members.front().get<ProjectedPoint>();
-            const auto& last = slice.members.back().get<ProjectedPoint>();
+        if (closed && !slice.points.empty()) {
+            const auto& first = slice.points.front();
+            const auto& last = slice.points.back();
             if (first != last) {
-                slice.members.push_back(first);
+                slice.points.push_back(first);
             }
         }
 
@@ -169,21 +171,19 @@ ProjectedGeometryContainer Clip::clipGeometry(const ProjectedGeometryContainer& 
     return std::move(slices);
 }
 
-ProjectedGeometryContainer Clip::newSlice(ProjectedGeometryContainer& slices,
-                                          ProjectedGeometryContainer& slice,
-                                          double area,
-                                          double dist) {
+ProjectedRing
+Clip::newSlice(ProjectedRings& slices, ProjectedRing& slice, double area, double dist) {
 
-    if (!slice.members.empty()) {
+    if (!slice.points.empty()) {
         // we don't recalculate the area/length of the unclipped geometry because the case where it
         // goes below the visibility threshold as a result of clipping is rare, so we avoid doing
         // unnecessary work
         slice.area = area;
         slice.dist = dist;
-        slices.members.push_back(slice);
+        slices.push_back(slice);
     }
 
-    return ProjectedGeometryContainer();
+    return ProjectedRing();
 }
 
 } // namespace geojsonvt

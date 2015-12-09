@@ -24,23 +24,26 @@ class Timer {
     using SystemClock = std::chrono::system_clock;
 
     using TimePoint = Clock::time_point;
-    using Duration  = Clock::duration;
+    using Duration = Clock::duration;
 
     TimePoint start = Clock::now();
 
 public:
-    void report(const std::string &name) {
+    void report(const std::string& name) {
         Duration duration = Clock::now() - start;
-        std::cerr << name << ": " << double(std::chrono::duration_cast<std::chrono::microseconds>(duration).count()) / 1000 << "ms" << std::endl;
+        std::cerr << name << ": "
+                  << double(
+                         std::chrono::duration_cast<std::chrono::microseconds>(duration).count()) /
+                         1000
+                  << "ms" << std::endl;
         start += duration;
     }
-
 };
 
 using namespace mapbox::util::geojsonvt;
 
-int main(void) {
-    if (!glfwInit()) {
+int main() {
+    if (glfwInit() == 0) {
         return -1;
     }
 
@@ -49,8 +52,9 @@ int main(void) {
     static int height = 768;
     static int fbHeight = height;
 
-    GLFWwindow* window = glfwCreateWindow(width, height, "GeoJSON VT — Drop a GeoJSON file", NULL, NULL);
-    if (!window) {
+    GLFWwindow* window =
+        glfwCreateWindow(width, height, "GeoJSON VT — Drop a GeoJSON file", nullptr, nullptr);
+    if (window == nullptr) {
         glfwTerminate();
         return -1;
     }
@@ -63,7 +67,6 @@ int main(void) {
         int x;
         int y;
     } pos = { 0, 0, 0 };
-
 
     enum class Horizontal { Left, Right, Outside };
     enum class Vertical { Top, Bottom, Outside };
@@ -78,23 +81,24 @@ int main(void) {
             std::to_string(pos.z) + "/" + std::to_string(pos.x) + "/" + std::to_string(pos.y);
         if (vt) {
             Timer tileTimer;
-            tile = &vt->getTile(pos.z, pos.x, pos.y);
+            tile = const_cast<Tile*>(&vt->getTile(pos.z, pos.x, pos.y));
             tileTimer.report("tile " + name);
             glfwSetWindowTitle(window, (std::string{ "GeoJSON VT — " } + name).c_str());
         }
         dirty = true;
     };
 
-    static const auto loadGeoJSON = [&] (const std::string& filename) {
+    static const auto loadGeoJSON = [&](const std::string& filename) {
         Timer timer;
         const std::string data = loadFile(filename);
         timer.report("loadFile");
-        vt = std::make_unique<GeoJSONVT>(features);
+        vt = std::make_unique<GeoJSONVT>(data);
         timer.report("parse");
         updateTile();
     };
 
-    static const auto updateLocation = [] (const Horizontal newHorizontal, const Vertical newVertical) {
+    static const auto updateLocation = [](const Horizontal newHorizontal,
+                                          const Vertical newVertical) {
         if (newHorizontal != horizontal || newVertical != vertical) {
             dirty = true;
             horizontal = newHorizontal;
@@ -108,20 +112,21 @@ int main(void) {
         }
     });
 
-    glfwSetKeyCallback(window, [](GLFWwindow* w, const int key, const int, const int action, const int) {
-        if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
-            glfwSetWindowShouldClose(w, true);
-        }
-        if ((key == GLFW_KEY_BACKSPACE || key == GLFW_KEY_ESCAPE) && action == GLFW_RELEASE) {
-            // zoom out
-            if (pos.z > 0) {
-                pos.z--;
-                pos.x /= 2;
-                pos.y /= 2;
-                updateTile();
+    glfwSetKeyCallback(
+        window, [](GLFWwindow* w, const int key, const int, const int action, const int) {
+            if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
+                glfwSetWindowShouldClose(w, 1);
             }
-        }
-    });
+            if ((key == GLFW_KEY_BACKSPACE || key == GLFW_KEY_ESCAPE) && action == GLFW_RELEASE) {
+                // zoom out
+                if (pos.z > 0) {
+                    pos.z--;
+                    pos.x /= 2;
+                    pos.y /= 2;
+                    updateTile();
+                }
+            }
+        });
 
     glfwSetWindowSizeCallback(window, [](GLFWwindow* win, const int w, const int h) {
         width = w;
@@ -141,8 +146,8 @@ int main(void) {
                                              : Vertical::Outside);
     });
 
-    glfwSetCursorEnterCallback(window, [](GLFWwindow *, int entered) {
-        if (!entered) {
+    glfwSetCursorEnterCallback(window, [](GLFWwindow*, int entered) {
+        if (entered == 0) {
             updateLocation(Horizontal::Outside, Vertical::Outside);
         }
     });
@@ -154,8 +159,12 @@ int main(void) {
                 pos.z++;
                 pos.x *= 2;
                 pos.y *= 2;
-                if (horizontal == Horizontal::Right) pos.x++;
-                if (vertical == Vertical::Bottom) pos.y++;
+                if (horizontal == Horizontal::Right) {
+                    pos.x++;
+}
+                if (vertical == Vertical::Bottom) {
+                    pos.y++;
+}
                 updateTile();
             }
         } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE) {
@@ -183,11 +192,11 @@ int main(void) {
         }
 
         glBegin(GL_LINE_STRIP);
-        glVertex3f(0, 0, -active);
-        glVertex3f(0, 4096, -active);
-        glVertex3f(4096, 4096, -active);
-        glVertex3f(4096, 0, -active);
-        glVertex3f(0, 0, -active);
+        glVertex3f(0, 0, -static_cast<int>(active));
+        glVertex3f(0, 4096, -static_cast<int>(active));
+        glVertex3f(4096, 4096, -static_cast<int>(active));
+        glVertex3f(4096, 0, -static_cast<int>(active));
+        glVertex3f(0, 0, -static_cast<int>(active));
         glEnd();
     };
 
@@ -196,10 +205,9 @@ int main(void) {
 
     glEnable(GL_DEPTH_TEST);
 
-
     loadGeoJSON("data/countries.geojson");
 
-    while (!glfwWindowShouldClose(window)) {
+    while (glfwWindowShouldClose(window) == 0) {
         if (dirty) {
             dirty = false;
 
@@ -213,7 +221,7 @@ int main(void) {
 
             glViewport(0, 0, fbWidth, fbHeight);
 
-            if (tile) {
+            if (tile != nullptr) {
                 // main tile
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
@@ -225,10 +233,9 @@ int main(void) {
                     switch (feature.type) {
                     case TileFeatureType::Polygon: {
                         glColor4f(1, 0, 0, 1);
-                        for (const auto& geom : feature.tileGeometry) {
-                            const auto& ring = geom.get<TileRing>();
+                        for (const auto& ring : feature.tileGeometry.get<TileRings>()) {
                             glBegin(GL_LINE_STRIP);
-                            for (const auto& pt : ring.points) {
+                            for (const auto& pt : ring) {
                                 glVertex2s(pt.x, pt.y);
                             }
                             glEnd();
@@ -264,7 +271,6 @@ int main(void) {
                 glOrtho(-4096 - 256, 8192 + 256 - 4096, 8192 + 256 - 4096, -256 - 4096, 10, -10);
                 drawTile(horizontal == Horizontal::Right && vertical == Vertical::Bottom);
             } else {
-
             }
 
             glfwSwapBuffers(window);

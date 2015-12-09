@@ -13,18 +13,18 @@ std::string loadFile(const std::string& filename);
 
 ::std::ostream& operator<<(::std::ostream& os, ProjectedFeatureType t);
 ::std::ostream& operator<<(::std::ostream& os, const TilePoint& p);
-::std::ostream& operator<<(::std::ostream& os, const TileRing& r);
+::std::ostream& operator<<(::std::ostream& os, const TilePoints& points);
+::std::ostream& operator<<(::std::ostream& os, const TileRings& rings);
 ::std::ostream& operator<<(::std::ostream& os, const TileFeature& f);
 ::std::ostream& operator<<(::std::ostream& os, const ProjectedPoint& p);
 ::std::ostream& operator<<(::std::ostream& os, const ProjectedFeature& f);
-::std::ostream& operator<<(::std::ostream& os, const ProjectedGeometryContainer& c);
+::std::ostream& operator<<(::std::ostream& os, const ProjectedRing& c);
 
 bool operator==(const TilePoint& a, const TilePoint& b);
-bool operator==(const TileRing& a, const TileRing& b);
 bool operator==(const TileFeature& a, const TileFeature& b);
 
 bool operator==(const ProjectedFeature& a, const ProjectedFeature& b);
-bool operator==(const ProjectedGeometryContainer& a, const ProjectedGeometryContainer& b);
+bool operator==(const ProjectedRing& a, const ProjectedRing& b);
 
 std::vector<TileFeature> parseJSONTile(const rapidjson::Value& tile);
 std::vector<TileFeature> parseJSONTile(const std::string& data);

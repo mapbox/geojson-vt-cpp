@@ -8,7 +8,7 @@ namespace mapbox {
 namespace util {
 namespace geojsonvt {
 
-class __attribute__ ((visibility ("default"))) Wrap {
+class __attribute__((visibility("default"))) Wrap {
 public:
     static std::vector<ProjectedFeature> wrap(std::vector<ProjectedFeature>& features,
                                               double buffer,
@@ -17,8 +17,7 @@ public:
 private:
     static std::vector<ProjectedFeature>
     shiftFeatureCoords(const std::vector<ProjectedFeature>& features, int8_t offset);
-    static ProjectedGeometryContainer shiftCoords(const ProjectedGeometryContainer& points,
-                                                  int8_t offset);
+    static ProjectedPoints shiftCoords(const ProjectedPoints& points, int8_t offset);
 };
 
 } // namespace geojsonvt
