@@ -231,6 +231,7 @@ int main() {
 
                 for (const auto& feature : tile->features) {
                     switch (feature.type) {
+                    case TileFeatureType::LineString:
                     case TileFeatureType::Polygon: {
                         glColor4f(1, 0, 0, 1);
                         for (const auto& ring : feature.tileGeometry.get<TileRings>()) {
@@ -240,9 +241,6 @@ int main() {
                             }
                             glEnd();
                         }
-                    } break;
-                    case TileFeatureType::LineString: {
-
                     } break;
                     default: { } break; }
                 }
