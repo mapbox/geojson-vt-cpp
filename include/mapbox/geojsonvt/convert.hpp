@@ -43,6 +43,10 @@ private:
 
     static void
     calcRingBBox(ProjectedPoint& minPoint, ProjectedPoint& maxPoint, const ProjectedPoints& points);
+
+    static std::array<double, 2> readCoordinate(const JSValue& value);
+
+    static const JSValue& validArray(const JSValue& value, rapidjson::SizeType minSize = 1);
 };
 
 } // namespace geojsonvt

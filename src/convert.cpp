@@ -90,90 +90,45 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
     const JSValue& rawType = geom["type"];
     std::string type{ rawType.GetString(), rawType.GetStringLength() };
 
-    if (type == "Point") {
-        std::array<double, 2> coordinates = { { 0, 0 } };
-        if (geom.HasMember("coordinates")) {
-            const JSValue& rawCoordinates = geom["coordinates"];
-            if (rawCoordinates.IsArray()) {
-                coordinates[0] = rawCoordinates[static_cast<rapidjson::SizeType>(0)].GetDouble();
-                coordinates[1] = rawCoordinates[static_cast<rapidjson::SizeType>(1)].GetDouble();
-            }
-        }
-        ProjectedPoints points = { projectPoint(LonLat(coordinates)) };
+    if (!geom.HasMember("coordinates")) {
+        throw std::runtime_error("No coordinates in a GeoJSON geometry.");
+    }
 
+    const JSValue& rawCoords = validArray(geom["coordinates"]);
+
+    if (type == "Point") {
+        ProjectedPoints points = { projectPoint(LonLat(readCoordinate(rawCoords))) };
         features.push_back(create(tags, ProjectedFeatureType::Point, points));
 
     } else if (type == "MultiPoint") {
-        std::vector<std::array<double, 2>> coordinatePairs;
         ProjectedPoints points;
-        if (geom.HasMember("coordinates")) {
-            const JSValue& rawCoordinatePairs = geom["coordinates"];
-            if (rawCoordinatePairs.IsArray()) {
-                for (rapidjson::SizeType i = 0; i < rawCoordinatePairs.Size(); ++i) {
-                    std::array<double, 2> coordinates = { { 0, 0 } };
-                    const JSValue& rawCoordinates = rawCoordinatePairs[i];
-                    if (rawCoordinates.IsArray()) {
-                        coordinates[0] =
-                            rawCoordinates[static_cast<rapidjson::SizeType>(0)].GetDouble();
-                        coordinates[1] =
-                            rawCoordinates[static_cast<rapidjson::SizeType>(1)].GetDouble();
-                    }
-                    points.push_back(projectPoint(LonLat(coordinates)));
-                }
-            }
-        }
 
+        for (rapidjson::SizeType i = 0; i < rawCoords.Size(); ++i) {
+            points.push_back(projectPoint(LonLat(readCoordinate(rawCoords[i]))));
+        }
         features.push_back(create(tags, ProjectedFeatureType::Point, points));
 
     } else if (type == "LineString") {
-        std::vector<std::array<double, 2>> coordinatePairs;
         std::vector<LonLat> points;
-        if (geom.HasMember("coordinates")) {
-            const JSValue& rawCoordinatePairs = geom["coordinates"];
-            if (rawCoordinatePairs.IsArray()) {
-                for (rapidjson::SizeType i = 0; i < rawCoordinatePairs.Size(); ++i) {
-                    std::array<double, 2> coordinates = { { 0, 0 } };
-                    const JSValue& rawCoordinates = rawCoordinatePairs[i];
-                    if (rawCoordinates.IsArray()) {
-                        coordinates[0] =
-                            rawCoordinates[static_cast<rapidjson::SizeType>(0)].GetDouble();
-                        coordinates[1] =
-                            rawCoordinates[static_cast<rapidjson::SizeType>(1)].GetDouble();
-                    }
-                    points.push_back(LonLat(coordinates));
-                }
-            }
-        }
 
+        for (rapidjson::SizeType i = 0; i < rawCoords.Size(); ++i) {
+            points.push_back(LonLat(readCoordinate(rawCoords[i])));
+        }
         ProjectedRing ring{ projectRing(points, tolerance) };
         ProjectedRings rings{ ring };
-
         features.push_back(create(tags, ProjectedFeatureType::LineString, rings));
 
     } else if (type == "MultiLineString" || type == "Polygon") {
         ProjectedRings rings;
-        if (geom.HasMember("coordinates")) {
-            const JSValue& rawLines = geom["coordinates"];
-            if (rawLines.IsArray()) {
-                for (rapidjson::SizeType i = 0; i < rawLines.Size(); ++i) {
-                    const JSValue& rawCoordinatePairs = rawLines[i];
-                    if (rawCoordinatePairs.IsArray()) {
-                        std::vector<LonLat> points;
-                        for (rapidjson::SizeType j = 0; j < rawCoordinatePairs.Size(); ++j) {
-                            std::array<double, 2> coordinates = { { 0, 0 } };
-                            const JSValue& rawCoordinates = rawCoordinatePairs[j];
-                            if (rawCoordinates.IsArray()) {
-                                coordinates[0] =
-                                    rawCoordinates[static_cast<rapidjson::SizeType>(0)].GetDouble();
-                                coordinates[1] =
-                                    rawCoordinates[static_cast<rapidjson::SizeType>(1)].GetDouble();
-                            }
-                            points.push_back(LonLat(coordinates));
-                        }
-                        rings.push_back(projectRing(points, tolerance));
-                    }
-                }
+
+        for (rapidjson::SizeType i = 0; i < rawCoords.Size(); ++i) {
+            const JSValue& rawRing = validArray(rawCoords[i]);
+            std::vector<LonLat> points;
+
+            for (rapidjson::SizeType j = 0; j < rawRing.Size(); ++j) {
+                points.push_back(LonLat(readCoordinate(rawRing[j])));
             }
+            rings.push_back(projectRing(points, tolerance));
         }
 
         ProjectedFeatureType projectedType =
@@ -184,35 +139,18 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
 
     else if (type == "MultiPolygon") {
         ProjectedRings rings;
-        if (geom.HasMember("coordinates")) {
-            const JSValue& rawPolygons = geom["coordinates"];
-            if (rawPolygons.IsArray()) {
-                for (rapidjson::SizeType k = 0; k < rawPolygons.Size(); ++k) {
-                    const JSValue& rawLines = rawPolygons[k];
-                    if (rawLines.IsArray()) {
-                        for (rapidjson::SizeType i = 0; i < rawLines.Size(); ++i) {
-                            const JSValue& rawCoordinatePairs = rawLines[i];
-                            if (rawCoordinatePairs.IsArray()) {
-                                std::vector<LonLat> points;
-                                for (rapidjson::SizeType j = 0; j < rawCoordinatePairs.Size();
-                                     ++j) {
-                                    std::array<double, 2> coordinates = { { 0, 0 } };
-                                    const JSValue& rawCoordinates = rawCoordinatePairs[j];
-                                    if (rawCoordinates.IsArray()) {
-                                        coordinates[0] =
-                                            rawCoordinates[static_cast<rapidjson::SizeType>(0)]
-                                                .GetDouble();
-                                        coordinates[1] =
-                                            rawCoordinates[static_cast<rapidjson::SizeType>(1)]
-                                                .GetDouble();
-                                    }
-                                    points.push_back(LonLat(coordinates));
-                                }
-                                rings.push_back(projectRing(points, tolerance));
-                            }
-                        }
-                    }
+
+        for (rapidjson::SizeType k = 0; k < rawCoords.Size(); ++k) {
+            const JSValue& rawRings = validArray(rawCoords[k]);
+
+            for (rapidjson::SizeType i = 0; i < rawRings.Size(); ++i) {
+                const JSValue& rawRing = validArray(rawRings[i]);
+                std::vector<LonLat> points;
+
+                for (rapidjson::SizeType j = 0; j < rawRing.Size(); ++j) {
+                    points.push_back(LonLat(readCoordinate(rawRing[j])));
                 }
+                rings.push_back(projectRing(points, tolerance));
             }
         }
 
@@ -220,17 +158,29 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
 
     } else if (type == "GeometryCollection") {
         if (geom.HasMember("geometries")) {
-            const JSValue& rawGeometries = geom["geometries"];
-            if (rawGeometries.IsArray()) {
-                for (rapidjson::SizeType i = 0; i < rawGeometries.Size(); ++i) {
-                    convertGeometry(features, tags, rawGeometries[i], tolerance);
-                }
+            const JSValue& rawGeometries = validArray(geom["geometries"]);
+
+            for (rapidjson::SizeType i = 0; i < rawGeometries.Size(); ++i) {
+                convertGeometry(features, tags, rawGeometries[i], tolerance);
             }
         }
 
     } else {
         throw std::runtime_error("Input data is not a valid GeoJSON object");
     }
+}
+
+std::array<double, 2> Convert::readCoordinate(const JSValue& value) {
+    validArray(value, 2);
+    return { { value[static_cast<rapidjson::SizeType>(0)].GetDouble(),
+               value[static_cast<rapidjson::SizeType>(1)].GetDouble() } };
+}
+
+const JSValue& Convert::validArray(const JSValue& value, rapidjson::SizeType minSize) {
+    if (!value.IsArray() || value.Size() < minSize) {
+        throw std::runtime_error("Invalid GeoJSON coordinates");
+    }
+    return value;
 }
 
 ProjectedFeature Convert::create(Tags tags, ProjectedFeatureType type, ProjectedGeometry geometry) {
