@@ -6,23 +6,14 @@
 
 #include <stack>
 #include <cmath>
+#include <chrono>
 #include <unordered_map>
+#include <iostream>
 
 namespace mapbox {
 namespace geojsonvt {
 
 #pragma mark - GeoJSONVT
-
-std::unordered_map<std::string, clock_t> activities;
-
-static void time(std::string activity) {
-    activities[activity] = clock();
-}
-
-static void timeEnd(std::string activity) {
-    printf("%s: %fms\n", activity.c_str(),
-           double(clock() - activities[activity]) / (CLOCKS_PER_SEC / 1000));
-}
 
 const Tile GeoJSONVT::emptyTile{};
 
@@ -32,10 +23,7 @@ struct FeatureStackItem {
     uint32_t x;
     uint32_t y;
 
-    FeatureStackItem(std::vector<ProjectedFeature> features_,
-                     uint8_t z_,
-                     uint32_t x_,
-                     uint32_t y_)
+    FeatureStackItem(std::vector<ProjectedFeature> features_, uint8_t z_, uint32_t x_, uint32_t y_)
         : features(features_), z(z_), x(x_), y(y_) {
     }
 };
@@ -88,12 +76,26 @@ static bool isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buf
     return true;
 }
 
+class Timer {
+    using Clock = std::chrono::steady_clock;
+
+    Clock::time_point start = Clock::now();
+
+public:
+    void report(const std::string& name) {
+        Clock::duration duration = Clock::now() - start;
+        auto ms = std::chrono::duration_cast<std::chrono::microseconds>(duration);
+        printf("%s: %.2fms\n", name.c_str(), double(ms.count()) / 1000);
+        start += duration;
+    }
+};
+
 GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
     : options(std::move(options_)) {
 
 #ifdef DEBUG
-    printf("index: maxZoom: %d, maxPoints: %d", options.indexMaxZoom, options.indexMaxPoints);
-    time("generate tiles");
+    printf("index: maxZoom: %d, maxPoints: %d\n", options.indexMaxZoom, options.indexMaxPoints);
+    Timer timer;
 #endif
 
     features_ = Wrap::wrap(features_, double(options.buffer) / options.extent, intersectX);
@@ -104,10 +106,10 @@ GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
     }
 
 #ifdef DEBUG
+    timer.report("generate tiles");
     if (!features_.empty()) {
         printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
     }
-    timeEnd("generate tiles");
     printf("tiles generated: %i {\n", static_cast<int>(total));
     for (const auto& pair : stats) {
         printf("    z%i: %i\n", pair.first, pair.second);
@@ -159,13 +161,13 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
         }
 
 #ifdef DEBUG
-        time("drilling down");
+        Timer timer;
 #endif
 
         splitTile(parent->source, z0, x0, y0, z, x, y);
 
 #ifdef DEBUG
-        timeEnd("drilling down");
+        timer.report("drilling down");
 #endif
     }
 
@@ -186,7 +188,7 @@ uint64_t GeoJSONVT::getTotal() const {
 
 std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data, Options options) {
 #ifdef DEBUG
-    time("preprocess data");
+    Timer timer;
 #endif
 
     uint32_t z2 = 1 << options.maxZoom; // 2^z
@@ -202,7 +204,7 @@ std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data
         Convert::convert(deserializedData, options.tolerance / (z2 * options.extent));
 
 #ifdef DEBUG
-    timeEnd("preprocess data");
+    timer.report("preprocess data");
 #endif
 
     return features;
@@ -237,7 +239,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
 
         if (tile == nullptr) {
 #ifdef DEBUG
-            time("creation");
+            Timer timer;
 #endif
 
             tiles[id] = std::move(
@@ -245,9 +247,9 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             tile = &tiles[id];
 
 #ifdef DEBUG
-            printf("tile z%i-%i-%i (features: %i, points: %i, simplified: %i\n", z, x, y,
+            printf("tile z%i-%i-%i (features: %i, points: %i, simplified: %i)\n", z, x, y,
                    tile->numFeatures, tile->numPoints, tile->numSimplified);
-            timeEnd("creation");
+            timer.report("creation");
 
             uint8_t key = z;
             stats[key] = (stats.count(key) ? stats[key] + 1 : 1);
@@ -290,7 +292,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         tile->source = {};
 
 #ifdef DEBUG
-        time("clipping");
+        Timer timer;
 #endif
 
         const double k1 = 0.5 * options.buffer / options.extent;
@@ -319,7 +321,7 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         }
 
 #ifdef DEBUG
-        timeEnd("clipping");
+        timer.report("clipping");
 #endif
 
         if (!tl.empty()) {

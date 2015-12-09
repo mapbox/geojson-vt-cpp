@@ -51,6 +51,5 @@ const Tile& Transform::transformTile(Tile& tile, uint16_t extent) {
     return tile;
 }
 
-
 } // namespace geojsonvt
 } // namespace mapbox

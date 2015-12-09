@@ -23,6 +23,3 @@ public:
 } // namespace mapbox
 
 #endif // MAPBOX_GEOJSONVT_TRANSFORM
-
-
-
