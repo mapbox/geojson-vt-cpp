@@ -60,10 +60,6 @@ private:
                    uint32_t cx = 0,
                    uint32_t cy = 0);
 
-    static TilePoint
-    transformPoint(const ProjectedPoint& p, uint16_t extent, uint32_t z2, uint32_t tx, uint32_t ty);
-    static const Tile& transformTile(Tile&, uint16_t extent);
-
     static uint64_t toID(uint8_t z, uint32_t x, uint32_t y);
 
     static ProjectedPoint intersectX(const ProjectedPoint& a, const ProjectedPoint& b, double x);

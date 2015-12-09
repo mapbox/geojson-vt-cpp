@@ -2,9 +2,9 @@
 #include <mapbox/geojsonvt/clip.hpp>
 #include <mapbox/geojsonvt/convert.hpp>
 #include <mapbox/geojsonvt/wrap.hpp>
+#include <mapbox/geojsonvt/transform.hpp>
 
 #include <stack>
-#include <cmath>
 #include <unordered_map>
 
 namespace mapbox {
@@ -59,7 +59,7 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
 
     const uint64_t id = toID(z, x, y);
     if (tiles.count(id) != 0u) {
-        return transformTile(tiles.find(id)->second, options.extent);
+        return Transform::transformTile(tiles.find(id)->second, options.extent);
     }
 
 #ifdef DEBUG
@@ -92,7 +92,7 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     // if we found a parent tile containing the original geometry, we can drill down from it
     if ((parent != nullptr) && !parent->source.empty()) {
         if (isClippedSquare(*parent, options.extent, options.buffer)) {
-            return transformTile(*parent, options.extent);
+            return Transform::transformTile(*parent, options.extent);
         }
 
 #ifdef DEBUG
@@ -110,7 +110,7 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
         return emptyTile;
     }
 
-    return transformTile(tiles[id], options.extent);
+    return Transform::transformTile(tiles[id], options.extent);
 }
 
 const std::map<uint64_t, Tile>& GeoJSONVT::getAllTiles() const {
@@ -274,52 +274,6 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
     }
 }
 
-TilePoint GeoJSONVT::transformPoint(
-    const ProjectedPoint& p, uint16_t extent, uint32_t z2, uint32_t tx, uint32_t ty) {
-
-    int16_t x = std::round(extent * (p.x * z2 - tx));
-    int16_t y = std::round(extent * (p.y * z2 - ty));
-
-    return TilePoint(x, y);
-}
-
-const Tile& GeoJSONVT::transformTile(Tile& tile, uint16_t extent) {
-    if (tile.transformed) {
-        return tile;
-    }
-
-    const uint32_t z2 = tile.z2;
-    const uint32_t tx = tile.tx;
-    const uint32_t ty = tile.ty;
-
-    for (auto& feature : tile.features) {
-        const auto& geom = feature.geometry;
-        const auto type = feature.type;
-
-        if (type == TileFeatureType::Point) {
-            auto& tileGeom = feature.tileGeometry.get<TilePoints>();
-            for (const auto& pt : geom.get<ProjectedPoints>()) {
-                tileGeom.push_back(transformPoint(pt, extent, z2, tx, ty));
-            }
-
-        } else {
-            feature.tileGeometry.set<TileRings>();
-            auto& tileGeom = feature.tileGeometry.get<TileRings>();
-            for (const auto& r : geom.get<ProjectedRings>()) {
-                TilePoints ring;
-                for (const auto& p : r.points) {
-                    ring.push_back(transformPoint(p, extent, z2, tx, ty));
-                }
-                tileGeom.push_back(std::move(ring));
-            }
-        }
-    }
-
-    tile.transformed = true;
-
-    return tile;
-}
-
 uint64_t GeoJSONVT::toID(uint8_t z, uint32_t x, uint32_t y) {
     return (((1 << z) * y + x) * 32) + z;
 }
@@ -358,7 +312,7 @@ bool GeoJSONVT::isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t
     }
 
     for (const auto& pt : ring.points) {
-        auto p = transformPoint(pt, extent, tile.z2, tile.tx, tile.ty);
+        auto p = Transform::transformPoint(pt, extent, tile.z2, tile.tx, tile.ty);
         if ((p.x != -buffer && p.x != extent + buffer) ||
             (p.y != -buffer && p.y != extent + buffer)) {
             return false;
