@@ -52,13 +52,13 @@ public:
     uint64_t getTotal() const;
 
 private:
-    void splitTile(std::vector<ProjectedFeature> features_,
-                   uint8_t z_,
-                   uint32_t x_,
-                   uint32_t y_,
-                   uint8_t cz = 0,
-                   uint32_t cx = 0,
-                   uint32_t cy = 0);
+    uint8_t splitTile(std::vector<ProjectedFeature> features_,
+                      uint8_t z_,
+                      uint32_t x_,
+                      uint32_t y_,
+                      uint8_t cz = 0,
+                      uint32_t cx = 0,
+                      uint32_t cy = 0);
 
 private:
     const Options options;
