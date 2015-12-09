@@ -109,12 +109,7 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
         features.push_back(create(tags, ProjectedFeatureType::Point, points));
 
     } else if (type == "LineString") {
-        std::vector<LonLat> points;
-
-        for (rapidjson::SizeType i = 0; i < rawCoords.Size(); ++i) {
-            points.push_back(LonLat(readCoordinate(rawCoords[i])));
-        }
-        ProjectedRing ring{ projectRing(points, tolerance) };
+        ProjectedRing ring{ readCoordinateRing(rawCoords, tolerance) };
         ProjectedRings rings{ ring };
         features.push_back(create(tags, ProjectedFeatureType::LineString, rings));
 
@@ -122,13 +117,7 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
         ProjectedRings rings;
 
         for (rapidjson::SizeType i = 0; i < rawCoords.Size(); ++i) {
-            const JSValue& rawRing = validArray(rawCoords[i]);
-            std::vector<LonLat> points;
-
-            for (rapidjson::SizeType j = 0; j < rawRing.Size(); ++j) {
-                points.push_back(LonLat(readCoordinate(rawRing[j])));
-            }
-            rings.push_back(projectRing(points, tolerance));
+            rings.push_back(readCoordinateRing(validArray(rawCoords[i]), tolerance));
         }
 
         ProjectedFeatureType projectedType =
@@ -144,13 +133,7 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
             const JSValue& rawRings = validArray(rawCoords[k]);
 
             for (rapidjson::SizeType i = 0; i < rawRings.Size(); ++i) {
-                const JSValue& rawRing = validArray(rawRings[i]);
-                std::vector<LonLat> points;
-
-                for (rapidjson::SizeType j = 0; j < rawRing.Size(); ++j) {
-                    points.push_back(LonLat(readCoordinate(rawRing[j])));
-                }
-                rings.push_back(projectRing(points, tolerance));
+                rings.push_back(readCoordinateRing(validArray(rawRings[i]), tolerance));
             }
         }
 
@@ -174,6 +157,15 @@ std::array<double, 2> Convert::readCoordinate(const JSValue& value) {
     validArray(value, 2);
     return { { value[static_cast<rapidjson::SizeType>(0)].GetDouble(),
                value[static_cast<rapidjson::SizeType>(1)].GetDouble() } };
+}
+
+ProjectedRing Convert::readCoordinateRing(const JSValue& rawRing, double tolerance) {
+    std::vector<LonLat> points;
+
+    for (rapidjson::SizeType j = 0; j < rawRing.Size(); ++j) {
+        points.push_back(LonLat(readCoordinate(rawRing[j])));
+    }
+    return projectRing(points, tolerance);
 }
 
 const JSValue& Convert::validArray(const JSValue& value, rapidjson::SizeType minSize) {

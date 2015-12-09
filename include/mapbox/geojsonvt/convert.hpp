@@ -46,6 +46,8 @@ private:
 
     static std::array<double, 2> readCoordinate(const JSValue& value);
 
+    static ProjectedRing readCoordinateRing(const JSValue& rawRing, double tolerance);
+
     static const JSValue& validArray(const JSValue& value, rapidjson::SizeType minSize = 1);
 };
 
