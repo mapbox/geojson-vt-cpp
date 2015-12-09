@@ -15,16 +15,78 @@ namespace geojsonvt {
 
 std::unordered_map<std::string, clock_t> activities;
 
-void time(std::string activity) {
+static void time(std::string activity) {
     activities[activity] = clock();
 }
 
-void timeEnd(std::string activity) {
+static void timeEnd(std::string activity) {
     printf("%s: %fms\n", activity.c_str(),
            double(clock() - activities[activity]) / (CLOCKS_PER_SEC / 1000));
 }
 
 const Tile GeoJSONVT::emptyTile{};
+
+struct FeatureStackItem {
+    std::vector<ProjectedFeature> features;
+    uint8_t z;
+    uint32_t x;
+    uint32_t y;
+
+    FeatureStackItem(std::vector<ProjectedFeature> features_,
+                     uint8_t z_,
+                     uint32_t x_,
+                     uint32_t y_)
+        : features(features_), z(z_), x(x_), y(y_) {
+    }
+};
+
+static uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
+    return (((1 << z) * y + x) * 32) + z;
+}
+
+static ProjectedPoint intersectX(const ProjectedPoint& a, const ProjectedPoint& b, double x) {
+    double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
+    return ProjectedPoint(x, y, 1.0);
+}
+
+static ProjectedPoint intersectY(const ProjectedPoint& a, const ProjectedPoint& b, double y) {
+    double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
+    return ProjectedPoint(x, y, 1.0);
+}
+
+// checks whether a tile is a whole-area fill after clipping; if it is, there's no sense slicing it
+// further
+static bool isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
+    const auto& features = tile.source;
+    if (features.size() != 1) {
+        return false;
+    }
+
+    const auto& feature = features.front();
+    if (feature.type != ProjectedFeatureType::Polygon) {
+        return false;
+    }
+    const auto& rings = feature.geometry.get<ProjectedRings>();
+    if (rings.size() > 1) {
+        return false;
+    }
+
+    const auto& ring = rings.front();
+
+    if (ring.points.size() != 5) {
+        return false;
+    }
+
+    for (const auto& pt : ring.points) {
+        auto p = Transform::transformPoint(pt, extent, tile.z2, tile.tx, tile.ty);
+        if ((p.x != -buffer && p.x != extent + buffer) ||
+            (p.y != -buffer && p.y != extent + buffer)) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
     : options(std::move(options_)) {
@@ -273,54 +335,6 @@ void GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             stack.emplace(std::move(br), z + 1, x * 2 + 1, y * 2 + 1);
         }
     }
-}
-
-uint64_t GeoJSONVT::toID(uint8_t z, uint32_t x, uint32_t y) {
-    return (((1 << z) * y + x) * 32) + z;
-}
-
-ProjectedPoint GeoJSONVT::intersectX(const ProjectedPoint& a, const ProjectedPoint& b, double x) {
-    double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
-    return ProjectedPoint(x, y, 1.0);
-}
-
-ProjectedPoint GeoJSONVT::intersectY(const ProjectedPoint& a, const ProjectedPoint& b, double y) {
-    double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
-    return ProjectedPoint(x, y, 1.0);
-}
-
-// checks whether a tile is a whole-area fill after clipping; if it is, there's no sense slicing it
-// further
-bool GeoJSONVT::isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
-    const auto& features = tile.source;
-    if (features.size() != 1) {
-        return false;
-    }
-
-    const auto& feature = features.front();
-    if (feature.type != ProjectedFeatureType::Polygon) {
-        return false;
-    }
-    const auto& rings = feature.geometry.get<ProjectedRings>();
-    if (rings.size() > 1) {
-        return false;
-    }
-
-    const auto& ring = rings.front();
-
-    if (ring.points.size() != 5) {
-        return false;
-    }
-
-    for (const auto& pt : ring.points) {
-        auto p = Transform::transformPoint(pt, extent, tile.z2, tile.tx, tile.ty);
-        if ((p.x != -buffer && p.x != extent + buffer) ||
-            (p.y != -buffer && p.y != extent + buffer)) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 } // namespace geojsonvt

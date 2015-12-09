@@ -60,28 +60,6 @@ private:
                    uint32_t cx = 0,
                    uint32_t cy = 0);
 
-    static uint64_t toID(uint8_t z, uint32_t x, uint32_t y);
-
-    static ProjectedPoint intersectX(const ProjectedPoint& a, const ProjectedPoint& b, double x);
-
-    static ProjectedPoint intersectY(const ProjectedPoint& a, const ProjectedPoint& b, double y);
-
-    static bool isClippedSquare(Tile& tile, uint16_t extent, uint8_t buffer);
-
-    struct FeatureStackItem {
-        std::vector<ProjectedFeature> features;
-        uint8_t z;
-        uint32_t x;
-        uint32_t y;
-
-        FeatureStackItem(std::vector<ProjectedFeature> features_,
-                         uint8_t z_,
-                         uint32_t x_,
-                         uint32_t y_)
-            : features(features_), z(z_), x(x_), y(y_) {
-        }
-    };
-
 private:
     const Options options;
     std::map<uint64_t, Tile> tiles;
