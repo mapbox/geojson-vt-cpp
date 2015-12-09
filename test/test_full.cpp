@@ -73,7 +73,7 @@ TEST(GenTiles, InvalidGeoJSON) {
         genTiles("{\"type\": \"Pologon\"}");
         FAIL() << "Expected exception";
     } catch (const std::runtime_error& ex) {
-        ASSERT_STREQ("Input data is not a valid GeoJSON object", ex.what());
+        ASSERT_STREQ("No coordinates in a GeoJSON geometry.", ex.what());
     }
 }
 
@@ -90,4 +90,4 @@ INSTANTIATE_TEST_CASE_P(
         { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },
         { "test/fixtures/feature.json", "test/fixtures/feature-tiles.json" },
         { "test/fixtures/collection.json", "test/fixtures/collection-tiles.json" },
-    }));
+        { "test/fixtures/single-geom.json", "test/fixtures/single-geom-tiles.json" } }));

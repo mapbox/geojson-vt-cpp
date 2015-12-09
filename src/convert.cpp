@@ -13,6 +13,11 @@ namespace geojsonvt {
 
 std::vector<ProjectedFeature> Convert::convert(const JSValue& data, double tolerance) {
     std::vector<ProjectedFeature> features;
+
+    if (!data.HasMember("type")) {
+        throw std::runtime_error("No type in a GeoJSON object.");
+    }
+
     const JSValue& rawType = data["type"];
 
     if (std::string(rawType.GetString()) == "FeatureCollection") {
@@ -24,8 +29,10 @@ std::vector<ProjectedFeature> Convert::convert(const JSValue& data, double toler
                 }
             }
         }
+
     } else if (std::string(data["type"].GetString()) == "Feature") {
         convertFeature(features, data, tolerance);
+
     } else if (std::string(data["type"].GetString()) == "GeometryCollection") {
         // geometry collection
         if (data.HasMember("geometries")) {
@@ -38,7 +45,8 @@ std::vector<ProjectedFeature> Convert::convert(const JSValue& data, double toler
             }
         }
     } else {
-        throw std::runtime_error("Input data is not a valid GeoJSON object");
+        // single geometry or a geometry collection
+        convertGeometry(features, {}, data, tolerance);
     }
 
     return std::move(features);
@@ -87,6 +95,10 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
                               const Tags& tags,
                               const JSValue& geom,
                               double tolerance) {
+    if (!geom.HasMember("type")) {
+        throw std::runtime_error("No type in a GeoJSON geometry.");
+    }
+
     const JSValue& rawType = geom["type"];
     std::string type{ rawType.GetString(), rawType.GetStringLength() };
 

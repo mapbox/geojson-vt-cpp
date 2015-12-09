@@ -135,9 +135,8 @@ std::vector<TileFeature> parseJSONTile(const rapidjson::Value& tile) {
         }
 
         std::map<std::string, std::string> tileTags;
-        if (feature.HasMember("tags")) {
+        if (feature.HasMember("tags") && feature["tags"].IsObject()) {
             const auto& tags = feature["tags"];
-            EXPECT_TRUE(tags.IsObject());
             for (auto jt = tags.MemberBegin(); jt != tags.MemberEnd(); jt++) {
                 const std::string tagKey{ jt->name.GetString(), jt->name.GetStringLength() };
                 switch (jt->value.GetType()) {
