@@ -1,7 +1,7 @@
 #include <mapbox/geojsonvt/geojsonvt.hpp>
-#include <mapbox/geojsonvt/geojsonvt_clip.hpp>
-#include <mapbox/geojsonvt/geojsonvt_convert.hpp>
-#include <mapbox/geojsonvt/geojsonvt_wrap.hpp>
+#include <mapbox/geojsonvt/clip.hpp>
+#include <mapbox/geojsonvt/convert.hpp>
+#include <mapbox/geojsonvt/wrap.hpp>
 
 #include <stack>
 #include <cmath>

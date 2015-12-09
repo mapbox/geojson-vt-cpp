@@ -1,4 +1,4 @@
-#include <mapbox/geojsonvt/geojsonvt_tile.hpp>
+#include <mapbox/geojsonvt/tile.hpp>
 
 namespace mapbox {
 namespace geojsonvt {

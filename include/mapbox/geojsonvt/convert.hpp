@@ -1,7 +1,7 @@
 #ifndef MAPBOX_GEOJSONVT_CONVERT
 #define MAPBOX_GEOJSONVT_CONVERT
 
-#include "geojsonvt_types.hpp"
+#include "types.hpp"
 
 #include <rapidjson/document.h>
 

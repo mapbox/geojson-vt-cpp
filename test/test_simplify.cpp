@@ -1,5 +1,5 @@
 #include "util.hpp"
-#include <mapbox/geojsonvt/geojsonvt_simplify.hpp>
+#include <mapbox/geojsonvt/simplify.hpp>
 #include <gtest/gtest.h>
 
 using namespace mapbox::geojsonvt;

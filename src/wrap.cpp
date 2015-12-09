@@ -1,4 +1,4 @@
-#include <mapbox/geojsonvt/geojsonvt_wrap.hpp>
+#include <mapbox/geojsonvt/wrap.hpp>
 
 namespace mapbox {
 namespace geojsonvt {

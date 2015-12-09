@@ -1,8 +1,8 @@
 #ifndef MAPBOX_GEOJSONVT_WRAP
 #define MAPBOX_GEOJSONVT_WRAP
 
-#include "geojsonvt_types.hpp"
-#include "geojsonvt_clip.hpp"
+#include "types.hpp"
+#include "clip.hpp"
 
 namespace mapbox {
 namespace geojsonvt {

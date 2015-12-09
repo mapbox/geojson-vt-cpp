@@ -1,7 +1,7 @@
 #ifndef MAPBOX_GEOJSONVT_TEST_UTIL
 #define MAPBOX_GEOJSONVT_TEST_UTIL
 
-#include <mapbox/geojsonvt/geojsonvt_types.hpp>
+#include <mapbox/geojsonvt/types.hpp>
 
 #include <rapidjson/document.h>
 

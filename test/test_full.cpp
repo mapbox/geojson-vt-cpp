@@ -2,8 +2,8 @@
 #include <gtest/gtest.h>
 
 #include <mapbox/geojsonvt/geojsonvt.hpp>
-#include <mapbox/geojsonvt/geojsonvt_convert.hpp>
-#include <mapbox/geojsonvt/geojsonvt_tile.hpp>
+#include <mapbox/geojsonvt/convert.hpp>
+#include <mapbox/geojsonvt/tile.hpp>
 
 #include <string>
 #include <iostream>

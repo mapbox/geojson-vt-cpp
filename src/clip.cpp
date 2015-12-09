@@ -1,4 +1,4 @@
-#include <mapbox/geojsonvt/geojsonvt_clip.hpp>
+#include <mapbox/geojsonvt/clip.hpp>
 
 namespace mapbox {
 namespace geojsonvt {

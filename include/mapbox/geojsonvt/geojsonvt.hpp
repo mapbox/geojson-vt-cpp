@@ -1,8 +1,8 @@
 #ifndef MAPBOX_GEOJSONVT
 #define MAPBOX_GEOJSONVT
 
-#include "geojsonvt_types.hpp"
-#include "geojsonvt_tile.hpp"
+#include "types.hpp"
+#include "tile.hpp"
 
 #include <map>
 #include <mutex>

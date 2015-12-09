@@ -1,5 +1,5 @@
-#include <mapbox/geojsonvt/geojsonvt_convert.hpp>
-#include <mapbox/geojsonvt/geojsonvt_simplify.hpp>
+#include <mapbox/geojsonvt/convert.hpp>
+#include <mapbox/geojsonvt/simplify.hpp>
 
 #include <array>
 #include <cmath>

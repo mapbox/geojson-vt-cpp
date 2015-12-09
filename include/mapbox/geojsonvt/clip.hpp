@@ -1,7 +1,7 @@
 #ifndef MAPBOX_GEOJSONVT_CLIP
 #define MAPBOX_GEOJSONVT_CLIP
 
-#include "geojsonvt_types.hpp"
+#include "types.hpp"
 
 #include <vector>
 
