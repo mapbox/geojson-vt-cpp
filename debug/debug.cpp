@@ -42,8 +42,8 @@ public:
 
 using namespace mapbox::util::geojsonvt;
 
-int main(void) {
-    if (!glfwInit()) {
+int main() {
+    if (glfwInit() == 0) {
         return -1;
     }
 
@@ -53,8 +53,8 @@ int main(void) {
     static int fbHeight = height;
 
     GLFWwindow* window =
-        glfwCreateWindow(width, height, "GeoJSON VT — Drop a GeoJSON file", NULL, NULL);
-    if (!window) {
+        glfwCreateWindow(width, height, "GeoJSON VT — Drop a GeoJSON file", nullptr, nullptr);
+    if (window == nullptr) {
         glfwTerminate();
         return -1;
     }
@@ -81,7 +81,7 @@ int main(void) {
             std::to_string(pos.z) + "/" + std::to_string(pos.x) + "/" + std::to_string(pos.y);
         if (vt) {
             Timer tileTimer;
-            tile = &vt->getTile(pos.z, pos.x, pos.y);
+            tile = const_cast<Tile*>(&vt->getTile(pos.z, pos.x, pos.y));
             tileTimer.report("tile " + name);
             glfwSetWindowTitle(window, (std::string{ "GeoJSON VT — " } + name).c_str());
         }
@@ -92,7 +92,7 @@ int main(void) {
         Timer timer;
         const std::string data = loadFile(filename);
         timer.report("loadFile");
-        vt = std::make_unique<GeoJSONVT>(features);
+        vt = std::make_unique<GeoJSONVT>(data);
         timer.report("parse");
         updateTile();
     };
@@ -115,7 +115,7 @@ int main(void) {
     glfwSetKeyCallback(
         window, [](GLFWwindow* w, const int key, const int, const int action, const int) {
             if (key == GLFW_KEY_Q && action == GLFW_RELEASE) {
-                glfwSetWindowShouldClose(w, true);
+                glfwSetWindowShouldClose(w, 1);
             }
             if ((key == GLFW_KEY_BACKSPACE || key == GLFW_KEY_ESCAPE) && action == GLFW_RELEASE) {
                 // zoom out
@@ -147,7 +147,7 @@ int main(void) {
     });
 
     glfwSetCursorEnterCallback(window, [](GLFWwindow*, int entered) {
-        if (!entered) {
+        if (entered == 0) {
             updateLocation(Horizontal::Outside, Vertical::Outside);
         }
     });
@@ -159,10 +159,12 @@ int main(void) {
                 pos.z++;
                 pos.x *= 2;
                 pos.y *= 2;
-                if (horizontal == Horizontal::Right)
+                if (horizontal == Horizontal::Right) {
                     pos.x++;
-                if (vertical == Vertical::Bottom)
+}
+                if (vertical == Vertical::Bottom) {
                     pos.y++;
+}
                 updateTile();
             }
         } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE) {
@@ -190,11 +192,11 @@ int main(void) {
         }
 
         glBegin(GL_LINE_STRIP);
-        glVertex3f(0, 0, -active);
-        glVertex3f(0, 4096, -active);
-        glVertex3f(4096, 4096, -active);
-        glVertex3f(4096, 0, -active);
-        glVertex3f(0, 0, -active);
+        glVertex3f(0, 0, -static_cast<int>(active));
+        glVertex3f(0, 4096, -static_cast<int>(active));
+        glVertex3f(4096, 4096, -static_cast<int>(active));
+        glVertex3f(4096, 0, -static_cast<int>(active));
+        glVertex3f(0, 0, -static_cast<int>(active));
         glEnd();
     };
 
@@ -205,7 +207,7 @@ int main(void) {
 
     loadGeoJSON("data/countries.geojson");
 
-    while (!glfwWindowShouldClose(window)) {
+    while (glfwWindowShouldClose(window) == 0) {
         if (dirty) {
             dirty = false;
 
@@ -219,7 +221,7 @@ int main(void) {
 
             glViewport(0, 0, fbWidth, fbHeight);
 
-            if (tile) {
+            if (tile != nullptr) {
                 // main tile
                 glMatrixMode(GL_PROJECTION);
                 glLoadIdentity();
