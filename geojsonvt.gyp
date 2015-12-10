@@ -83,7 +83,8 @@
 
       'copies': [
         { 'files': [ '<(PRODUCT_DIR)/libgeojsonvt.a' ], 'destination': '<(install_prefix)/lib' },
-        { 'files': [ '<!@(find include -name "*.hpp")' ], 'destination': '<(install_prefix)/include/mapbox/geojsonvt' },
+        { 'files': [ '<!@(find include/mapbox/geojsonvt -name "*.hpp")' ], 'destination': '<(install_prefix)/include/mapbox/geojsonvt' },
+        { 'files': [ 'include/mapbox/geojsonvt.hpp' ], 'destination': '<(install_prefix)/include/mapbox' },
       ],
     },
   ],
