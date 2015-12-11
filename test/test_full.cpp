@@ -82,6 +82,16 @@ TEST(GenTiles, EmptyGeoJSON) {
     ASSERT_EQ(0, tiles.size());
 }
 
+
+TEST(GenTiles, NoObjectGeoJSON) {
+    try {
+        genTiles("42");
+        FAIL() << "Expected exception";
+    } catch (const std::runtime_error& ex) {
+        ASSERT_STREQ("Root of GeoJSON must be an object.", ex.what());
+    }
+}
+
 INSTANTIATE_TEST_CASE_P(
     Full,
     TileTest,

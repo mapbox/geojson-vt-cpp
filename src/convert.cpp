@@ -14,6 +14,10 @@ namespace geojsonvt {
 std::vector<ProjectedFeature> Convert::convert(const JSValue& data, double tolerance) {
     std::vector<ProjectedFeature> features;
 
+    if (!data.IsObject()) {
+        throw std::runtime_error("Root of GeoJSON must be an object.");
+    }
+
     if (!data.HasMember("type")) {
         throw std::runtime_error("No type in a GeoJSON object.");
     }
