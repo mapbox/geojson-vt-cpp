@@ -62,7 +62,7 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
     Tags tags;
     if (feature.HasMember("properties") && feature["properties"].IsObject()) {
         const JSValue& properties = feature["properties"];
-        rapidjson::Value::ConstMemberIterator itr = properties.MemberBegin();
+        JSValue::ConstMemberIterator itr = properties.MemberBegin();
         for (; itr != properties.MemberEnd(); ++itr) {
             std::string key{ itr->name.GetString(), itr->name.GetStringLength() };
             switch (itr->value.GetType()) {

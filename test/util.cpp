@@ -121,7 +121,7 @@ bool operator==(const ProjectedRing& a, const ProjectedRing& b) {
     return true;
 }
 
-std::vector<TileFeature> parseJSONTile(const rapidjson::Value& tile) {
+std::vector<TileFeature> parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>& tile) {
     std::vector<TileFeature> features;
     EXPECT_TRUE(tile.IsArray());
     for (rapidjson::SizeType k = 0; k < tile.Size(); ++k) {
@@ -205,7 +205,7 @@ std::vector<TileFeature> parseJSONTile(const rapidjson::Value& tile) {
 }
 
 std::vector<TileFeature> parseJSONTile(const std::string& data) {
-    rapidjson::Document d;
+    rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> d;
     d.Parse<0>(data.c_str());
 
     if (d.HasParseError()) {
@@ -219,7 +219,7 @@ std::vector<TileFeature> parseJSONTile(const std::string& data) {
 
 std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string& data) {
     std::map<std::string, std::vector<TileFeature>> result;
-    rapidjson::Document d;
+    rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> d;
     d.Parse<0>(data.c_str());
 
     if (d.HasParseError()) {

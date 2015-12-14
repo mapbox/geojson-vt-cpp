@@ -10,7 +10,12 @@
 namespace mapbox {
 namespace geojsonvt {
 
-using JSValue = rapidjson::Value;
+// Use the CrtAllocator, because the MemoryPoolAllocator is broken on ARM
+// https://github.com/miloyip/rapidjson/issues/200
+// https://github.com/miloyip/rapidjson/issues/301
+// https://github.com/miloyip/rapidjson/issues/388
+using JSDocument = rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator>;
+using JSValue = rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>;
 
 class __attribute__((visibility("default"))) Convert {
 private:
