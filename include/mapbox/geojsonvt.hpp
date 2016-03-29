@@ -32,7 +32,7 @@ struct Options {
     uint16_t extent = 4096;
 
     // tile buffer on each side
-    uint8_t buffer = 64;
+    uint16_t buffer = 64;
 };
 
 class __attribute__((visibility("default"))) GeoJSONVT {
