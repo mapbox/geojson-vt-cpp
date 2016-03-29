@@ -14,7 +14,7 @@ namespace geojsonvt {
 
 struct Options {
     // max zoom to preserve detail on
-    uint8_t maxZoom = 14;
+    uint8_t maxZoom = 18;
 
     // max zoom in the tile index
     uint8_t indexMaxZoom = 5;
