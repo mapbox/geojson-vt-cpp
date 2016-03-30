@@ -51,6 +51,8 @@ public:
     // returns the total number of tiles generated until now.
     uint64_t getTotal() const;
 
+    const Options options;
+
 private:
     uint8_t splitTile(std::vector<ProjectedFeature> features_,
                       uint8_t z_,
@@ -61,7 +63,6 @@ private:
                       uint32_t cy = 0);
 
 private:
-    const Options options;
     std::map<uint64_t, Tile> tiles;
     std::map<uint8_t, uint16_t> stats;
     uint64_t total = 0;
