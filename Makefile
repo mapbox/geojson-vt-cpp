@@ -1,4 +1,5 @@
 BUILDTYPE ?= Release
+GYP_FLAVOR_SUFFIX ?=
 
 ifeq ($(shell uname -s), Darwin)
 export BUILD = osx
@@ -19,16 +20,16 @@ config.gypi:
 
 .PHONY: lib
 lib: config.gypi
-	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make
+	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make$(GYP_FLAVOR_SUFFIX)
 	make -C build geojsonvt
 
 .PHONY: debug
 debug: config.gypi
-	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make
+	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make$(GYP_FLAVOR_SUFFIX)
 	make -C build debug
 
 install:
-	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make
+	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make$(GYP_FLAVOR_SUFFIX)
 	make -C build install
 
 .PHONY: run-debug
@@ -37,13 +38,13 @@ run-debug: debug
 
 .PHONY: test
 test: config.gypi
-	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make
+	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make$(GYP_FLAVOR_SUFFIX)
 	make -C build test
 	build/$(BUILDTYPE)/test
 
 .PHONY: xproj
 xproj: config.gypi
-	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f xcode
+	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f xcode$(GYP_FLAVOR_SUFFIX)
 	open build/geojsonvt.xcodeproj
 
 .PHONY: tidy
