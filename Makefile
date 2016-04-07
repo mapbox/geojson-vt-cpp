@@ -1,5 +1,9 @@
 BUILDTYPE ?= Release
+ifeq ($(MASON_PLATFORM), linux)
+GYP_FLAVOR_SUFFIX ?= -linux
+else
 GYP_FLAVOR_SUFFIX ?=
+endif
 
 ifeq ($(shell uname -s), Darwin)
 export BUILD = osx
@@ -28,7 +32,7 @@ debug: config.gypi
 	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make$(GYP_FLAVOR_SUFFIX)
 	make -C build debug
 
-install:
+install: config.gypi
 	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make$(GYP_FLAVOR_SUFFIX)
 	make -C build install
 

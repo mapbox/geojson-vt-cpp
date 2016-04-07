@@ -8,7 +8,6 @@ if [ `uname -s` = 'Darwin' ]; then
   MASON_PLATFORM=${MASON_PLATFORM:-osx}
 else
   MASON_PLATFORM=${MASON_PLATFORM:-linux}
-  export GYP_FLAVOR_SUFFIX=-linux
 fi
 
 function finish {
