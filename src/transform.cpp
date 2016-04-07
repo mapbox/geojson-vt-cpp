@@ -8,8 +8,8 @@ namespace geojsonvt {
 TilePoint Transform::transformPoint(
     const ProjectedPoint& p, uint16_t extent, uint32_t z2, uint32_t tx, uint32_t ty) {
 
-    int16_t x = std::round(extent * (p.x * z2 - tx));
-    int16_t y = std::round(extent * (p.y * z2 - ty));
+    int16_t x = ::round(extent * (p.x * z2 - tx));
+    int16_t y = ::round(extent * (p.y * z2 - ty));
 
     return TilePoint(x, y);
 }

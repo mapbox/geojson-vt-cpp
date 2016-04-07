@@ -4,6 +4,20 @@
 #include <array>
 #include <cmath>
 #include <vector>
+#include <string>
+#include <sstream>
+
+namespace {
+
+template <typename T> std::string to_string(const T& value) {
+    std::ostringstream stream;
+    stream.setf(std::ios::fixed);
+    stream.precision(6);
+    stream << value;
+    return stream.str();
+}
+
+} // namespace
 
 namespace mapbox {
 namespace geojsonvt {
@@ -80,7 +94,7 @@ void Convert::convertFeature(std::vector<ProjectedFeature>& features,
                              std::string{ itr->value.GetString(), itr->value.GetStringLength() });
                 break;
             case rapidjson::kNumberType:
-                tags.emplace(key, std::to_string(itr->value.GetDouble()));
+                tags.emplace(key, to_string(itr->value.GetDouble()));
                 break;
             default:
                 // it's either array or object, but both of those are invalid

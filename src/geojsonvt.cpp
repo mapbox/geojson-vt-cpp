@@ -7,6 +7,7 @@
 #include <stack>
 #include <cmath>
 #include <chrono>
+#include <cstdio>
 #include <unordered_map>
 #include <iostream>
 #include <utility>
