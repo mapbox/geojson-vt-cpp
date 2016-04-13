@@ -12,7 +12,7 @@ namespace mapbox {
 namespace geojsonvt {
 
 struct __attribute__((visibility("default"))) LonLat {
-    LonLat(std::array<double, 2> coordinates) : lon(coordinates[0]), lat(coordinates[1]) {
+    LonLat(std::array<double, 2> const& coordinates) : lon(coordinates[0]), lat(coordinates[1]) {
     }
 
     LonLat(double lon_, double lat_) : lon(lon_), lat(lat_) {
@@ -55,7 +55,7 @@ class __attribute__((visibility("default"))) ProjectedRing {
 public:
     ProjectedRing() {
     }
-    ProjectedRing(ProjectedPoints points_) : points(points_) {
+    ProjectedRing(ProjectedPoints const& points_) : points(points_) {
     }
 
 public:
@@ -81,11 +81,11 @@ enum class ProjectedFeatureType : uint8_t { Point = 1, LineString = 2, Polygon =
 
 class __attribute__((visibility("default"))) ProjectedFeature {
 public:
-    ProjectedFeature(ProjectedGeometry geometry_,
+    ProjectedFeature(ProjectedGeometry const& geometry_,
                      ProjectedFeatureType type_,
-                     Tags tags_,
-                     ProjectedPoint min_ = { 2, 1 },  // initial bbox values;
-                     ProjectedPoint max_ = { -1, 0 }) // coords are usually in [0..1] range
+                     Tags const& tags_,
+                     ProjectedPoint const& min_ = { 2, 1 },  // initial bbox values;
+                     ProjectedPoint const& max_ = { -1, 0 }) // coords are usually in [0..1] range
         : geometry(geometry_),
           type(type_),
           tags(tags_),
@@ -127,7 +127,7 @@ typedef ProjectedFeatureType TileFeatureType;
 
 class __attribute__((visibility("default"))) TileFeature {
 public:
-    TileFeature(ProjectedGeometry geometry_, TileFeatureType type_, Tags tags_)
+    TileFeature(ProjectedGeometry const& geometry_, TileFeatureType type_, Tags const& tags_)
         : geometry(geometry_), type(type_), tags(tags_) {
     }
 
