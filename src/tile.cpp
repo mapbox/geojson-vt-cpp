@@ -36,7 +36,7 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
         }
     }
 
-    return std::move(tile);
+    return tile;
 }
 
 void Tile::addFeature(Tile& tile,

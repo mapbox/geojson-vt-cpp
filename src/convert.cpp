@@ -67,7 +67,7 @@ std::vector<ProjectedFeature> Convert::convert(const JSValue& data, double toler
         convertGeometry(features, {}, data, tolerance);
     }
 
-    return std::move(features);
+    return features;
 }
 
 void Convert::convertFeature(std::vector<ProjectedFeature>& features,
@@ -209,7 +209,7 @@ ProjectedFeature Convert::create(Tags tags, ProjectedFeatureType type, Projected
     ProjectedFeature feature(geometry, type, tags);
     calcBBox(feature);
 
-    return std::move(feature);
+    return feature;
 }
 
 ProjectedRing Convert::projectRing(const std::vector<LonLat>& lonlats, double tolerance) {
@@ -222,7 +222,7 @@ ProjectedRing Convert::projectRing(const std::vector<LonLat>& lonlats, double to
     Simplify::simplify(ring.points, tolerance);
     calcSize(ring);
 
-    return std::move(ring);
+    return ring;
 }
 
 ProjectedPoint Convert::projectPoint(const LonLat& p_) {

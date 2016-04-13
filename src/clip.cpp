@@ -65,11 +65,10 @@ std::vector<ProjectedFeature> Clip::clip(const std::vector<ProjectedFeature>& fe
         clipped.emplace_back(slices, type, feature.tags, feature.min, feature.max);
     }
 
-    return std::move(clipped);
+    return clipped;
 }
 
-ProjectedPoints
-Clip::clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t axis) {
+ProjectedPoints Clip::clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t axis) {
     ProjectedPoints slice;
 
     for (const auto& p : points) {
@@ -80,7 +79,7 @@ Clip::clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t ax
         }
     }
 
-    return std::move(slice);
+    return slice;
 }
 
 ProjectedRings Clip::clipGeometry(const ProjectedRings& rings,
@@ -167,11 +166,10 @@ ProjectedRings Clip::clipGeometry(const ProjectedRings& rings,
         newSlice(slices, slice, area, dist);
     }
 
-    return std::move(slices);
+    return slices;
 }
 
-ProjectedRing
-Clip::newSlice(ProjectedRings& slices, ProjectedRing& slice, double area, double dist) {
+ProjectedRing Clip::newSlice(ProjectedRings& slices, ProjectedRing& slice, double area, double dist) {
 
     if (!slice.points.empty()) {
         // we don't recalculate the area/length of the unclipped geometry because the case where it
