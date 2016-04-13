@@ -201,7 +201,7 @@ std::vector<TileFeature> parseJSONTile(const rapidjson::GenericValue<rapidjson::
         features.emplace_back(std::move(tileFeature));
     }
 
-    return std::move(features);
+    return features;
 }
 
 std::vector<TileFeature> parseJSONTile(const std::string& data) {
