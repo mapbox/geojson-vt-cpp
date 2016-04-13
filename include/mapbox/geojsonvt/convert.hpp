@@ -25,8 +25,7 @@ private:
 public:
     static std::vector<ProjectedFeature> convert(const JSValue& data, double tolerance);
 
-    static ProjectedFeature
-    create(Tags tags, ProjectedFeatureType type, ProjectedGeometry geometry);
+    static ProjectedFeature create(Tags tags, ProjectedFeatureType type, ProjectedGeometry geometry);
 
     static ProjectedRing projectRing(const std::vector<LonLat>& lonlats, double tolerance = 0);
 
@@ -46,8 +45,7 @@ private:
 
     static void calcBBox(ProjectedFeature& feature);
 
-    static void
-    calcRingBBox(ProjectedPoint& minPoint, ProjectedPoint& maxPoint, const ProjectedPoints& points);
+    static void calcRingBBox(ProjectedPoint& minPoint, ProjectedPoint& maxPoint, const ProjectedPoints& points);
 
     static std::array<double, 2> readCoordinate(const JSValue& value);
 

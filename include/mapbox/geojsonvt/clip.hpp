@@ -28,18 +28,14 @@ public:
                                               double maxAll);
 
 private:
-    static ProjectedPoints
-    clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t axis);
-
+    static ProjectedPoints clipPoints(const ProjectedPoints& points, double k1, double k2, uint8_t axis);
     static ProjectedRings clipGeometry(const ProjectedRings& rings,
                                        double k1,
                                        double k2,
                                        uint8_t axis,
                                        IntersectCallback intersect,
                                        bool closed);
-
-    static ProjectedRing
-    newSlice(ProjectedRings& slices, ProjectedRing& slice, double area, double dist);
+    static ProjectedRing newSlice(ProjectedRings& slices, ProjectedRing& slice, double area, double dist);
 };
 
 } // namespace geojsonvt

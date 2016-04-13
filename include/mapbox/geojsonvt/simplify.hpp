@@ -15,8 +15,7 @@ public:
     static void simplify(ProjectedPoints& points, double tolerance);
 
 private:
-    static double
-    getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const ProjectedPoint& b);
+    static double getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const ProjectedPoint& b);
 };
 
 } // namespace geojsonvt
