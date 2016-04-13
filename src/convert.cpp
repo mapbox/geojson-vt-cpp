@@ -3,13 +3,14 @@
 
 #include <array>
 #include <cmath>
-#include <vector>
-#include <string>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace {
 
-template <typename T> std::string to_string(const T& value) {
+template <typename T>
+std::string to_string(const T& value) {
     std::ostringstream stream;
     stream.setf(std::ios::fixed);
     stream.precision(6);

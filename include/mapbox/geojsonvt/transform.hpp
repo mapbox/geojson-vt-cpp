@@ -1,8 +1,8 @@
 #ifndef MAPBOX_GEOJSONVT_TRANSFORM
 #define MAPBOX_GEOJSONVT_TRANSFORM
 
-#include "types.hpp"
 #include "tile.hpp"
+#include "types.hpp"
 
 namespace mapbox {
 namespace geojsonvt {

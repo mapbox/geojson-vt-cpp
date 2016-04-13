@@ -1,15 +1,15 @@
 #include <mapbox/geojsonvt.hpp>
 #include <mapbox/geojsonvt/clip.hpp>
 #include <mapbox/geojsonvt/convert.hpp>
-#include <mapbox/geojsonvt/wrap.hpp>
 #include <mapbox/geojsonvt/transform.hpp>
+#include <mapbox/geojsonvt/wrap.hpp>
 
-#include <stack>
-#include <cmath>
 #include <chrono>
+#include <cmath>
 #include <cstdio>
-#include <unordered_map>
 #include <iostream>
+#include <stack>
+#include <unordered_map>
 #include <utility>
 
 namespace mapbox {
