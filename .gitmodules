@@ -3,4 +3,4 @@
 	url = https://github.com/mapbox/mason.git
 [submodule "deps/geometry"]
 	path = deps/geometry
-	url = git@github.com:mapbox/geometry.hpp.git
+	url = https://github.com/mapbox/geometry.hpp.git
