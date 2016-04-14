@@ -1,8 +1,10 @@
 #ifndef MAPBOX_GEOJSONVT_TYPES
 #define MAPBOX_GEOJSONVT_TYPES
 
+#include <mapbox/geometry/point.hpp>
+#include <mapbox/geometry/line_string.hpp>
+#include <mapbox/geometry/polygon.hpp>
 #include <mapbox/variant.hpp>
-
 #include <array>
 #include <map>
 #include <string>
@@ -21,8 +23,6 @@ struct __attribute__((visibility("default"))) LonLat {
     double lon;
     double lat;
 };
-
-#pragma mark -
 
 class __attribute__((visibility("default"))) ProjectedPoint {
 public:
@@ -47,8 +47,6 @@ public:
     double z = -1;
 };
 
-#pragma mark -
-
 using ProjectedPoints = std::vector<ProjectedPoint>;
 
 class __attribute__((visibility("default"))) ProjectedRing {
@@ -64,20 +62,12 @@ public:
     double dist = 0;
 };
 
-#pragma mark -
-
 using ProjectedRings = std::vector<ProjectedRing>;
 using ProjectedGeometry = mapbox::util::variant<ProjectedPoints, ProjectedRings>;
 
-#pragma mark -
-
 using Tags = std::map<std::string, std::string>;
 
-#pragma mark -
-
 enum class ProjectedFeatureType : uint8_t { Point = 1, LineString = 2, Polygon = 3 };
-
-#pragma mark -
 
 class __attribute__((visibility("default"))) ProjectedFeature {
 public:
@@ -101,29 +91,12 @@ public:
     ProjectedPoint max;
 };
 
-#pragma mark -
-
-class __attribute__((visibility("default"))) TilePoint {
-public:
-    TilePoint(int16_t x_, int16_t y_) : x(x_), y(y_) {
-    }
-
-public:
-    const int16_t x = 0;
-    const int16_t y = 0;
-};
-
-#pragma mark -
-
-using TilePoints = std::vector<TilePoint>;
+using TilePoint = mapbox::geometry::point<std::int16_t>;
+using TilePoints = mapbox::geometry::linear_ring<std::int16_t>;
 using TileRings = std::vector<TilePoints>;
 using TileGeometry = mapbox::util::variant<TilePoints, TileRings>;
 
-#pragma mark -
-
 typedef ProjectedFeatureType TileFeatureType;
-
-#pragma mark -
 
 class __attribute__((visibility("default"))) TileFeature {
 public:
