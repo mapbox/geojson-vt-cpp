@@ -59,7 +59,7 @@ if [[ ${MASON_PLATFORM:-} == 'osx' || ${MASON_PLATFORM:-} == 'linux' ]] ; then
   CONFIG+="    'gtest_cflags%': $(quote_flags $(mason cflags gtest ${GTEST_VERSION})),"$LN
   CONFIG+="    'gtest_ldflags%': $(quote_flags $(mason ldflags gtest ${GTEST_VERSION})),"$LN
 
-  GLFW_VERSION=3.1
+  GLFW_VERSION=3.1.2
   mason install glfw ${GLFW_VERSION}
   CONFIG+="    'glfw%': 1,"$LN
   CONFIG+="    'glfw_static_libs%': $(quote_flags $(mason static_libs glfw ${GLFW_VERSION})),"$LN
