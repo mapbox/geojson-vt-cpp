@@ -26,7 +26,7 @@ public:
     static std::vector<ProjectedFeature> convert(const JSValue& data, double tolerance);
 
     static ProjectedFeature
-    create(Tags tags, ProjectedFeatureType type, ProjectedGeometry geometry);
+    create(Tags tags, ProjectedFeatureType type, ProjectedGeometry const& geometry);
 
     static ProjectedRing projectRing(const std::vector<LonLat>& lonlats, double tolerance = 0);
 
