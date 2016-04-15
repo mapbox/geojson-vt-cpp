@@ -17,7 +17,6 @@ std::string to_string(const T& value) {
     stream << value;
     return stream.str();
 }
-
 } // namespace
 
 namespace mapbox {
@@ -37,28 +36,29 @@ std::vector<ProjectedFeature> Convert::convert(const JSValue& data, double toler
         throw std::runtime_error("No type in a GeoJSON object.");
     }
 
-    const JSValue& rawType = data["type"];
-
-    if (std::string(rawType.GetString()) == "FeatureCollection") {
+    auto const& type = data["type"];
+    if (type == "FeatureCollection") {
         if (data.HasMember("features")) {
             const JSValue& rawFeatures = data["features"];
             if (rawFeatures.IsArray()) {
-                for (rapidjson::SizeType i = 0; i < rawFeatures.Size(); ++i) {
+                auto size = rawFeatures.Size();
+                for (rapidjson::SizeType i = 0; i < size; ++i) {
                     convertFeature(features, rawFeatures[i], tolerance);
                 }
             }
         }
 
-    } else if (std::string(data["type"].GetString()) == "Feature") {
+    } else if (type == "Feature") {
         convertFeature(features, data, tolerance);
 
-    } else if (std::string(data["type"].GetString()) == "GeometryCollection") {
+    } else if (type == "GeometryCollection") {
         // geometry collection
         if (data.HasMember("geometries")) {
             const JSValue& rawGeometries = data["geometries"];
             if (rawGeometries.IsArray()) {
                 Tags tags;
-                for (rapidjson::SizeType i = 0; i < rawGeometries.Size(); ++i) {
+                auto size = rawGeometries.Size();
+                for (rapidjson::SizeType i = 0; i < size; ++i) {
                     convertGeometry(features, tags, rawGeometries[i], tolerance);
                 }
             }
@@ -117,9 +117,7 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
     if (!geom.HasMember("type")) {
         throw std::runtime_error("No type in a GeoJSON geometry.");
     }
-
-    const JSValue& rawType = geom["type"];
-    std::string type{ rawType.GetString(), rawType.GetStringLength() };
+    auto const& type = geom["type"];
 
     if (!geom.HasMember("coordinates")) {
         throw std::runtime_error("No coordinates in a GeoJSON geometry.");
@@ -133,37 +131,37 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
 
     } else if (type == "MultiPoint") {
         ProjectedPoints points;
-
-        for (rapidjson::SizeType i = 0; i < rawCoords.Size(); ++i) {
+        auto size = rawCoords.Size();
+        for (rapidjson::SizeType i = 0; i < size; ++i) {
             points.push_back(projectPoint(LonLat(readCoordinate(rawCoords[i]))));
         }
         features.push_back(create(tags, ProjectedFeatureType::Point, points));
 
-    } else if (type == "LineString") {
+    } else if (type ==  "LineString") {
         ProjectedRing ring{ readCoordinateRing(rawCoords, tolerance) };
         ProjectedRings rings{ ring };
         features.push_back(create(tags, ProjectedFeatureType::LineString, rings));
 
     } else if (type == "MultiLineString" || type == "Polygon") {
         ProjectedRings rings;
-
-        for (rapidjson::SizeType i = 0; i < rawCoords.Size(); ++i) {
+        auto size = rawCoords.Size();
+        for (rapidjson::SizeType i = 0; i < size; ++i) {
             rings.push_back(readCoordinateRing(validArray(rawCoords[i]), tolerance));
         }
 
         ProjectedFeatureType projectedType =
-            (type == "Polygon" ? ProjectedFeatureType::Polygon : ProjectedFeatureType::LineString);
+            ((type == "Polygon") ? ProjectedFeatureType::Polygon : ProjectedFeatureType::LineString);
 
         features.push_back(create(tags, projectedType, rings));
     }
 
     else if (type == "MultiPolygon") {
         ProjectedRings rings;
-
-        for (rapidjson::SizeType k = 0; k < rawCoords.Size(); ++k) {
+        auto size = rawCoords.Size();
+        for (rapidjson::SizeType k = 0; k < size; ++k) {
             const JSValue& rawRings = validArray(rawCoords[k]);
-
-            for (rapidjson::SizeType i = 0; i < rawRings.Size(); ++i) {
+            auto ringsSize = rawRings.Size();
+            for (rapidjson::SizeType i = 0; i < ringsSize; ++i) {
                 rings.push_back(readCoordinateRing(validArray(rawRings[i]), tolerance));
             }
         }
@@ -173,8 +171,8 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
     } else if (type == "GeometryCollection") {
         if (geom.HasMember("geometries")) {
             const JSValue& rawGeometries = validArray(geom["geometries"]);
-
-            for (rapidjson::SizeType i = 0; i < rawGeometries.Size(); ++i) {
+            auto size = rawGeometries.Size();
+            for (rapidjson::SizeType i = 0; i < size; ++i) {
                 convertGeometry(features, tags, rawGeometries[i], tolerance);
             }
         }
@@ -192,8 +190,8 @@ std::array<double, 2> Convert::readCoordinate(const JSValue& value) {
 
 ProjectedRing Convert::readCoordinateRing(const JSValue& rawRing, double tolerance) {
     std::vector<LonLat> points;
-
-    for (rapidjson::SizeType j = 0; j < rawRing.Size(); ++j) {
+    auto ringSize = rawRing.Size();
+    for (rapidjson::SizeType j = 0; j < ringSize; ++j) {
         points.push_back(LonLat(readCoordinate(rawRing[j])));
     }
     return projectRing(points, tolerance);
@@ -206,7 +204,7 @@ const JSValue& Convert::validArray(const JSValue& value, rapidjson::SizeType min
     return value;
 }
 
-ProjectedFeature Convert::create(Tags tags, ProjectedFeatureType type, ProjectedGeometry geometry) {
+ProjectedFeature Convert::create(Tags tags, ProjectedFeatureType type, ProjectedGeometry const& geometry) {
     ProjectedFeature feature(geometry, type, tags);
     calcBBox(feature);
 
@@ -241,8 +239,8 @@ ProjectedPoint Convert::projectPoint(const LonLat& p_) {
 void Convert::calcSize(ProjectedRing& ring) {
     double area = 0, dist = 0;
     ProjectedPoint a, b;
-
-    for (size_t i = 0; i < ring.points.size() - 1; ++i) {
+    auto size =  ring.points.size();
+    for (size_t i = 0; i < size - 1; ++i) {
         a = (b.isValid() ? b : ring.points[i]);
         b = ring.points[i + 1];
 
