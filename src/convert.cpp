@@ -126,14 +126,14 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
     const JSValue& rawCoords = validArray(geom["coordinates"]);
 
     if (type == "Point") {
-        ProjectedPoints points = { projectPoint(LonLat(readCoordinate(rawCoords))) };
+        ProjectedPoints points = { projectPoint(readCoordinate(rawCoords)) };
         features.push_back(create(tags, ProjectedFeatureType::Point, points));
 
     } else if (type == "MultiPoint") {
         ProjectedPoints points;
         auto size = rawCoords.Size();
         for (rapidjson::SizeType i = 0; i < size; ++i) {
-            points.push_back(projectPoint(LonLat(readCoordinate(rawCoords[i]))));
+            points.push_back(projectPoint(readCoordinate(rawCoords[i])));
         }
         features.push_back(create(tags, ProjectedFeatureType::Point, points));
 
@@ -182,19 +182,19 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
     }
 }
 
-std::array<double, 2> Convert::readCoordinate(const JSValue& value) {
-    validArray(value, 2);
-    return { { value[static_cast<rapidjson::SizeType>(0)].GetDouble(),
-               value[static_cast<rapidjson::SizeType>(1)].GetDouble() } };
+geometry::point<double> Convert::readCoordinate(const JSValue& value) {
+    return geometry::point<double>(value[0].GetDouble(), value[1].GetDouble());
+
 }
 
 ProjectedRing Convert::readCoordinateRing(const JSValue& rawRing, double tolerance) {
-    std::vector<LonLat> points;
-    auto ringSize = rawRing.Size();
-    for (rapidjson::SizeType j = 0; j < ringSize; ++j) {
-        points.push_back(LonLat(readCoordinate(rawRing[j])));
+    geometry::linear_ring<double> ring;
+    auto size = rawRing.Size();
+    ring.reserve(size);
+    for (rapidjson::SizeType j = 0; j < size; ++j) {
+        ring.push_back(readCoordinate(rawRing[j]));
     }
-    return projectRing(points, tolerance);
+    return projectRing(ring, tolerance);
 }
 
 const JSValue& Convert::validArray(const JSValue& value, rapidjson::SizeType minSize) {
@@ -211,27 +211,24 @@ ProjectedFeature Convert::create(Tags tags, ProjectedFeatureType type, Projected
     return feature;
 }
 
-ProjectedRing Convert::projectRing(const std::vector<LonLat>& lonlats, double tolerance) {
+ProjectedRing Convert::projectRing(geometry::linear_ring<double> const& points, double tolerance) {
 
     ProjectedRing ring;
-    for (auto lonlat : lonlats) {
-        ring.points.push_back(projectPoint(lonlat));
+    for (auto const& pt : points) {
+        ring.points.push_back(projectPoint(pt));
     }
-
     Simplify::simplify(ring.points, tolerance);
     calcSize(ring);
 
     return ring;
 }
 
-ProjectedPoint Convert::projectPoint(const LonLat& p_) {
+ProjectedPoint Convert::projectPoint(geometry::point<double> const& pt) {
 
-    double sine = std::sin(p_.lat * M_PI / 180);
-    double x = p_.lon / 360 + 0.5;
+    double sine = std::sin(pt.y * M_PI / 180);
+    double x = pt.x / 360 + 0.5;
     double y = 0.5 - 0.25 * std::log((1 + sine) / (1 - sine)) / M_PI;
-
     y = y < 0 ? 0 : y > 1 ? 1 : y;
-
     return ProjectedPoint(x, y, 0);
 }
 

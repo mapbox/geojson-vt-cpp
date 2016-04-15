@@ -13,17 +13,6 @@
 namespace mapbox {
 namespace geojsonvt {
 
-struct __attribute__((visibility("default"))) LonLat {
-    LonLat(std::array<double, 2> const& coordinates) : lon(coordinates[0]), lat(coordinates[1]) {
-    }
-
-    LonLat(double lon_, double lat_) : lon(lon_), lat(lat_) {
-    }
-
-    double lon;
-    double lat;
-};
-
 class __attribute__((visibility("default"))) ProjectedPoint {
 public:
     inline ProjectedPoint(double x_ = -1, double y_ = -1, double z_ = -1) : x(x_), y(y_), z(z_) {

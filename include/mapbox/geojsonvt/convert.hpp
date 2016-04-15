@@ -28,7 +28,7 @@ public:
     static ProjectedFeature
     create(Tags tags, ProjectedFeatureType type, ProjectedGeometry const& geometry);
 
-    static ProjectedRing projectRing(const std::vector<LonLat>& lonlats, double tolerance = 0);
+    static ProjectedRing projectRing(geometry::linear_ring<double> const& points, double tolerance = 0);
 
 private:
     static void convertFeature(std::vector<ProjectedFeature>& features,
@@ -40,7 +40,7 @@ private:
                                 const JSValue& geom,
                                 double tolerance);
 
-    static ProjectedPoint projectPoint(const LonLat& p_);
+    static ProjectedPoint projectPoint(geometry::point<double> const& pt);
 
     static void calcSize(ProjectedRing& ring);
 
@@ -49,7 +49,7 @@ private:
     static void
     calcRingBBox(ProjectedPoint& minPoint, ProjectedPoint& maxPoint, const ProjectedPoints& points);
 
-    static std::array<double, 2> readCoordinate(const JSValue& value);
+    static geometry::point<double> readCoordinate(const JSValue& value);
 
     static ProjectedRing readCoordinateRing(const JSValue& rawRing, double tolerance);
 
