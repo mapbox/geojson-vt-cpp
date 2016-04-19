@@ -3,7 +3,7 @@
 namespace mapbox {
 namespace geojsonvt {
 
-Tile Tile::createTile(std::vector<ProjectedFeature>& features,
+Tile Tile::createTile(std::vector<ProjectedFeature> const& features,
                       uint32_t z2,
                       uint32_t tx,
                       uint32_t ty,
@@ -15,12 +15,12 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
     tile.tx = tx;
     tile.ty = ty;
 
-    for (const auto& feature : features) {
-        tile.numFeatures++;
+    for (auto const& feature : features) {
+        ++tile.numFeatures;
         addFeature(tile, feature, tolerance, noSimplify);
 
-        const auto& min = feature.min;
-        const auto& max = feature.max;
+        auto const& min = feature.min;
+        auto const& max = feature.max;
 
         if (min.x < tile.min.x) {
             tile.min.x = min.x;
@@ -40,7 +40,7 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
 }
 
 void Tile::addFeature(Tile& tile,
-                      const ProjectedFeature& feature,
+                      ProjectedFeature const& feature,
                       double tolerance,
                       bool noSimplify) {
 
@@ -49,10 +49,10 @@ void Tile::addFeature(Tile& tile,
     const double sqTolerance = tolerance * tolerance;
 
     if (type == ProjectedFeatureType::Point) {
-        for (auto& p : feature.geometry.get<ProjectedPoints>()) {
+        for (auto const& p : feature.geometry.get<ProjectedPoints>()) {
             simplified.get<ProjectedPoints>().push_back(p);
-            tile.numPoints++;
-            tile.numSimplified++;
+            ++tile.numPoints;
+            ++tile.numSimplified;
         }
         if (simplified.get<ProjectedPoints>().empty()) {
             return;
@@ -62,7 +62,7 @@ void Tile::addFeature(Tile& tile,
         simplified.set<ProjectedRings>();
 
         // simplify and transform projected coordinates for tile geometry
-        for (auto& ring : feature.geometry.get<ProjectedRings>()) {
+        for (auto const& ring : feature.geometry.get<ProjectedRings>()) {
             // filter out tiny polylines & polygons
             if (!noSimplify &&
                 ((type == ProjectedFeatureType::LineString && ring.dist < tolerance) ||
@@ -74,13 +74,13 @@ void Tile::addFeature(Tile& tile,
 
             ProjectedRing simplifiedRing;
 
-            for (auto& p : ring.points) {
+            for (auto const& p : ring.points) {
                 // keep points with importance > tolerance
                 if (noSimplify || p.z > sqTolerance) {
                     simplifiedRing.points.push_back(p);
-                    tile.numSimplified++;
+                    ++tile.numSimplified;
                 }
-                tile.numPoints++;
+                ++tile.numPoints;
             }
 
             simplified.get<ProjectedRings>().push_back(simplifiedRing);
