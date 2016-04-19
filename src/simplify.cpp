@@ -43,9 +43,7 @@ void Simplify::simplify(ProjectedPoints& points, double tolerance) {
 
         } else {
             if (!stack.empty()) {
-                auto const& p = stack.back();
-                first = p.first;
-                last = p.second;
+                std::tie(first, last) = stack.back();
                 stack.pop_back();
             } else {
                 last = 0;
