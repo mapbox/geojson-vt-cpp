@@ -241,10 +241,9 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
 
         uint32_t z2 = 1 << z;
         const uint64_t id = toID(z, x, y);
-        Tile* tile = [&]() {
-            const auto it = tiles.find(id);
-            return it != tiles.end() ? &it->second : nullptr;
-        }();
+
+        const auto it = tiles.find(id);
+        Tile* tile = (it != tiles.end()) ? &it->second : nullptr;
         double tileTolerance =
             (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
