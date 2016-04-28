@@ -39,7 +39,7 @@ class __attribute__((visibility("default"))) GeoJSONVT {
 public:
     static const Tile emptyTile;
 
-    GeoJSONVT(std::vector<ProjectedFeature> features_, Options = Options());
+    GeoJSONVT(std::vector<ProjectedFeature> const& features_, Options = Options());
 
     static std::vector<ProjectedFeature> convertFeatures(const std::string& data,
                                                          Options options = Options());

@@ -85,18 +85,18 @@ public:
 
 struct FeatureStackItem {
     std::vector<ProjectedFeature> features;
-    uint8_t z;
+    uint32_t z;
     uint32_t x;
     uint32_t y;
 
     template <typename T>
-    FeatureStackItem(T && features_, uint8_t z_, uint32_t x_, uint32_t y_)
+    FeatureStackItem(T && features_, uint32_t z_, uint32_t x_, uint32_t y_)
         : features(std::forward<T>(features_)), z(z_), x(x_), y(y_) {
     }
 };
 } // namespace
 
-GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
+GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> const& features_, Options options_)
     : options(std::move(options_)) {
 
 #ifdef DEBUG
@@ -104,16 +104,16 @@ GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
     Timer timer;
 #endif
 
-    features_ = Wrap::wrap(features_, double(options.buffer) / options.extent, intersectX);
+    auto features = Wrap::wrap(features_, double(options.buffer) / options.extent, intersectX);
 
     // start slicing from the top tile down
-    if (!features_.empty()) {
-        splitTile(features_, 0, 0, 0);
+    if (!features.empty()) {
+        splitTile(features, 0, 0, 0);
     }
 
 #ifdef DEBUG
     timer.report("generate tiles");
-    if (!features_.empty()) {
+    if (!features.empty()) {
         printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
     }
     printf("tiles generated: %i {\n", static_cast<int>(total));
