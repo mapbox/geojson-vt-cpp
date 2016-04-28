@@ -252,11 +252,8 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
 #ifdef DEBUG
             Timer timer;
 #endif
-
-            tiles[id] = std::move(
-                Tile::createTile(features, z2, x, y, tileTolerance, (z == options.maxZoom)));
+            tiles[id] = Tile::createTile(features, z2, x, y, tileTolerance, (z == options.maxZoom));
             tile = &tiles[id];
-
 #ifdef DEBUG
             printf("tile z%i-%i-%i (features: %i, points: %i, simplified: %i)\n", z, x, y,
                    tile->numFeatures, tile->numPoints, tile->numSimplified);
