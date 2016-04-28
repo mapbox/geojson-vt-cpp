@@ -89,8 +89,8 @@ struct FeatureStackItem {
     uint32_t x;
     uint32_t y;
 
-    FeatureStackItem(std::vector<ProjectedFeature> features_, uint8_t z_, uint32_t x_, uint32_t y_)
-        : features(std::move(features_)), z(z_), x(x_), y(y_) {
+    FeatureStackItem(std::vector<ProjectedFeature> const& features_, uint8_t z_, uint32_t x_, uint32_t y_)
+        : features(features_), z(z_), x(x_), y(y_) {
     }
 };
 } // namespace
