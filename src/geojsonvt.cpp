@@ -219,7 +219,7 @@ std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data
     return features;
 }
 
-uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
+uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> const& features_,
                              uint8_t z_,
                              uint32_t x_,
                              uint32_t y_,
@@ -232,9 +232,9 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
     uint8_t solidZ = 0u;
 
     while (!stack.empty()) {
-        FeatureStackItem set = stack.top();
-        stack.pop();
+        FeatureStackItem const& set = stack.top();
         std::vector<ProjectedFeature> features = std::move(set.features);
+        stack.pop();
         uint8_t z = set.z;
         uint32_t x = set.x;
         uint32_t y = set.y;

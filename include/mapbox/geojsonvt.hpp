@@ -54,7 +54,7 @@ public:
     const Options options;
 
 private:
-    uint8_t splitTile(std::vector<ProjectedFeature> features_,
+    uint8_t splitTile(std::vector<ProjectedFeature> const& features_,
                       uint8_t z_,
                       uint32_t x_,
                       uint32_t y_,
