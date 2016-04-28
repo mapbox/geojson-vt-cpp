@@ -91,7 +91,7 @@ void Tile::addFeature(Tile& tile,
         }
     }
 
-    tile.features.push_back(TileFeature(simplified, type, feature.tags));
+    tile.features.emplace_back(simplified, type, feature.tags);
 }
 
 } // namespace geojsonvt
