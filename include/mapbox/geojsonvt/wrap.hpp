@@ -9,7 +9,7 @@ namespace geojsonvt {
 
 class __attribute__((visibility("default"))) Wrap {
 public:
-    static std::vector<ProjectedFeature> wrap(std::vector<ProjectedFeature>& features,
+    static std::vector<ProjectedFeature> wrap(std::vector<ProjectedFeature> const& features,
                                               double buffer,
                                               Clip::IntersectCallback intersectX);
 
