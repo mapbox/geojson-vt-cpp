@@ -29,7 +29,9 @@ const Tile& Transform::transformTile(Tile& tile, uint16_t extent) {
 
         if (type == TileFeatureType::Point) {
             auto& tileGeom = feature.tileGeometry.get<TilePoints>();
-            for (const auto& pt : geom.get<ProjectedPoints>()) {
+            auto const& projected_points = geom.get<ProjectedPoints>();
+            tileGeom.reserve(projected_points.size());
+            for (const auto& pt : projected_points) {
                 tileGeom.push_back(transformPoint(pt, extent, z2, tx, ty));
             }
 
@@ -38,6 +40,7 @@ const Tile& Transform::transformTile(Tile& tile, uint16_t extent) {
             auto& tileGeom = feature.tileGeometry.get<TileRings>();
             for (const auto& r : geom.get<ProjectedRings>()) {
                 TilePoints ring;
+                ring.reserve(r.points.size());
                 for (const auto& p : r.points) {
                     ring.push_back(transformPoint(p, extent, z2, tx, ty));
                 }
