@@ -40,6 +40,7 @@
       'variables': {
         'cflags_cc': [
           '<@(variant_cflags)',
+          '<@(geometry_cflags)',
           '<@(rapidjson_cflags)',
         ],
         'ldflags': [],
@@ -118,6 +119,7 @@
             'cflags_cc': [
               '<@(rapidjson_cflags)',
               '<@(variant_cflags)',
+              '<@(geometry_cflags)',
               '<@(gtest_cflags)',
             ],
             'ldflags': [
@@ -164,6 +166,7 @@
           'variables': {
             'cflags_cc': [
               '<@(variant_cflags)',
+              '<@(geometry_cflags)',
               '<@(glfw_cflags)',
             ],
             'ldflags': [
