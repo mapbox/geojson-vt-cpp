@@ -9,25 +9,25 @@ matrix:
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test' ]
-          packages: [ 'gdb', 'g++-4.9', 'gcc-4.9', 'libllvm3.4' ]
+          packages: [ 'g++-4.9', 'gcc-4.9' ]
     - os: linux
       env: CXX=g++-4.9 BUILDTYPE=Release
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test' ]
-          packages: [ 'gdb', 'g++-4.9', 'gcc-4.9', 'libllvm3.4' ]
+          packages: [ 'g++-4.9', 'gcc-4.9' ]
     - os: linux
-      env: CXX=clang++-3.5 BUILDTYPE=Debug
+      env: CXX=clang++-3.5 BUILDTYPE=Debug ASAN_OPTIONS=detect_leaks=1 CXXFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address"
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5' ]
-          packages: [ 'gdb', 'clang-3.5', 'libstdc++-4.9-dev', 'libstdc++6', 'libllvm3.4' ]
+          packages: [ 'clang-3.5', 'llvm-3.5-dev' ]
     - os: linux
       env: CXX=clang++-3.5 BUILDTYPE=Release
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5' ]
-          packages: [ 'gdb', 'clang-3.5', 'libstdc++-4.9-dev', 'libstdc++6', 'libllvm3.4' ]
+          packages: [ 'clang-3.5' ]
 
 install:
 - ./configure
