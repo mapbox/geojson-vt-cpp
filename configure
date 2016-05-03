@@ -47,6 +47,10 @@ RAPIDJSON_VERSION=1.0.2
 mason install rapidjson ${RAPIDJSON_VERSION}
 CONFIG+="    'rapidjson_cflags%': $(quote_flags $(mason cflags rapidjson ${RAPIDJSON_VERSION})),"$LN
 
+GEOMETRY_VERSION=0.1.0
+mason install geometry ${GEOMETRY_VERSION}
+CONFIG+="    'geometry_cflags%': $(quote_flags $(mason cflags geometry ${GEOMETRY_VERSION})),"$LN
+
 VARIANT_VERSION=1.0
 mason install variant ${VARIANT_VERSION}
 CONFIG+="    'variant_cflags%': $(quote_flags $(mason cflags variant ${VARIANT_VERSION})),"$LN
