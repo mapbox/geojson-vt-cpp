@@ -118,7 +118,7 @@
           'cflags_cc': [ '<@(cflags_cc)' ]
         }]
       ]
-    },
+    }
   ],
   'conditions': [
     ['gtest', {

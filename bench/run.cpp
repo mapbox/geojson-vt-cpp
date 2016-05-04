@@ -1,4 +1,5 @@
 #include <mapbox/geojsonvt.hpp>
+#include <memory>
 #include "util.hpp"
 
 using namespace mapbox::geojsonvt;
