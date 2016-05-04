@@ -178,7 +178,9 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     // one of the parent tiles was a solid clipped square
     if (solidZ != 0u) {
         const auto m = 1 << (z - solidZ);
-        id = toID(solidZ, std::floor(x / m), std::floor(y / m));
+        id = toID(solidZ,
+                 static_cast<uint32_t>(std::round(std::floor(x / static_cast<double>(m)))),
+                 static_cast<uint32_t>(std::round(std::floor(y / static_cast<double>(m)))));
     }
 
     if (tiles.find(id) == tiles.end()) {
@@ -286,7 +288,8 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> const& features_,
 
             // stop tiling if it's not an ancestor of the target tile
             const auto m = 1 << (cz - z);
-            if (x != std::floor(cx / m) || y != std::floor(cy / m)) {
+            if (x != static_cast<uint32_t>(std::floor(cx / static_cast<double>(m))) ||
+                y != static_cast<uint32_t>(std::floor(cy / static_cast<double>(m)))) {
                 continue;
             }
         }
