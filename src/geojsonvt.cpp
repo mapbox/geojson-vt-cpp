@@ -15,8 +15,6 @@
 namespace mapbox {
 namespace geojsonvt {
 
-#pragma mark - GeoJSONVT
-
 const Tile GeoJSONVT::emptyTile{};
 
 namespace {
