@@ -85,12 +85,12 @@ public:
 
 struct FeatureStackItem {
     std::vector<ProjectedFeature> features;
-    uint32_t z;
+    uint8_t z;
     uint32_t x;
     uint32_t y;
 
     template <typename T>
-    FeatureStackItem(T && features_, uint32_t z_, uint32_t x_, uint32_t y_)
+    FeatureStackItem(T && features_, uint8_t z_, uint32_t x_, uint32_t y_)
         : features(std::forward<T>(features_)), z(z_), x(x_), y(y_) {
     }
 };
