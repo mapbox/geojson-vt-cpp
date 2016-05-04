@@ -19,13 +19,13 @@ matrix:
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5' ]
-          packages: [ 'clang-3.5', 'llvm-3.5-dev' ]
+          packages: [ 'clang-3.5', 'llvm-3.5-dev', 'libstdc++6' ]
     - os: linux
       env: CXX=clang++-3.5 BUILDTYPE=Release
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5' ]
-          packages: [ 'clang-3.5' ]
+          packages: [ 'clang-3.5', 'libstdc++6' ]
     - os: osx
       osx_image: xcode7.3
       env: BUILDTYPE=Release
@@ -41,8 +41,8 @@ install:
 - ./configure
 
 script:
-- make test -j2
-- make bench
+- make test -j2 V=1
+- make bench V=1
 
 notifications:
   slack:
