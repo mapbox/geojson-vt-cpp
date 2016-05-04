@@ -27,6 +27,14 @@ lib: config.gypi
 	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make$(GYP_FLAVOR_SUFFIX)
 	make -C build geojsonvt
 
+build/${BUILDTYPE}/bench: lib
+	make -C build bench
+
+.PHONY: bench
+bench: build/${BUILDTYPE}/bench
+	build/${BUILDTYPE}/bench
+
+
 .PHONY: debug
 debug: config.gypi
 	deps/run_gyp geojsonvt.gyp -Iconfig.gypi --depth=. -Goutput_dir=. --generator-output=./build -f make$(GYP_FLAVOR_SUFFIX)
