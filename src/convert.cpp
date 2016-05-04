@@ -204,7 +204,7 @@ const JSValue& Convert::validArray(const JSValue& value, rapidjson::SizeType min
     return value;
 }
 
-ProjectedFeature Convert::create(Tags tags, ProjectedFeatureType type, ProjectedGeometry const& geometry) {
+ProjectedFeature Convert::create(Tags const& tags, ProjectedFeatureType type, ProjectedGeometry const& geometry) {
     ProjectedFeature feature(geometry, type, tags);
     calcBBox(feature);
 

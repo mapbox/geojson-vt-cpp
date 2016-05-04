@@ -35,7 +35,7 @@ public:
     static std::vector<ProjectedFeature> convert(const JSValue& data, double tolerance);
 
     static ProjectedFeature
-    create(Tags tags, ProjectedFeatureType type, ProjectedGeometry const& geometry);
+    create(const Tags& tags, ProjectedFeatureType type, ProjectedGeometry const& geometry);
 
     static ProjectedRing projectRing(geometry::linear_ring<double> const& points, double tolerance = 0);
 
