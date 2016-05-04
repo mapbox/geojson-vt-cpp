@@ -4,6 +4,10 @@
 #include <mapbox/geojsonvt/transform.hpp>
 #include <mapbox/geojsonvt/wrap.hpp>
 
+#ifdef DEBUG_TIMER
+#include "../bench/util.hpp"
+#endif
+
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -69,20 +73,6 @@ bool isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
     return true;
 }
 
-class Timer {
-    using Clock = std::chrono::steady_clock;
-
-    Clock::time_point start = Clock::now();
-
-public:
-    void report(const std::string& name) {
-        Clock::duration duration = Clock::now() - start;
-        auto ms = std::chrono::duration_cast<std::chrono::microseconds>(duration);
-        printf("%s: %.2fms\n", name.c_str(), double(ms.count()) / 1000);
-        start += duration;
-    }
-};
-
 struct FeatureStackItem {
     std::vector<ProjectedFeature> features;
     uint8_t z;
@@ -98,7 +88,7 @@ struct FeatureStackItem {
 GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
     : options(std::move(options_)) {
 
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
     printf("index: maxZoom: %d, maxPoints: %d\n", options.indexMaxZoom, options.indexMaxPoints);
     Timer timer;
 #endif
@@ -110,7 +100,7 @@ GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
         splitTile(features_, 0, 0, 0);
     }
 
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
     timer.report("generate tiles");
     if (!features_.empty()) {
         printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
@@ -132,7 +122,7 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
         return Transform::transformTile(tiles.find(id)->second, options.extent);
     }
 
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
     printf("drilling down to z%i-%i-%i\n", z, x, y);
 #endif
 
@@ -155,7 +145,7 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
         return emptyTile;
     }
 
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
     printf("found parent tile z%i-%i-%i\n", z0, x0, y0);
 #endif
 
@@ -166,11 +156,11 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
         return Transform::transformTile(*parent, options.extent);
     }
 
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
     Timer timer;
 #endif
     uint8_t solidZ = splitTile(parent->source, z0, x0, y0, z, x, y);
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
     timer.report("drilling down");
 #endif
 
@@ -196,7 +186,7 @@ uint64_t GeoJSONVT::getTotal() const {
 }
 
 std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data, Options options) {
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
     Timer timer;
 #endif
 
@@ -212,7 +202,7 @@ std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data
     std::vector<ProjectedFeature> features =
         Convert::convert(deserializedData, options.tolerance / (z2 * options.extent));
 
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
     timer.report("preprocess data");
 #endif
 
@@ -249,7 +239,7 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
         if (tile == nullptr) {
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
             Timer timer;
 #endif
 
@@ -257,7 +247,7 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
                 Tile::createTile(features, z2, x, y, tileTolerance, (z == options.maxZoom)));
             tile = &tiles[id];
 
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
             printf("tile z%i-%i-%i (features: %i, points: %i, simplified: %i)\n", z, x, y,
                    tile->numFeatures, tile->numPoints, tile->numSimplified);
             timer.report("creation");
@@ -304,7 +294,7 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
         // if we slice further down, no need to keep source geometry
         tile->source = {};
 
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
         Timer timer;
 #endif
 
@@ -333,7 +323,7 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
             br = Clip::clip(right, z2, y + k2, y + k4, 1, intersectY, tile->min.y, tile->max.y);
         }
 
-#ifdef DEBUG
+#ifdef DEBUG_TIMER
         timer.report("clipping");
 #endif
 
