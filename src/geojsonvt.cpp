@@ -96,8 +96,8 @@ struct FeatureStackItem {
 };
 } // namespace
 
-GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> const& features_, Options options_)
-    : options(std::move(options_)) {
+GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> const& features_, const Options & options_)
+    : options(options_) {
 
 #ifdef DEBUG
     printf("index: maxZoom: %d, maxPoints: %d\n", options.indexMaxZoom, options.indexMaxPoints);
@@ -198,7 +198,7 @@ uint64_t GeoJSONVT::getTotal() const {
     return total;
 }
 
-std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data, Options options) {
+std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data, const Options & options) {
 #ifdef DEBUG
     Timer timer;
 #endif
