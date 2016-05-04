@@ -34,7 +34,7 @@ install:
 
 script:
 - make test -j2
-- ./build/${BUILDTYPE}/test
+- make bench
 
 notifications:
   slack:

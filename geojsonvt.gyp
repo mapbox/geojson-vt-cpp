@@ -87,6 +87,36 @@
         { 'files': [ 'include/mapbox/geojsonvt.hpp' ], 'destination': '<(install_prefix)/include/mapbox' },
       ],
     },
+    { 'target_name': 'bench',
+      'product_name': 'bench',
+      'type': 'executable',
+      'dependencies': [
+        'geojsonvt',
+      ],
+      'include_dirs': [
+        'src',
+      ],
+      'sources': [
+        'bench/run.cpp',
+      ],
+
+      'variables': {
+        'cflags_cc': [
+          '<@(rapidjson_cflags)',
+          '<@(variant_cflags)'
+        ]
+      },
+
+      'conditions': [
+        ['OS == "mac"', {
+          'xcode_settings': {
+            'OTHER_CPLUSPLUSFLAGS': [ '<@(cflags_cc)' ]
+          }
+        }, {
+          'cflags_cc': [ '<@(cflags_cc)' ]
+        }]
+      ]
+    }
   ],
 
   'conditions': [
