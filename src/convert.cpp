@@ -65,7 +65,8 @@ std::vector<ProjectedFeature> Convert::convert(const JSValue& data, double toler
         }
     } else {
         // single geometry or a geometry collection
-        convertGeometry(features, {}, data, tolerance);
+        Tags tags;
+        convertGeometry(features, tags, data, tolerance);
     }
 
     return features;
