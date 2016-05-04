@@ -37,7 +37,7 @@ ProjectedPoint intersectY(const ProjectedPoint& a, const ProjectedPoint& b, doub
 
 // checks whether a tile is a whole-area fill after clipping; if it is, there's no sense slicing it
 // further
-bool isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
+bool isClippedSquare(Tile& tile, const uint16_t extent, const uint16_t buffer) {
     const auto& features = tile.source;
     if (features.size() != 1) {
         return false;
@@ -60,8 +60,8 @@ bool isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
 
     for (const auto& pt : ring.points) {
         auto p = Transform::transformPoint(pt, extent, tile.z2, tile.tx, tile.ty);
-        if ((p.x != -buffer && p.x != extent + buffer) ||
-            (p.y != -buffer && p.y != extent + buffer)) {
+        if ((p.x != -static_cast<int>(buffer) && p.x != extent + buffer) ||
+            (p.y != -static_cast<int>(buffer) && p.y != extent + buffer)) {
             return false;
         }
     }
