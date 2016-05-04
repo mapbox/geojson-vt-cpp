@@ -6,7 +6,7 @@
     'default_configuration': 'Release',
     'configurations': {
       'Debug': {
-        'cflags_cc': [ '-g', '-O0', '-std=c++1y', '-fno-omit-frame-pointer','-fwrapv', '-fstack-protector-all', '-fno-common' ],
+        'cflags_cc': [ '-g', '-O0', '-std=c++14', '-fno-omit-frame-pointer','-fwrapv', '-fstack-protector-all', '-fno-common' ],
         'defines': [ 'DEBUG' ],
         'xcode_settings': {
           'GCC_OPTIMIZATION_LEVEL': '0',
@@ -14,11 +14,11 @@
           'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
           'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
           'DEAD_CODE_STRIPPING': 'NO',
-          'OTHER_CPLUSPLUSFLAGS': [ '-std=c++1y', '-fno-omit-frame-pointer','-fwrapv', '-fstack-protector-all', '-fno-common'],
+          'OTHER_CPLUSPLUSFLAGS': [ '-std=c++14', '-fno-omit-frame-pointer','-fwrapv', '-fstack-protector-all', '-fno-common'],
         }
       },
       'Release': {
-        'cflags_cc': [ '-g', '-O3', '-std=c++1y', '-fvisibility=hidden' ],
+        'cflags_cc': [ '-O3', '-std=c++14', '-fvisibility=hidden' ],
         'defines': [ 'NDEBUG' ],
         'xcode_settings': {
           'GCC_OPTIMIZATION_LEVEL': '3',
@@ -26,7 +26,7 @@
           'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES',
           'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',
           'DEAD_CODE_STRIPPING': 'NO',
-          'OTHER_CPLUSPLUSFLAGS': [ '-std=c++1y' ],
+          'OTHER_CPLUSPLUSFLAGS': [ '-std=c++14' ],
         }
       },
     },
