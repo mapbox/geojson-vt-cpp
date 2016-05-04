@@ -1,10 +1,19 @@
-#include <gtest/gtest.h>
 #include "util.hpp"
 #include <mapbox/variant_io.hpp>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wpadded"
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#include <gtest/gtest.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/error/en.h>
+#pragma GCC diagnostic pop
 
 #include <fstream>
 #include <sstream>
