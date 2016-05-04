@@ -8,7 +8,7 @@ namespace geojsonvt {
 
 class __attribute__((visibility("default"))) Tile {
 public:
-    static Tile createTile(std::vector<ProjectedFeature>& features,
+    static Tile createTile(std::vector<ProjectedFeature> const& features,
                            uint32_t z2,
                            uint32_t tx,
                            uint32_t ty,

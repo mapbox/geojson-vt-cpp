@@ -3,7 +3,7 @@
 namespace mapbox {
 namespace geojsonvt {
 
-std::vector<ProjectedFeature> Wrap::wrap(std::vector<ProjectedFeature>& features,
+std::vector<ProjectedFeature> Wrap::wrap(std::vector<ProjectedFeature> const& features,
                                          double buffer,
                                          Clip::IntersectCallback intersectX) {
     // left world copy

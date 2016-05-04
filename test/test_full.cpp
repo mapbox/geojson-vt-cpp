@@ -27,7 +27,7 @@ genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 1000
 
     for (const auto& pair : index.getAllTiles()) {
         auto& tile = pair.second;
-        const int8_t z = std::log(tile.z2) / M_LN2;
+        const uint8_t z = std::round(std::log(tile.z2) / M_LN2);
         const std::string key = std::string("z") + std::to_string(z) + "-" +
                                 std::to_string(tile.tx) + "-" + std::to_string(tile.ty);
 

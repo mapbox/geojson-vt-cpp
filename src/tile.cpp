@@ -3,7 +3,7 @@
 namespace mapbox {
 namespace geojsonvt {
 
-Tile Tile::createTile(std::vector<ProjectedFeature>& features,
+Tile Tile::createTile(std::vector<ProjectedFeature> const& features,
                       uint32_t z2,
                       uint32_t tx,
                       uint32_t ty,
@@ -15,12 +15,12 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
     tile.tx = tx;
     tile.ty = ty;
 
-    for (const auto& feature : features) {
-        tile.numFeatures++;
+    for (auto const& feature : features) {
+        ++tile.numFeatures;
         addFeature(tile, feature, tolerance, noSimplify);
 
-        const auto& min = feature.min;
-        const auto& max = feature.max;
+        auto const& min = feature.min;
+        auto const& max = feature.max;
 
         if (min.x < tile.min.x) {
             tile.min.x = min.x;
@@ -40,58 +40,62 @@ Tile Tile::createTile(std::vector<ProjectedFeature>& features,
 }
 
 void Tile::addFeature(Tile& tile,
-                      const ProjectedFeature& feature,
+                      ProjectedFeature const& feature,
                       double tolerance,
                       bool noSimplify) {
 
     const ProjectedFeatureType type = feature.type;
-    ProjectedGeometry simplified;
     const double sqTolerance = tolerance * tolerance;
 
     if (type == ProjectedFeatureType::Point) {
-        for (auto& p : feature.geometry.get<ProjectedPoints>()) {
-            simplified.get<ProjectedPoints>().push_back(p);
-            tile.numPoints++;
-            tile.numSimplified++;
+        if (feature.geometry.is<ProjectedPoints>()) {
+            auto const& points = feature.geometry.get<ProjectedPoints>();
+            if (!points.empty()) {
+                auto pt_size = points.size();
+                tile.numPoints += pt_size;
+                tile.numSimplified += pt_size;
+                tile.features.emplace_back(points, type, feature.tags);
+            }
         }
-        if (simplified.get<ProjectedPoints>().empty()) {
-            return;
-        }
-
     } else {
-        simplified.set<ProjectedRings>();
-
-        // simplify and transform projected coordinates for tile geometry
-        for (auto& ring : feature.geometry.get<ProjectedRings>()) {
-            // filter out tiny polylines & polygons
-            if (!noSimplify &&
-                ((type == ProjectedFeatureType::LineString && ring.dist < tolerance) ||
-                 (type == ProjectedFeatureType::Polygon && ring.area < sqTolerance))) {
-
-                tile.numPoints += ring.points.size();
-                continue;
-            }
-
-            ProjectedRing simplifiedRing;
-
-            for (auto& p : ring.points) {
-                // keep points with importance > tolerance
-                if (noSimplify || p.z > sqTolerance) {
-                    simplifiedRing.points.push_back(p);
-                    tile.numSimplified++;
+        if (feature.geometry.is<ProjectedRings>()) {
+            auto const& rings = feature.geometry.get<ProjectedRings>();
+            if (noSimplify) {
+                if (!rings.empty()) {
+                    auto rings_size = rings.size();
+                    tile.numPoints += rings_size;
+                    tile.numSimplified += rings_size;
+                    tile.features.emplace_back(rings, type, feature.tags);
                 }
-                tile.numPoints++;
+            } else {
+                ProjectedRings p_rings;
+                // simplify and transform projected coordinates for tile geometry
+                for (auto const& ring : rings) {
+                    // filter out tiny polylines & polygons
+                    if ((type == ProjectedFeatureType::LineString && ring.dist < tolerance) ||
+                         (type == ProjectedFeatureType::Polygon && ring.area < sqTolerance)) {
+                        tile.numPoints += ring.points.size();
+                        continue;
+                    }
+
+                    ProjectedRing simplifiedRing;
+                    for (auto const& p : ring.points) {
+                        // keep points with importance > tolerance
+                        if (p.z > sqTolerance) {
+                            simplifiedRing.points.emplace_back(p);
+                            ++tile.numSimplified;
+                        }
+                        ++tile.numPoints;
+                    }
+                    p_rings.emplace_back(std::move(simplifiedRing));
+                }
+
+                if (!p_rings.empty()) {
+                    tile.features.emplace_back(std::move(p_rings), type, feature.tags);
+                }
             }
-
-            simplified.get<ProjectedRings>().push_back(simplifiedRing);
-        }
-
-        if (simplified.get<ProjectedRings>().empty()) {
-            return;
         }
     }
-
-    tile.features.push_back(TileFeature(simplified, type, feature.tags));
 }
 
 } // namespace geojsonvt

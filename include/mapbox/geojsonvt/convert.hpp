@@ -3,7 +3,16 @@
 
 #include "types.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wpadded"
+#pragma GCC diagnostic ignored "-Wfloat-equal"
 #include <rapidjson/document.h>
+#pragma GCC diagnostic pop
 
 #include <vector>
 
@@ -26,9 +35,9 @@ public:
     static std::vector<ProjectedFeature> convert(const JSValue& data, double tolerance);
 
     static ProjectedFeature
-    create(Tags tags, ProjectedFeatureType type, ProjectedGeometry const& geometry);
+    create(const Tags& tags, ProjectedFeatureType type, ProjectedGeometry const& geometry);
 
-    static ProjectedRing projectRing(const std::vector<LonLat>& lonlats, double tolerance = 0);
+    static ProjectedRing projectRing(geometry::linear_ring<double> const& points, double tolerance = 0);
 
 private:
     static void convertFeature(std::vector<ProjectedFeature>& features,
@@ -40,7 +49,7 @@ private:
                                 const JSValue& geom,
                                 double tolerance);
 
-    static ProjectedPoint projectPoint(const LonLat& p_);
+    static ProjectedPoint projectPoint(geometry::point<double> const& pt);
 
     static void calcSize(ProjectedRing& ring);
 
@@ -49,7 +58,7 @@ private:
     static void
     calcRingBBox(ProjectedPoint& minPoint, ProjectedPoint& maxPoint, const ProjectedPoints& points);
 
-    static std::array<double, 2> readCoordinate(const JSValue& value);
+    static geometry::point<double> readCoordinate(const JSValue& value);
 
     static ProjectedRing readCoordinateRing(const JSValue& rawRing, double tolerance);
 

@@ -19,8 +19,6 @@
 namespace mapbox {
 namespace geojsonvt {
 
-#pragma mark - GeoJSONVT
-
 const Tile GeoJSONVT::emptyTile{};
 
 namespace {
@@ -41,7 +39,7 @@ ProjectedPoint intersectY(const ProjectedPoint& a, const ProjectedPoint& b, doub
 
 // checks whether a tile is a whole-area fill after clipping; if it is, there's no sense slicing it
 // further
-bool isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
+bool isClippedSquare(Tile& tile, const uint16_t extent, const uint16_t buffer) {
     const auto& features = tile.source;
     if (features.size() != 1) {
         return false;
@@ -64,8 +62,8 @@ bool isClippedSquare(Tile& tile, const uint16_t extent, const uint8_t buffer) {
 
     for (const auto& pt : ring.points) {
         auto p = Transform::transformPoint(pt, extent, tile.z2, tile.tx, tile.ty);
-        if ((p.x != -buffer && p.x != extent + buffer) ||
-            (p.y != -buffer && p.y != extent + buffer)) {
+        if ((p.x != -static_cast<int>(buffer) && p.x != extent + buffer) ||
+            (p.y != -static_cast<int>(buffer) && p.y != extent + buffer)) {
             return false;
         }
     }
@@ -79,30 +77,31 @@ struct FeatureStackItem {
     uint32_t x;
     uint32_t y;
 
-    FeatureStackItem(std::vector<ProjectedFeature> features_, uint8_t z_, uint32_t x_, uint32_t y_)
-        : features(std::move(features_)), z(z_), x(x_), y(y_) {
+    template <typename T>
+    FeatureStackItem(T && features_, uint8_t z_, uint32_t x_, uint32_t y_)
+        : features(std::forward<T>(features_)), z(z_), x(x_), y(y_) {
     }
 };
 } // namespace
 
-GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> features_, Options options_)
-    : options(std::move(options_)) {
+GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> const& features_, const Options & options_)
+    : options(options_) {
 
 #ifdef DEBUG_TIMER
     printf("index: maxZoom: %d, maxPoints: %d\n", options.indexMaxZoom, options.indexMaxPoints);
     Timer timer;
 #endif
 
-    features_ = Wrap::wrap(features_, double(options.buffer) / options.extent, intersectX);
+    auto features = Wrap::wrap(features_, double(options.buffer) / options.extent, intersectX);
 
     // start slicing from the top tile down
-    if (!features_.empty()) {
-        splitTile(features_, 0, 0, 0);
+    if (!features.empty()) {
+        splitTile(features, 0, 0, 0);
     }
 
 #ifdef DEBUG_TIMER
     timer.report("generate tiles");
-    if (!features_.empty()) {
+    if (!features.empty()) {
         printf("features: %i, points: %i\n", tiles[0].numFeatures, tiles[0].numPoints);
     }
     printf("tiles generated: %i {\n", static_cast<int>(total));
@@ -167,7 +166,9 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     // one of the parent tiles was a solid clipped square
     if (solidZ != 0u) {
         const auto m = 1 << (z - solidZ);
-        id = toID(solidZ, std::floor(x / m), std::floor(y / m));
+        id = toID(solidZ,
+                 static_cast<uint32_t>(std::round(std::floor(x / static_cast<double>(m)))),
+                 static_cast<uint32_t>(std::round(std::floor(y / static_cast<double>(m)))));
     }
 
     if (tiles.find(id) == tiles.end()) {
@@ -185,7 +186,7 @@ uint64_t GeoJSONVT::getTotal() const {
     return total;
 }
 
-std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data, Options options) {
+std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data, const Options & options) {
 #ifdef DEBUG_TIMER
     Timer timer;
 #endif
@@ -209,7 +210,7 @@ std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data
     return features;
 }
 
-uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
+uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> const& features_,
                              uint8_t z_,
                              uint32_t x_,
                              uint32_t y_,
@@ -222,19 +223,18 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
     uint8_t solidZ = 0u;
 
     while (!stack.empty()) {
-        FeatureStackItem set = stack.top();
-        stack.pop();
+        FeatureStackItem const& set = stack.top();
         std::vector<ProjectedFeature> features = std::move(set.features);
+        stack.pop();
         uint8_t z = set.z;
         uint32_t x = set.x;
         uint32_t y = set.y;
 
         uint32_t z2 = 1 << z;
         const uint64_t id = toID(z, x, y);
-        Tile* tile = [&]() {
-            const auto it = tiles.find(id);
-            return it != tiles.end() ? &it->second : nullptr;
-        }();
+
+        const auto it = tiles.find(id);
+        Tile* tile = (it != tiles.end()) ? &it->second : nullptr;
         double tileTolerance =
             (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
@@ -242,11 +242,8 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
 #ifdef DEBUG_TIMER
             Timer timer;
 #endif
-
-            tiles[id] = std::move(
-                Tile::createTile(features, z2, x, y, tileTolerance, (z == options.maxZoom)));
+            tiles[id] = Tile::createTile(features, z2, x, y, tileTolerance, (z == options.maxZoom));
             tile = &tiles[id];
-
 #ifdef DEBUG_TIMER
             printf("tile z%i-%i-%i (features: %i, points: %i, simplified: %i)\n", z, x, y,
                    tile->numFeatures, tile->numPoints, tile->numSimplified);
@@ -279,7 +276,8 @@ uint8_t GeoJSONVT::splitTile(std::vector<ProjectedFeature> features_,
 
             // stop tiling if it's not an ancestor of the target tile
             const auto m = 1 << (cz - z);
-            if (x != std::floor(cx / m) || y != std::floor(cy / m)) {
+            if (x != static_cast<uint32_t>(std::floor(cx / static_cast<double>(m))) ||
+                y != static_cast<uint32_t>(std::floor(cy / static_cast<double>(m)))) {
                 continue;
             }
         }

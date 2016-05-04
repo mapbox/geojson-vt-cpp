@@ -1,6 +1,6 @@
 #include <mapbox/geojsonvt/simplify.hpp>
 
-#include <stack>
+#include <deque>
 
 namespace mapbox {
 namespace geojsonvt {
@@ -12,7 +12,7 @@ void Simplify::simplify(ProjectedPoints& points, double tolerance) {
     const size_t len = points.size();
     size_t first = 0;
     size_t last = len - 1;
-    std::stack<size_t> stack;
+    std::deque<std::pair<size_t,size_t>> stack;
     double maxSqDist = 0;
     double sqDist = 0;
     size_t index = 0;
@@ -38,16 +38,13 @@ void Simplify::simplify(ProjectedPoints& points, double tolerance) {
         if (maxSqDist > sqTolerance) {
             // save the point importance in squared pixels as a z coordinate
             points[index].z = maxSqDist;
-            stack.push(first);
-            stack.push(index);
+            stack.emplace_back(first, index);
             first = index;
 
         } else {
             if (!stack.empty()) {
-                last = stack.top();
-                stack.pop();
-                first = stack.top();
-                stack.pop();
+                std::tie(first, last) = stack.back();
+                stack.pop_back();
             } else {
                 last = 0;
                 first = 0;
