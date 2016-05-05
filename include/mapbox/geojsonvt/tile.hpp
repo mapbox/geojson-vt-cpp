@@ -19,7 +19,7 @@ public:
     addFeature(Tile& tile, const ProjectedFeature& feature, double tolerance, bool noSimplify);
 
     inline operator bool() const {
-        return this->numPoints > 0;
+        return this->numPoints != 0;
     }
 
 public:
