@@ -258,10 +258,9 @@ void Convert::calcBBox(ProjectedFeature& feature) {
     auto& min = feature.min;
     auto& max = feature.max;
 
-    if (feature.type == ProjectedFeatureType::Point) {
+    if (feature.type == ProjectedFeatureType::Point && feature.geometry.is<ProjectedPoints>()) {
         calcRingBBox(min, max, feature.geometry.get<ProjectedPoints>());
-
-    } else {
+    } else if (feature.geometry.is<ProjectedRings>()) {
         auto& rings = feature.geometry.get<ProjectedRings>();
         for (auto& ring : rings) {
             calcRingBBox(min, max, ring.points);
