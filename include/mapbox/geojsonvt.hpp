@@ -4,7 +4,7 @@
 #include "geojsonvt/types.hpp"
 #include "geojsonvt/tile.hpp"
 
-#include <map>
+#include <unordered_map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -46,7 +46,7 @@ public:
 
     const Tile& getTile(uint8_t z, uint32_t x, uint32_t y);
 
-    const std::map<uint64_t, Tile>& getAllTiles() const;
+    const std::unordered_map<uint64_t, Tile>& getAllTiles() const;
 
     // returns the total number of tiles generated until now.
     uint64_t getTotal() const;
@@ -63,7 +63,7 @@ private:
                       uint32_t cy = 0);
 
 private:
-    std::map<uint64_t, Tile> tiles;
+    std::unordered_map<uint64_t, Tile> tiles;
     std::map<uint8_t, uint16_t> stats;
     uint64_t total = 0;
 };

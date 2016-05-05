@@ -177,7 +177,7 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     return Transform::transformTile(tiles[id], options.extent);
 }
 
-const std::map<uint64_t, Tile>& GeoJSONVT::getAllTiles() const {
+const std::unordered_map<uint64_t, Tile>& GeoJSONVT::getAllTiles() const {
     return tiles;
 }
 
