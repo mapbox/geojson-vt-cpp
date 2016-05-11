@@ -5,11 +5,11 @@
 #include <mapbox/geojsonvt/convert.hpp>
 #include <mapbox/geojsonvt/tile.hpp>
 
-#include <string>
-#include <iostream>
-#include <vector>
 #include <cmath>
+#include <iostream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 using namespace mapbox::geojsonvt;
 

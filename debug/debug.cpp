@@ -1,7 +1,7 @@
 #include <GLFW/glfw3.h>
 
-#include <mapbox/geojsonvt.hpp>
 #include "../bench/util.hpp"
+#include <mapbox/geojsonvt.hpp>
 
 using namespace mapbox::geojsonvt;
 

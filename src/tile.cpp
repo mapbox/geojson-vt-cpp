@@ -73,7 +73,7 @@ void Tile::addFeature(Tile& tile,
                 for (auto const& ring : rings) {
                     // filter out tiny polylines & polygons
                     if ((type == ProjectedFeatureType::LineString && ring.dist < tolerance) ||
-                         (type == ProjectedFeatureType::Polygon && ring.area < sqTolerance)) {
+                        (type == ProjectedFeatureType::Polygon && ring.area < sqTolerance)) {
                         tile.numPoints += ring.points.size();
                         continue;
                     }

@@ -12,7 +12,7 @@ void Simplify::simplify(ProjectedPoints& points, double tolerance) {
     const size_t len = points.size();
     size_t first = 0;
     size_t last = len - 1;
-    std::deque<std::pair<size_t,size_t>> stack;
+    std::deque<std::pair<size_t, size_t>> stack;
     double maxSqDist = 0;
     double sqDist = 0;
     size_t index = 0;

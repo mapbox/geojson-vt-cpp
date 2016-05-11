@@ -1,12 +1,12 @@
 #ifndef MAPBOX_GEOJSONVT
 #define MAPBOX_GEOJSONVT
 
-#include "geojsonvt/types.hpp"
 #include "geojsonvt/tile.hpp"
+#include "geojsonvt/types.hpp"
 
-#include <unordered_map>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace mapbox {
@@ -39,10 +39,10 @@ class __attribute__((visibility("default"))) GeoJSONVT {
 public:
     static const Tile emptyTile;
 
-    GeoJSONVT(std::vector<ProjectedFeature> const& features_, const Options & = Options());
+    GeoJSONVT(std::vector<ProjectedFeature> const& features_, const Options& = Options());
 
     static std::vector<ProjectedFeature> convertFeatures(const std::string& data,
-                                                         const Options & options = Options());
+                                                         const Options& options = Options());
 
     const Tile& getTile(uint8_t z, uint32_t x, uint32_t y);
 

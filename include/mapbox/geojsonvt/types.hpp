@@ -1,10 +1,11 @@
 #ifndef MAPBOX_GEOJSONVT_TYPES
 #define MAPBOX_GEOJSONVT_TYPES
 
-#include <mapbox/geometry/point.hpp>
 #include <mapbox/geometry/line_string.hpp>
+#include <mapbox/geometry/point.hpp>
 #include <mapbox/geometry/polygon.hpp>
 #include <mapbox/variant.hpp>
+
 #include <array>
 #include <map>
 #include <string>

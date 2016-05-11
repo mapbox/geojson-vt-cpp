@@ -138,7 +138,7 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
         }
         features.push_back(create(tags, ProjectedFeatureType::Point, points));
 
-    } else if (type ==  "LineString") {
+    } else if (type == "LineString") {
         ProjectedRing ring{ readCoordinateRing(rawCoords, tolerance) };
         ProjectedRings rings{ ring };
         features.push_back(create(tags, ProjectedFeatureType::LineString, rings));
@@ -151,7 +151,8 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
         }
 
         ProjectedFeatureType projectedType =
-            ((type == "Polygon") ? ProjectedFeatureType::Polygon : ProjectedFeatureType::LineString);
+            ((type == "Polygon") ? ProjectedFeatureType::Polygon
+                                 : ProjectedFeatureType::LineString);
 
         features.push_back(create(tags, projectedType, rings));
     }
@@ -185,7 +186,6 @@ void Convert::convertGeometry(std::vector<ProjectedFeature>& features,
 
 geometry::point<double> Convert::readCoordinate(const JSValue& value) {
     return geometry::point<double>(value[0].GetDouble(), value[1].GetDouble());
-
 }
 
 ProjectedRing Convert::readCoordinateRing(const JSValue& rawRing, double tolerance) {
@@ -205,7 +205,8 @@ const JSValue& Convert::validArray(const JSValue& value, rapidjson::SizeType min
     return value;
 }
 
-ProjectedFeature Convert::create(Tags const& tags, ProjectedFeatureType type, ProjectedGeometry const& geometry) {
+ProjectedFeature
+Convert::create(Tags const& tags, ProjectedFeatureType type, ProjectedGeometry const& geometry) {
     ProjectedFeature feature(geometry, type, tags);
     calcBBox(feature);
 
@@ -237,7 +238,7 @@ ProjectedPoint Convert::projectPoint(geometry::point<double> const& pt) {
 void Convert::calcSize(ProjectedRing& ring) {
     double area = 0, dist = 0;
     ProjectedPoint a, b;
-    auto size =  ring.points.size();
+    auto size = ring.points.size();
     for (size_t i = 0; i < size - 1; ++i) {
         a = (b.isValid() ? b : ring.points[i]);
         b = ring.points[i + 1];

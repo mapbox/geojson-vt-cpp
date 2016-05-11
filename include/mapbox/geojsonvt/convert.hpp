@@ -37,7 +37,8 @@ public:
     static ProjectedFeature
     create(const Tags& tags, ProjectedFeatureType type, ProjectedGeometry const& geometry);
 
-    static ProjectedRing projectRing(geometry::linear_ring<double> const& points, double tolerance = 0);
+    static ProjectedRing projectRing(geometry::linear_ring<double> const& points,
+                                     double tolerance = 0);
 
 private:
     static void convertFeature(std::vector<ProjectedFeature>& features,

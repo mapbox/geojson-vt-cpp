@@ -10,9 +10,9 @@
 #pragma GCC diagnostic ignored "-Wpadded"
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 #include <gtest/gtest.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
 #include <rapidjson/error/en.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 #pragma GCC diagnostic pop
 
 #include <fstream>
@@ -43,13 +43,12 @@ std::string loadFile(const std::string& filename) {
     }
 }
 
-
 ::std::ostream& operator<<(std::ostream& os, const TilePoint& p) {
     return os << "[" << p.x << "," << p.y << "]";
 }
 
 ::std::ostream& operator<<(::std::ostream& os, const TileFeature& f) {
-    return os << "TileFeature (" << f.type << "): ";// << f.tileGeometry; FIXME
+    return os << "TileFeature (" << f.type << "): "; // << f.tileGeometry; FIXME
 }
 
 ::std::ostream& operator<<(::std::ostream& os, const TilePoints& points) {
@@ -108,7 +107,7 @@ bool operator==(const TilePoint& a, const TilePoint& b) {
 
 bool operator==(const TileFeature& a, const TileFeature& b) {
     EXPECT_EQ(a.type, b.type);
-    //EXPECT_EQ(a.tileGeometry, b.tileGeometry); // FIXME
+    // EXPECT_EQ(a.tileGeometry, b.tileGeometry); // FIXME
     EXPECT_EQ(a.tags, b.tags);
     return true;
 }
@@ -129,7 +128,8 @@ bool operator==(const ProjectedRing& a, const ProjectedRing& b) {
     return true;
 }
 
-std::vector<TileFeature> parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>& tile) {
+std::vector<TileFeature>
+parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>& tile) {
     std::vector<TileFeature> features;
     EXPECT_TRUE(tile.IsArray());
     for (rapidjson::SizeType k = 0; k < tile.Size(); ++k) {

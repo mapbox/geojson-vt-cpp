@@ -78,13 +78,13 @@ struct FeatureStackItem {
     uint32_t y;
 
     template <typename T>
-    FeatureStackItem(T && features_, uint8_t z_, uint32_t x_, uint32_t y_)
+    FeatureStackItem(T&& features_, uint8_t z_, uint32_t x_, uint32_t y_)
         : features(std::forward<T>(features_)), z(z_), x(x_), y(y_) {
     }
 };
 } // namespace
 
-GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> const& features_, const Options & options_)
+GeoJSONVT::GeoJSONVT(std::vector<ProjectedFeature> const& features_, const Options& options_)
     : options(options_) {
 
 #ifdef DEBUG_TIMER
@@ -165,9 +165,8 @@ const Tile& GeoJSONVT::getTile(uint8_t z, uint32_t x, uint32_t y) {
     // one of the parent tiles was a solid clipped square
     if (solidZ != 0u) {
         const auto m = 1 << (z - solidZ);
-        id = toID(solidZ,
-                 static_cast<uint32_t>(std::round(std::floor(x / static_cast<double>(m)))),
-                 static_cast<uint32_t>(std::round(std::floor(y / static_cast<double>(m)))));
+        id = toID(solidZ, static_cast<uint32_t>(std::round(std::floor(x / static_cast<double>(m)))),
+                  static_cast<uint32_t>(std::round(std::floor(y / static_cast<double>(m)))));
     }
 
     if (tiles.find(id) == tiles.end()) {
@@ -185,7 +184,8 @@ uint64_t GeoJSONVT::getTotal() const {
     return total;
 }
 
-std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data, const Options & options) {
+std::vector<ProjectedFeature> GeoJSONVT::convertFeatures(const std::string& data,
+                                                         const Options& options) {
 #ifdef DEBUG_TIMER
     Timer timer;
 #endif

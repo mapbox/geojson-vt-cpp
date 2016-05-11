@@ -34,7 +34,8 @@ bool operator==(const TileFeature& a, const TileFeature& b);
 bool operator==(const ProjectedFeature& a, const ProjectedFeature& b);
 bool operator==(const ProjectedRing& a, const ProjectedRing& b);
 
-std::vector<TileFeature> parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>& tile);
+std::vector<TileFeature>
+parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>& tile);
 std::vector<TileFeature> parseJSONTile(const std::string& data);
 std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string& data);
 

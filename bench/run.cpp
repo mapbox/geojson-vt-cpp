@@ -1,7 +1,7 @@
+#include "util.hpp"
+#include <cmath>
 #include <mapbox/geojsonvt.hpp>
 #include <memory>
-#include <cmath>
-#include "util.hpp"
 
 using namespace mapbox::geojsonvt;
 
@@ -28,15 +28,13 @@ int main() {
     timer.report("parse");
     const unsigned max_z = 12; // z 0...12 (5592405 tiles)
     std::size_t count = 0;
-    for (unsigned z = 0; z < max_z; ++z)
-    {
+    for (unsigned z = 0; z < max_z; ++z) {
         unsigned num_tiles = std::pow(2, z);
-        for (unsigned x = 0; x < num_tiles; ++x)
-        {
-            for (unsigned y = 0; y < num_tiles; ++y)
-            {
+        for (unsigned x = 0; x < num_tiles; ++x) {
+            for (unsigned y = 0; y < num_tiles; ++y) {
                 auto const& tile = vt.getTile(z, x, y);
-                if (tile) ++count;
+                if (tile)
+                    ++count;
             }
         }
     }

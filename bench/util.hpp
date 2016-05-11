@@ -1,10 +1,10 @@
 #pragma once
 
+#include <chrono>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
-#include <chrono>
-#include <iostream>
 
 std::string loadFile(const std::string& filename) {
     std::ifstream in(filename, std::ios::in | std::ios::binary);
