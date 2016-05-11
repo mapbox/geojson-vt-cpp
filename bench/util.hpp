@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <stdexcept>
 
 std::string loadFile(const std::string& filename) {
     std::ifstream in(filename, std::ios::in | std::ios::binary);
