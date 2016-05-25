@@ -5,6 +5,7 @@
 
 namespace mapbox {
 namespace geojsonvt {
+namespace detail {
 
 template <typename IntersectCallback>
 inline vt_features wrap(const vt_features& features, double buffer, IntersectCallback intersectX) {
@@ -40,5 +41,6 @@ inline void shiftCoords(vt_features& features, double offset) {
     }
 }
 
+} // namespace detail
 } // namespace geojsonvt
 } // namespace mapbox
