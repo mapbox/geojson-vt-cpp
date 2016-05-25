@@ -8,7 +8,7 @@ namespace geojsonvt {
 class Tile {
 public:
     vt_features source_features;
-    tile_features features;
+    std::vector<mapbox::geometry::feature<int16_t>> features;
 
     const uint8_t z;
     const uint32_t x;
@@ -96,10 +96,10 @@ private:
             return false;
 
         const auto& geom = features.front().geometry;
-        if (!geom.is<tile_polygon>())
+        if (!geom.is<mapbox::geometry::polygon<int16_t>>())
             return false;
 
-        const auto& rings = geom.get<tile_polygon>();
+        const auto& rings = geom.get<mapbox::geometry::polygon<int16_t>>();
         if (rings.size() > 1)
             return false;
 
@@ -117,14 +117,14 @@ private:
         return true;
     }
 
-    tile_point transform(const vt_point& p) {
+    mapbox::geometry::point<int16_t> transform(const vt_point& p) {
         ++num_simplified;
         return { static_cast<int16_t>(std::round((p.x * z2 - x) * extent)),
                  static_cast<int16_t>(std::round((p.y * z2 - y) * extent)) };
     }
 
-    tile_multi_point transform(const vt_multi_point& points) {
-        tile_multi_point result;
+    mapbox::geometry::multi_point<int16_t> transform(const vt_multi_point& points) {
+        mapbox::geometry::multi_point<int16_t> result;
         result.reserve(points.size());
         for (const auto& p : points) {
             result.push_back(transform(p));
@@ -132,8 +132,8 @@ private:
         return result;
     }
 
-    tile_line_string transform(const vt_line_string& line) {
-        tile_line_string result;
+    mapbox::geometry::line_string<int16_t> transform(const vt_line_string& line) {
+        mapbox::geometry::line_string<int16_t> result;
         if (line.dist > tolerance) {
             for (const auto& p : line) {
                 if (p.z > sq_tolerance)
@@ -143,8 +143,8 @@ private:
         return result;
     }
 
-    tile_linear_ring transform(const vt_linear_ring& ring) {
-        tile_linear_ring result;
+    mapbox::geometry::linear_ring<int16_t> transform(const vt_linear_ring& ring) {
+        mapbox::geometry::linear_ring<int16_t> result;
         if (ring.area > sq_tolerance) {
             for (const auto& p : ring) {
                 if (p.z > sq_tolerance)
@@ -154,8 +154,8 @@ private:
         return result;
     }
 
-    tile_multi_line_string transform(const vt_multi_line_string& lines) {
-        tile_multi_line_string result;
+    mapbox::geometry::multi_line_string<int16_t> transform(const vt_multi_line_string& lines) {
+        mapbox::geometry::multi_line_string<int16_t> result;
         for (const auto& line : lines) {
             if (line.dist > tolerance)
                 result.push_back(transform(line));
@@ -163,8 +163,8 @@ private:
         return result;
     }
 
-    tile_polygon transform(const vt_polygon& rings) {
-        tile_polygon result;
+    mapbox::geometry::polygon<int16_t> transform(const vt_polygon& rings) {
+        mapbox::geometry::polygon<int16_t> result;
         for (const auto& ring : rings) {
             if (ring.area > sq_tolerance)
                 result.push_back(transform(ring));
@@ -172,8 +172,8 @@ private:
         return result;
     }
 
-    tile_multi_polygon transform(const vt_multi_polygon& polygons) {
-        tile_multi_polygon result;
+    mapbox::geometry::multi_polygon<int16_t> transform(const vt_multi_polygon& polygons) {
+        mapbox::geometry::multi_polygon<int16_t> result;
         for (const auto& polygon : polygons) {
             const auto p = transform(polygon);
             if (!p.empty())
