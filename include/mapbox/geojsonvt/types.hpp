@@ -90,17 +90,5 @@ struct vt_feature {
 
 using vt_features = std::vector<vt_feature>;
 
-using tile_point = mapbox::geometry::point<int16_t>;
-using tile_multi_point = mapbox::geometry::multi_point<int16_t>;
-using tile_line_string = mapbox::geometry::line_string<int16_t>;
-using tile_multi_line_string = mapbox::geometry::multi_line_string<int16_t>;
-using tile_linear_ring = mapbox::geometry::linear_ring<int16_t>;
-using tile_polygon = mapbox::geometry::polygon<int16_t>;
-using tile_multi_polygon = mapbox::geometry::multi_polygon<int16_t>;
-using tile_geometry = mapbox::geometry::geometry<int16_t>;
-
-using tile_feature = mapbox::geometry::feature<int16_t>;
-using tile_features = std::vector<tile_feature>;
-
 } // namespace geojsonvt
 } // namespace mapbox
