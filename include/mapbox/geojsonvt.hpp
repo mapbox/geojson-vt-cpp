@@ -55,7 +55,8 @@ class GeoJSONVT {
 public:
     const Options options;
 
-    GeoJSONVT(const geojson_features& features_, const Options& options_ = Options())
+    GeoJSONVT(const mapbox::geometry::feature_collection<double>& features_,
+              const Options& options_ = Options())
         : options(options_) {
 
         const uint32_t z2 = std::pow(2, options.maxZoom);

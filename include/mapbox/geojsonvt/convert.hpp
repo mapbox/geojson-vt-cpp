@@ -111,7 +111,8 @@ inline vt_geometry project(const mapbox::geometry::geometry<double>& geom, const
         geom, [&](const auto& g) { return vt_geometry(project(g, tolerance)); });
 }
 
-inline vt_features convert(const geojson_features& features, const double tolerance) {
+inline vt_features convert(const mapbox::geometry::feature_collection<double>& features,
+                           const double tolerance) {
     vt_features projected;
     projected.reserve(features.size());
 

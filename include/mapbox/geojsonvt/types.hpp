@@ -8,8 +8,6 @@
 namespace mapbox {
 namespace geojsonvt {
 
-using geojson_features = mapbox::geometry::feature_collection<double>;
-
 struct vt_point : mapbox::geometry::point<double> {
     double z = 0.0; // simplification tolerance
 
