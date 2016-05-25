@@ -87,10 +87,8 @@ private:
                 (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
             tiles.emplace(id, Tile{ features, z, x, y, options.extent, options.buffer, tolerance });
-#ifdef DEBUG
             stats[z] = (stats.count(z) ? stats[z] + 1 : 1);
             total++;
-#endif
         }
 
         auto& tile = tiles.find(id)->second;
