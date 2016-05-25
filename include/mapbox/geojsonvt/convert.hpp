@@ -1,72 +1,133 @@
-#ifndef MAPBOX_GEOJSONVT_CONVERT
-#define MAPBOX_GEOJSONVT_CONVERT
+#pragma once
 
-#include "types.hpp"
+#include <mapbox/geojsonvt/simplify.hpp>
+#include <mapbox/geojsonvt/types.hpp>
+#include <mapbox/geometry.hpp>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpragmas"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wpadded"
-#pragma GCC diagnostic ignored "-Wfloat-equal"
-#include <rapidjson/document.h>
-#pragma GCC diagnostic pop
+#include <cmath>
 
-#include <vector>
+using namespace mapbox::geometry;
 
 namespace mapbox {
 namespace geojsonvt {
 
-// Use the CrtAllocator, because the MemoryPoolAllocator is broken on ARM
-// https://github.com/miloyip/rapidjson/issues/200
-// https://github.com/miloyip/rapidjson/issues/301
-// https://github.com/miloyip/rapidjson/issues/388
-using JSDocument = rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator>;
-using JSValue = rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>;
+vt_point project(const point<double>& p) {
+    const double sine = std::sin(p.y * M_PI / 180);
+    const double x = p.x / 360 + 0.5;
+    const double y =
+        std::max(std::min(0.5 - 0.25 * std::log((1 + sine) / (1 - sine)) / M_PI, 1.0), 0.0);
+    return { x, y, 0.0 };
+}
 
-class __attribute__((visibility("default"))) Convert {
-private:
-    // This class has only static functions; disallow creating instances of it.
-    Convert() = delete;
+vt_line_string project(const line_string<double>& points, const double tolerance) {
+    vt_line_string result;
+    const size_t len = points.size();
+    result.reserve(len);
 
-public:
-    static std::vector<ProjectedFeature> convert(const JSValue& data, double tolerance);
+    for (const auto& p : points) {
+        result.push_back(project(p));
+    }
 
-    static ProjectedFeature
-    create(const Tags& tags, ProjectedFeatureType type, ProjectedGeometry const& geometry);
+    for (size_t i = 0; i < len - 1; ++i) {
+        const auto& a = result[i];
+        const auto& b = result[i + 1];
+        // use Manhattan distance instead of Euclidian to avoid expensive square root computation
+        result.dist += std::abs(b.x - a.x) + std::abs(b.y - a.y);
+    }
 
-    static ProjectedRing projectRing(geometry::linear_ring<double> const& points,
-                                     double tolerance = 0);
+    simplify(result, tolerance);
 
-private:
-    static void convertFeature(std::vector<ProjectedFeature>& features,
-                               const JSValue& feature,
-                               double tolerance);
+    return result;
+}
 
-    static void convertGeometry(std::vector<ProjectedFeature>& features,
-                                const Tags& tags,
-                                const JSValue& geom,
-                                double tolerance);
+vt_linear_ring project(const linear_ring<double>& ring, const double tolerance) {
+    vt_linear_ring result;
+    const size_t len = ring.size();
+    result.reserve(len);
 
-    static ProjectedPoint projectPoint(geometry::point<double> const& pt);
+    for (const auto& p : ring) {
+        result.push_back(project(p));
+    }
 
-    static void calcSize(ProjectedRing& ring);
+    double area = 0.0;
 
-    static void calcBBox(ProjectedFeature& feature);
+    for (size_t i = 0; i < len - 1; ++i) {
+        const auto& a = result[i];
+        const auto& b = result[i + 1];
+        area += a.x * b.y - b.x * a.y;
+    }
+    result.area = std::abs(area / 2);
 
-    static void
-    calcRingBBox(ProjectedPoint& minPoint, ProjectedPoint& maxPoint, const ProjectedPoints& points);
+    simplify(result, tolerance);
 
-    static geometry::point<double> readCoordinate(const JSValue& value);
+    return result;
+}
 
-    static ProjectedRing readCoordinateRing(const JSValue& rawRing, double tolerance);
+vt_multi_point project(const multi_point<double>& points) {
+    vt_multi_point result;
+    result.reserve(points.size());
+    for (const auto& p : points) {
+        result.push_back(project(p));
+    }
+    return result;
+}
 
-    static const JSValue& validArray(const JSValue& value, rapidjson::SizeType minSize = 1);
-};
+vt_multi_line_string project(const multi_line_string<double>& lines, const double tolerance) {
+    vt_multi_line_string result;
+    result.reserve(lines.size());
+
+    for (const auto& line : lines) {
+        result.push_back(project(line, tolerance));
+    }
+    return result;
+}
+
+vt_polygon project(const polygon<double>& rings, const double tolerance) {
+    vt_polygon result;
+    result.reserve(rings.size());
+
+    for (const auto& ring : rings) {
+        result.push_back(project(ring, tolerance));
+    }
+    return result;
+}
+
+vt_multi_polygon project(const multi_polygon<double>& polygons, const double tolerance) {
+    vt_multi_polygon result;
+    result.reserve(polygons.size());
+
+    for (const auto& polygon : polygons) {
+        result.push_back(project(polygon, tolerance));
+    }
+    return result;
+}
+
+vt_geometry project(const ::geometry<double>& geom, const double tolerance) {
+    if (geom.is<point<double>>())
+        return { project(geom.get<point<double>>()) };
+    if (geom.is<multi_point<double>>())
+        return { project(geom.get<multi_point<double>>()) };
+    if (geom.is<line_string<double>>())
+        return { project(geom.get<line_string<double>>(), tolerance) };
+    if (geom.is<multi_line_string<double>>())
+        return { project(geom.get<multi_line_string<double>>(), tolerance) };
+    if (geom.is<polygon<double>>())
+        return { project(geom.get<polygon<double>>(), tolerance) };
+    if (geom.is<multi_polygon<double>>())
+        return { project(geom.get<multi_polygon<double>>(), tolerance) };
+
+    throw std::runtime_error("Geometry type not supported");
+}
+
+vt_features convert(const geojson_features& features, const double tolerance) {
+    vt_features projected;
+    projected.reserve(features.size());
+
+    for (const auto& feature : features) {
+        projected.emplace_back(project(feature.geometry, tolerance), feature.properties);
+    }
+    return projected;
+}
 
 } // namespace geojsonvt
 } // namespace mapbox
-
-#endif // MAPBOX_GEOJSONVT_CONVERT

@@ -1,108 +1,108 @@
-#ifndef MAPBOX_GEOJSONVT_TYPES
-#define MAPBOX_GEOJSONVT_TYPES
+#pragma once
 
-#include <mapbox/geometry/line_string.hpp>
-#include <mapbox/geometry/point.hpp>
-#include <mapbox/geometry/polygon.hpp>
+#include <mapbox/geometry.hpp>
 #include <mapbox/variant.hpp>
 
-#include <array>
-#include <map>
-#include <string>
 #include <vector>
-#include <stdexcept>
 
 namespace mapbox {
 namespace geojsonvt {
 
-class __attribute__((visibility("default"))) ProjectedPoint {
-public:
-    inline ProjectedPoint(double x_ = -1, double y_ = -1, double z_ = -1) : x(x_), y(y_), z(z_) {
-    }
+using geojson_features = mapbox::geometry::feature_collection<double>;
 
-    inline bool isValid() const {
-        return (x >= 0 && y >= 0 && z >= 0);
-    }
+struct vt_point : mapbox::geometry::point<double> {
+    double z = 0.0; // simplification tolerance
 
-    inline bool operator==(const ProjectedPoint& rhs) const {
-        return x == rhs.x && y == rhs.y && z == rhs.z;
+    vt_point(double x_, double y_, double z_) : mapbox::geometry::point<double>(x_, y_), z(z_) {
     }
-
-    inline bool operator!=(const ProjectedPoint& rhs) const {
-        return !operator==(rhs);
-    }
-
-public:
-    double x = -1;
-    double y = -1;
-    double z = -1;
 };
 
-using ProjectedPoints = std::vector<ProjectedPoint>;
+using vt_multi_point = std::vector<vt_point>;
 
-class __attribute__((visibility("default"))) ProjectedRing {
-public:
-    ProjectedRing() {
-    }
-    ProjectedRing(ProjectedPoints const& points_) : points(points_) {
-    }
-
-public:
-    ProjectedPoints points;
-    double area = 0;
-    double dist = 0;
+struct vt_line_string : std::vector<vt_point> {
+    double dist = 0.0; // line length
 };
 
-using ProjectedRings = std::vector<ProjectedRing>;
-using ProjectedGeometry = mapbox::util::variant<ProjectedPoints, ProjectedRings>;
-
-using Tags = std::map<std::string, std::string>;
-
-enum class ProjectedFeatureType : uint8_t { Point = 1, LineString = 2, Polygon = 3 };
-
-class __attribute__((visibility("default"))) ProjectedFeature {
-public:
-    ProjectedFeature(ProjectedGeometry const& geometry_,
-                     ProjectedFeatureType type_,
-                     Tags const& tags_,
-                     ProjectedPoint const& min_ = { 2, 1 },  // initial bbox values;
-                     ProjectedPoint const& max_ = { -1, 0 }) // coords are usually in [0..1] range
-        : geometry(geometry_),
-          type(type_),
-          tags(tags_),
-          min(min_),
-          max(max_) {
-    }
-
-public:
-    ProjectedGeometry geometry;
-    ProjectedFeatureType type;
-    Tags tags;
-    ProjectedPoint min;
-    ProjectedPoint max;
+struct vt_linear_ring : std::vector<vt_point> {
+    double area = 0.0; // polygon ring area
 };
 
-using TilePoint = mapbox::geometry::point<std::int16_t>;
-using TilePoints = mapbox::geometry::linear_ring<std::int16_t>;
-using TileRings = std::vector<TilePoints>;
-using TileGeometry = mapbox::util::variant<TilePoints, TileRings>;
+using vt_multi_line_string = std::vector<vt_line_string>;
+using vt_polygon = std::vector<vt_linear_ring>;
+using vt_multi_polygon = std::vector<vt_polygon>;
 
-typedef ProjectedFeatureType TileFeatureType;
+using vt_geometry = mapbox::util::variant<vt_point,
+                                          vt_line_string,
+                                          vt_polygon,
+                                          vt_multi_point,
+                                          vt_multi_line_string,
+                                          vt_multi_polygon>;
 
-class __attribute__((visibility("default"))) TileFeature {
-public:
-    TileFeature(ProjectedGeometry const& geometry_, TileFeatureType type_, Tags const& tags_)
-        : geometry(geometry_), type(type_), tags(tags_) {
+using property_map = std::unordered_map<std::string, mapbox::geometry::value>;
+
+template <typename F>
+void vt_for_each_point(const vt_point& point, F&& f) {
+    f(point);
+}
+template <typename F>
+void vt_for_each_point(const vt_geometry& geom, F&& f) {
+    vt_geometry::visit(geom, [&](const auto& g) { vt_for_each_point(g, f); });
+}
+template <typename Container, typename F>
+auto vt_for_each_point(const Container& container, F&& f)
+    -> decltype(container.begin(), container.end(), void()) {
+    for (const auto& e : container) {
+        vt_for_each_point(e, f);
     }
+}
+template <typename F>
+void vt_for_each_point(vt_point& point, F&& f) {
+    f(point);
+}
+template <typename F>
+void vt_for_each_point(vt_geometry& geom, F&& f) {
+    vt_geometry::visit(geom, [&](auto& g) { vt_for_each_point(g, f); });
+}
+template <typename Container, typename F>
+auto vt_for_each_point(Container& container, F&& f)
+    -> decltype(container.begin(), container.end(), void()) {
+    for (auto& e : container) {
+        vt_for_each_point(e, f);
+    }
+}
 
-public:
-    ProjectedGeometry geometry;
-    TileGeometry tileGeometry;
-    TileFeatureType type;
-    Tags tags;
+struct vt_feature {
+    vt_geometry geometry;
+    property_map properties;
+    mapbox::geometry::box<double> bbox = { { 2, 1 }, { -1, 0 } };
+    uint32_t num_points = 0;
+
+    vt_feature(const vt_geometry& geom, const property_map& props)
+        : geometry(geom), properties(props) {
+
+        vt_for_each_point(geom, [&](const vt_point& p) {
+            bbox.min.x = std::min(p.x, bbox.min.x);
+            bbox.min.y = std::min(p.y, bbox.min.y);
+            bbox.max.x = std::max(p.x, bbox.max.x);
+            bbox.max.y = std::max(p.y, bbox.max.y);
+            ++num_points;
+        });
+    }
 };
+
+using vt_features = std::vector<vt_feature>;
+
+using tile_point = mapbox::geometry::point<int16_t>;
+using tile_multi_point = mapbox::geometry::multi_point<int16_t>;
+using tile_line_string = mapbox::geometry::line_string<int16_t>;
+using tile_multi_line_string = mapbox::geometry::multi_line_string<int16_t>;
+using tile_linear_ring = mapbox::geometry::linear_ring<int16_t>;
+using tile_polygon = mapbox::geometry::polygon<int16_t>;
+using tile_multi_polygon = mapbox::geometry::multi_polygon<int16_t>;
+using tile_geometry = mapbox::geometry::geometry<int16_t>;
+
+using tile_feature = mapbox::geometry::feature<int16_t>;
+using tile_features = std::vector<tile_feature>;
 
 } // namespace geojsonvt
 } // namespace mapbox
-
-#endif // MAPBOX_GEOJSONVT_TYPES

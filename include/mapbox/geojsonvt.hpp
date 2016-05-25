@@ -1,16 +1,32 @@
-#ifndef MAPBOX_GEOJSONVT
-#define MAPBOX_GEOJSONVT
+#pragma once
 
-#include "geojsonvt/tile.hpp"
-#include "geojsonvt/types.hpp"
+#include <mapbox/geojsonvt/convert.hpp>
+#include <mapbox/geojsonvt/tile.hpp>
+#include <mapbox/geojsonvt/types.hpp>
+#include <mapbox/geojsonvt/wrap.hpp>
 
-#include <mutex>
-#include <string>
+#include <chrono>
+#include <cmath>
+#include <iostream>
+#include <map>
 #include <unordered_map>
-#include <vector>
 
 namespace mapbox {
 namespace geojsonvt {
+
+class Timer {
+public:
+    std::chrono::high_resolution_clock::time_point started;
+    Timer() {
+        started = std::chrono::high_resolution_clock::now();
+    }
+    void operator()(std::string msg) {
+        const auto now = std::chrono::high_resolution_clock::now();
+        const auto ms = std::chrono::duration_cast<std::chrono::microseconds>(now - started);
+        std::cerr << msg << ": " << double(ms.count()) / 1000 << "ms\n";
+        started = now;
+    }
+};
 
 struct Options {
     // max zoom to preserve detail on
@@ -35,40 +51,115 @@ struct Options {
     uint16_t buffer = 64;
 };
 
-class __attribute__((visibility("default"))) GeoJSONVT {
+uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
+    return (((1 << z) * y + x) * 32) + z;
+}
+
+vt_point intersectX(const vt_point& a, const vt_point& b, const double x) {
+    const double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
+    return { x, y, 1.0 };
+}
+
+vt_point intersectY(const vt_point& a, const vt_point& b, const double y) {
+    const double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
+    return { x, y, 1.0 };
+}
+
+class GeoJSONVT {
 public:
-    static const Tile emptyTile;
-
-    GeoJSONVT(std::vector<ProjectedFeature> const& features_, const Options& = Options());
-
-    static std::vector<ProjectedFeature> convertFeatures(const std::string& data,
-                                                         const Options& options = Options());
-
-    const Tile& getTile(uint8_t z, uint32_t x, uint32_t y);
-
-    const std::unordered_map<uint64_t, Tile>& getAllTiles() const;
-
-    // returns the total number of tiles generated until now.
-    uint64_t getTotal() const;
-
     const Options options;
 
-private:
-    uint8_t splitTile(std::vector<ProjectedFeature> const& features_,
-                      uint8_t z_,
-                      uint32_t x_,
-                      uint32_t y_,
-                      uint8_t cz = 0,
-                      uint32_t cx = 0,
-                      uint32_t cy = 0);
+    GeoJSONVT(const geojson_features& features_, const Options& options_ = Options())
+        : options(options_) {
+
+        const uint32_t z2 = std::pow(2, options.maxZoom);
+
+#ifdef DEBUG
+        Timer timer;
+        auto converted = convert(features_, options.tolerance / (z2 * options.extent));
+        timer("convert");
+#endif
+        auto features = wrap(converted, double(options.buffer) / options.extent, intersectX);
+#ifdef DEBUG
+        timer("wrap");
+#endif
+
+        splitTile(features, 0, 0, 0);
+#ifdef DEBUG
+        timer("split");
+
+        printf("tiles generated: %i {\n", static_cast<int>(total));
+        for (const auto& pair : stats) {
+            printf("    z%i: %i\n", pair.first, pair.second);
+        }
+        printf("}\n");
+    }
+#endif
 
 private:
     std::unordered_map<uint64_t, Tile> tiles;
-    std::map<uint8_t, uint16_t> stats;
-    uint64_t total = 0;
+
+#ifdef DEBUG
+    std::map<uint8_t, uint32_t> stats;
+    uint32_t total = 0;
+#endif
+
+    void
+    splitTile(const vt_features& features, const uint8_t z, const uint32_t x, const uint32_t y) {
+
+        if (features.empty())
+            return;
+
+        const double z2 = 1 << z;
+        const uint64_t id = toID(z, x, y);
+
+        const auto it = tiles.find(id);
+
+        if (it == tiles.end()) {
+            const double tolerance =
+                (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
+
+            tiles.emplace(id, Tile{ features, z, x, y, options.extent, options.buffer, tolerance });
+#ifdef DEBUG
+            stats[z] = (stats.count(z) ? stats[z] + 1 : 1);
+            total++;
+#endif
+        }
+
+        auto& tile = tiles.find(id)->second;
+
+        // stop tiling if we reached max zoom, or if the tile is too simple
+        if (z == options.indexMaxZoom || tile.num_points <= options.indexMaxPoints) {
+            tile.source_features = features;
+            return;
+        }
+
+        const double p = 0.5 * options.buffer / options.extent;
+        const auto& min = tile.bbox.min;
+        const auto& max = tile.bbox.max;
+
+        const auto left =
+            clip(features, (x - p) / z2, (x + 0.5 + p) / z2, 0, intersectX, min.x, max.x);
+
+        if (!left.empty()) {
+            splitTile(clip(left, (y - p) / z2, (y + 0.5 + p) / z2, 1, intersectY, min.y, max.y),
+                      z + 1, x * 2, y * 2);
+            splitTile(clip(left, (y + 0.5 - p) / z2, (y + 1 + p) / z2, 1, intersectY, min.y, max.y),
+                      z + 1, x * 2, y * 2 + 1);
+        }
+
+        const auto right =
+            clip(features, (x + 0.5 - p) / z2, (x + 1 + p) / z2, 0, intersectX, min.x, max.x);
+
+        if (!right.empty()) {
+            splitTile(clip(right, (y - p) / z2, (y + 0.5 + p) / z2, 1, intersectY, min.y, max.y),
+                      z + 1, x * 2 + 1, y * 2);
+            splitTile(
+                clip(right, (y + 0.5 - p) / z2, (y + 1 + p) / z2, 1, intersectY, min.y, max.y),
+                z + 1, x * 2 + 1, y * 2 + 1);
+        }
+    }
 };
 
 } // namespace geojsonvt
 } // namespace mapbox
-
-#endif // MAPBOX_GEOJSONVT

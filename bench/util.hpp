@@ -4,8 +4,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 std::string loadFile(const std::string& filename) {
     std::ifstream in(filename, std::ios::in | std::ios::binary);

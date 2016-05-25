@@ -1,25 +1,73 @@
-#ifndef MAPBOX_GEOJSONVT_SIMPLIFY
-#define MAPBOX_GEOJSONVT_SIMPLIFY
+#pragma once
 
-#include "types.hpp"
+#include <mapbox/geojsonvt/types.hpp>
 
 namespace mapbox {
 namespace geojsonvt {
 
-class __attribute__((visibility("default"))) Simplify {
-private:
-    // This class has only static functions; disallow creating instances of it.
-    Simplify() = delete;
+// calculate simplification data using optimized Douglas-Peucker algorithm
 
-public:
-    static void simplify(ProjectedPoints& points, double tolerance);
+template <typename Container>
+void simplify(Container& points, double tolerance) {
+    const size_t len = points.size();
 
-private:
-    static double
-    getSqSegDist(const ProjectedPoint& p, const ProjectedPoint& a, const ProjectedPoint& b);
-};
+    // always retain the endpoints (1 is the max value)
+    points[0].z = 1.0;
+    points[len - 1].z = 1.0;
+
+    simplify(points, 0, len - 1, tolerance * tolerance);
+}
+
+template <typename Container>
+void simplify(Container& points, size_t first, size_t last, double sqTolerance) {
+    double maxSqDist = sqTolerance;
+    size_t index;
+
+    for (auto i = first + 1; i < last; i++) {
+        const double sqDist = getSqSegDist(points[i], points[first], points[last]);
+
+        if (sqDist > maxSqDist) {
+            index = i;
+            maxSqDist = sqDist;
+        }
+    }
+
+    if (maxSqDist > sqTolerance) {
+        // save the point importance in squared pixels as a z coordinate
+        points[index].z = maxSqDist;
+        if (index - first > 1)
+            simplify(points, first, index, sqTolerance);
+        if (last - index > 1)
+            simplify(points, index, last, sqTolerance);
+    }
+}
+
+// square distance from a point to a segment
+double getSqSegDist(const vt_point& p, const vt_point& a, const vt_point& b) {
+    double x = a.x;
+    double y = a.y;
+    double dx = b.x - a.x;
+    double dy = b.y - a.y;
+
+    if ((dx != 0.0) || (dy != 0.0)) {
+
+        const double t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy);
+
+        if (t > 1) {
+            x = b.x;
+            y = b.y;
+
+        } else if (t > 0) {
+            x += dx * t;
+            y += dy * t;
+        }
+    }
+
+    dx = p.x - x;
+    dy = p.y - y;
+
+    return dx * dx + dy * dy;
+}
 
 } // namespace geojsonvt
 } // namespace mapbox
-
-#endif // MAPBOX_GEOJSONVT_SIMPLIFY
