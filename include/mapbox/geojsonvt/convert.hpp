@@ -104,7 +104,7 @@ inline vt_multi_polygon project(const multi_polygon<double>& polygons, const dou
 }
 
 inline vt_geometry project(const ::geometry<double>& geom, const double tolerance) {
-    return ::geometry<double>::visit(geom, [&] (const auto& g) { return project(g, tolerance); });
+    return ::geometry<double>::visit(geom, [&] (const auto& g) { return vt_geometry(project(g, tolerance)); });
 }
 
 inline vt_features convert(const geojson_features& features, const double tolerance) {
