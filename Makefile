@@ -3,7 +3,7 @@ CXXFLAGS += -I include -std=c++14 -Wall -Wextra -Werror -O3
 MASON ?= .mason/mason
 
 VARIANT = variant 1.1.0
-GEOMETRY = geometry 0.6.0
+GEOMETRY = geometry 0.7.0
 GEOJSON = geojson 0.1.1-cxx03abi
 
 DEPS = `$(MASON) cflags $(VARIANT)` `$(MASON) cflags $(GEOMETRY)` `$(MASON) cflags $(GEOJSON)` `$(MASON) static_libs $(GEOJSON)`

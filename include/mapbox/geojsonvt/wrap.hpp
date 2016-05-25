@@ -35,7 +35,7 @@ inline vt_features wrap(const vt_features& features, double buffer, IntersectCal
 
 inline void shiftCoords(vt_features& features, double offset) {
     for (auto& feature : features) {
-        vt_for_each_point(feature.geometry, [offset](vt_point& point) { point += offset; });
+        mapbox::geometry::for_each_point(feature.geometry, [offset](vt_point& point) { point += offset; });
         feature.bbox.min.x += offset;
         feature.bbox.max.x += offset;
     }
