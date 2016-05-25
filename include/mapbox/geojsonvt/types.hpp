@@ -39,37 +39,6 @@ using vt_geometry = mapbox::util::variant<vt_point,
 
 using property_map = std::unordered_map<std::string, mapbox::geometry::value>;
 
-template <typename F>
-void vt_for_each_point(const vt_point& point, F&& f) {
-    f(point);
-}
-template <typename F>
-void vt_for_each_point(const vt_geometry& geom, F&& f) {
-    vt_geometry::visit(geom, [&](const auto& g) { vt_for_each_point(g, f); });
-}
-template <typename Container, typename F>
-auto vt_for_each_point(const Container& container, F&& f)
-    -> decltype(container.begin(), container.end(), void()) {
-    for (const auto& e : container) {
-        vt_for_each_point(e, f);
-    }
-}
-template <typename F>
-void vt_for_each_point(vt_point& point, F&& f) {
-    f(point);
-}
-template <typename F>
-void vt_for_each_point(vt_geometry& geom, F&& f) {
-    vt_geometry::visit(geom, [&](auto& g) { vt_for_each_point(g, f); });
-}
-template <typename Container, typename F>
-auto vt_for_each_point(Container& container, F&& f)
-    -> decltype(container.begin(), container.end(), void()) {
-    for (auto& e : container) {
-        vt_for_each_point(e, f);
-    }
-}
-
 struct vt_feature {
     vt_geometry geometry;
     property_map properties;
@@ -79,7 +48,7 @@ struct vt_feature {
     vt_feature(const vt_geometry& geom, const property_map& props)
         : geometry(geom), properties(props) {
 
-        vt_for_each_point(geom, [&](const vt_point& p) {
+        mapbox::geometry::for_each_point(geom, [&](const vt_point& p) {
             bbox.min.x = std::min(p.x, bbox.min.x);
             bbox.min.y = std::min(p.y, bbox.min.y);
             bbox.max.x = std::max(p.x, bbox.max.x);
