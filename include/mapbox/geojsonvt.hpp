@@ -14,20 +14,6 @@
 namespace mapbox {
 namespace geojsonvt {
 
-class Timer {
-public:
-    std::chrono::high_resolution_clock::time_point started;
-    Timer() {
-        started = std::chrono::high_resolution_clock::now();
-    }
-    void operator()(std::string msg) {
-        const auto now = std::chrono::high_resolution_clock::now();
-        const auto ms = std::chrono::duration_cast<std::chrono::microseconds>(now - started);
-        std::cerr << msg << ": " << double(ms.count()) / 1000 << "ms\n";
-        started = now;
-    }
-};
-
 struct Options {
     // max zoom to preserve detail on
     uint8_t maxZoom = 18;
@@ -74,36 +60,17 @@ public:
 
         const uint32_t z2 = std::pow(2, options.maxZoom);
 
-#ifdef DEBUG
-        Timer timer;
         auto converted = convert(features_, options.tolerance / (z2 * options.extent));
-        timer("convert");
-#endif
         auto features = wrap(converted, double(options.buffer) / options.extent, intersectX);
-#ifdef DEBUG
-        timer("wrap");
-#endif
 
         splitTile(features, 0, 0, 0);
-#ifdef DEBUG
-        timer("split");
-
-        printf("tiles generated: %i {\n", static_cast<int>(total));
-        for (const auto& pair : stats) {
-            printf("    z%i: %i\n", pair.first, pair.second);
-        }
-        printf("}\n");
     }
-#endif
 
-private:
-    std::unordered_map<uint64_t, Tile> tiles;
-
-#ifdef DEBUG
     std::map<uint8_t, uint32_t> stats;
     uint32_t total = 0;
-#endif
+    std::unordered_map<uint64_t, Tile> tiles;
 
+private:
     void
     splitTile(const vt_features& features, const uint8_t z, const uint32_t x, const uint32_t y) {
 
