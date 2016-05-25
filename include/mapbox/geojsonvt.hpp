@@ -51,16 +51,16 @@ struct Options {
     uint16_t buffer = 64;
 };
 
-uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
+inline uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
     return (((1 << z) * y + x) * 32) + z;
 }
 
-vt_point intersectX(const vt_point& a, const vt_point& b, const double x) {
+inline vt_point intersectX(const vt_point& a, const vt_point& b, const double x) {
     const double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
     return { x, y, 1.0 };
 }
 
-vt_point intersectY(const vt_point& a, const vt_point& b, const double y) {
+inline vt_point intersectY(const vt_point& a, const vt_point& b, const double y) {
     const double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
     return { x, y, 1.0 };
 }

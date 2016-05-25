@@ -7,7 +7,7 @@ namespace mapbox {
 namespace geojsonvt {
 
 template <typename IntersectCallback>
-vt_features wrap(const vt_features& features, double buffer, IntersectCallback intersectX) {
+inline vt_features wrap(const vt_features& features, double buffer, IntersectCallback intersectX) {
     // left world copy
     auto left = clip(features, -1 - buffer, buffer, 0, intersectX, -1, 2);
     // right world copy
@@ -32,7 +32,7 @@ vt_features wrap(const vt_features& features, double buffer, IntersectCallback i
     return merged;
 }
 
-void shiftCoords(vt_features& features, double offset) {
+inline void shiftCoords(vt_features& features, double offset) {
     for (auto& feature : features) {
         vt_for_each_point(feature.geometry, [offset](vt_point& point) { point += offset; });
         feature.bbox.min.x += offset;

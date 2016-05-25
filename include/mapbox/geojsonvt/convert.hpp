@@ -11,7 +11,7 @@ using namespace mapbox::geometry;
 namespace mapbox {
 namespace geojsonvt {
 
-vt_point project(const point<double>& p) {
+inline vt_point project(const point<double>& p) {
     const double sine = std::sin(p.y * M_PI / 180);
     const double x = p.x / 360 + 0.5;
     const double y =
@@ -19,7 +19,7 @@ vt_point project(const point<double>& p) {
     return { x, y, 0.0 };
 }
 
-vt_line_string project(const line_string<double>& points, const double tolerance) {
+inline vt_line_string project(const line_string<double>& points, const double tolerance) {
     vt_line_string result;
     const size_t len = points.size();
     result.reserve(len);
@@ -40,7 +40,7 @@ vt_line_string project(const line_string<double>& points, const double tolerance
     return result;
 }
 
-vt_linear_ring project(const linear_ring<double>& ring, const double tolerance) {
+inline vt_linear_ring project(const linear_ring<double>& ring, const double tolerance) {
     vt_linear_ring result;
     const size_t len = ring.size();
     result.reserve(len);
@@ -63,7 +63,7 @@ vt_linear_ring project(const linear_ring<double>& ring, const double tolerance) 
     return result;
 }
 
-vt_multi_point project(const multi_point<double>& points) {
+inline vt_multi_point project(const multi_point<double>& points) {
     vt_multi_point result;
     result.reserve(points.size());
     for (const auto& p : points) {
@@ -72,7 +72,8 @@ vt_multi_point project(const multi_point<double>& points) {
     return result;
 }
 
-vt_multi_line_string project(const multi_line_string<double>& lines, const double tolerance) {
+inline vt_multi_line_string project(const multi_line_string<double>& lines,
+                                    const double tolerance) {
     vt_multi_line_string result;
     result.reserve(lines.size());
 
@@ -82,7 +83,7 @@ vt_multi_line_string project(const multi_line_string<double>& lines, const doubl
     return result;
 }
 
-vt_polygon project(const polygon<double>& rings, const double tolerance) {
+inline vt_polygon project(const polygon<double>& rings, const double tolerance) {
     vt_polygon result;
     result.reserve(rings.size());
 
@@ -92,7 +93,7 @@ vt_polygon project(const polygon<double>& rings, const double tolerance) {
     return result;
 }
 
-vt_multi_polygon project(const multi_polygon<double>& polygons, const double tolerance) {
+inline vt_multi_polygon project(const multi_polygon<double>& polygons, const double tolerance) {
     vt_multi_polygon result;
     result.reserve(polygons.size());
 
@@ -102,7 +103,7 @@ vt_multi_polygon project(const multi_polygon<double>& polygons, const double tol
     return result;
 }
 
-vt_geometry project(const ::geometry<double>& geom, const double tolerance) {
+inline vt_geometry project(const ::geometry<double>& geom, const double tolerance) {
     if (geom.is<point<double>>())
         return { project(geom.get<point<double>>()) };
     if (geom.is<multi_point<double>>())
@@ -119,7 +120,7 @@ vt_geometry project(const ::geometry<double>& geom, const double tolerance) {
     throw std::runtime_error("Geometry type not supported");
 }
 
-vt_features convert(const geojson_features& features, const double tolerance) {
+inline vt_features convert(const geojson_features& features, const double tolerance) {
     vt_features projected;
     projected.reserve(features.size());
 

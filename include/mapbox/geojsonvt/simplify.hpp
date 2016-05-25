@@ -8,7 +8,7 @@ namespace geojsonvt {
 // calculate simplification data using optimized Douglas-Peucker algorithm
 
 template <typename Container>
-void simplify(Container& points, double tolerance) {
+inline void simplify(Container& points, double tolerance) {
     const size_t len = points.size();
 
     // always retain the endpoints (1 is the max value)
@@ -19,7 +19,7 @@ void simplify(Container& points, double tolerance) {
 }
 
 template <typename Container>
-void simplify(Container& points, size_t first, size_t last, double sqTolerance) {
+inline void simplify(Container& points, size_t first, size_t last, double sqTolerance) {
     double maxSqDist = sqTolerance;
     size_t index;
 
