@@ -7,6 +7,7 @@
 
 namespace mapbox {
 namespace geojsonvt {
+namespace detail {
 
 struct vt_point : mapbox::geometry::point<double> {
     double z = 0.0; // simplification tolerance
@@ -90,5 +91,6 @@ struct vt_feature {
 
 using vt_features = std::vector<vt_feature>;
 
+} // namespace detail
 } // namespace geojsonvt
 } // namespace mapbox

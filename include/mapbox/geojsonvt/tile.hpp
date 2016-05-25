@@ -4,6 +4,7 @@
 
 namespace mapbox {
 namespace geojsonvt {
+namespace detail {
 
 class Tile {
 public:
@@ -183,5 +184,6 @@ private:
     }
 };
 
+} // namespace detail
 } // namespace geojsonvt
 } // namespace mapbox

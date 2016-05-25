@@ -8,6 +8,7 @@
 
 namespace mapbox {
 namespace geojsonvt {
+namespace detail {
 
 inline vt_point project(const mapbox::geometry::point<double>& p,
                         __attribute__((unused)) const double tolerance) {
@@ -122,5 +123,6 @@ inline vt_features convert(const mapbox::geometry::feature_collection<double>& f
     return projected;
 }
 
+} // namespace detail
 } // namespace geojsonvt
 } // namespace mapbox

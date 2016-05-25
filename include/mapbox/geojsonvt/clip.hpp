@@ -4,6 +4,7 @@
 
 namespace mapbox {
 namespace geojsonvt {
+namespace detail {
 
 /* clip features between two axis-parallel lines:
  *     |        |
@@ -222,5 +223,6 @@ inline vt_linear_ring clipRing(
     return slice;
 }
 
+} // namespace detail
 } // namespace geojsonvt
 } // namespace mapbox

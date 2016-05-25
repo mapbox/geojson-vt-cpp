@@ -4,6 +4,7 @@
 
 namespace mapbox {
 namespace geojsonvt {
+namespace detail {
 
 // calculate simplification data using optimized Douglas-Peucker algorithm
 
@@ -69,5 +70,6 @@ double getSqSegDist(const vt_point& p, const vt_point& a, const vt_point& b) {
     return dx * dx + dy * dy;
 }
 
+} // namespace detail
 } // namespace geojsonvt
 } // namespace mapbox
