@@ -11,7 +11,7 @@ using namespace mapbox::geometry;
 namespace mapbox {
 namespace geojsonvt {
 
-inline vt_point project(const point<double>& p) {
+inline vt_point project(const point<double>& p, __attribute__((unused)) const double tolerance) {
     const double sine = std::sin(p.y * M_PI / 180);
     const double x = p.x / 360 + 0.5;
     const double y =
@@ -25,7 +25,7 @@ inline vt_line_string project(const line_string<double>& points, const double to
     result.reserve(len);
 
     for (const auto& p : points) {
-        result.push_back(project(p));
+        result.push_back(project(p, tolerance));
     }
 
     for (size_t i = 0; i < len - 1; ++i) {
@@ -46,7 +46,7 @@ inline vt_linear_ring project(const linear_ring<double>& ring, const double tole
     result.reserve(len);
 
     for (const auto& p : ring) {
-        result.push_back(project(p));
+        result.push_back(project(p, tolerance));
     }
 
     double area = 0.0;
@@ -63,11 +63,11 @@ inline vt_linear_ring project(const linear_ring<double>& ring, const double tole
     return result;
 }
 
-inline vt_multi_point project(const multi_point<double>& points) {
+inline vt_multi_point project(const multi_point<double>& points, const double tolerance) {
     vt_multi_point result;
     result.reserve(points.size());
     for (const auto& p : points) {
-        result.push_back(project(p));
+        result.push_back(project(p, tolerance));
     }
     return result;
 }
@@ -104,20 +104,7 @@ inline vt_multi_polygon project(const multi_polygon<double>& polygons, const dou
 }
 
 inline vt_geometry project(const ::geometry<double>& geom, const double tolerance) {
-    if (geom.is<point<double>>())
-        return { project(geom.get<point<double>>()) };
-    if (geom.is<multi_point<double>>())
-        return { project(geom.get<multi_point<double>>()) };
-    if (geom.is<line_string<double>>())
-        return { project(geom.get<line_string<double>>(), tolerance) };
-    if (geom.is<multi_line_string<double>>())
-        return { project(geom.get<multi_line_string<double>>(), tolerance) };
-    if (geom.is<polygon<double>>())
-        return { project(geom.get<polygon<double>>(), tolerance) };
-    if (geom.is<multi_polygon<double>>())
-        return { project(geom.get<multi_polygon<double>>(), tolerance) };
-
-    throw std::runtime_error("Geometry type not supported");
+    return ::geometry<double>::visit(geom, [&] (const auto& g) { return vt_geometry(project(g, tolerance)); });
 }
 
 inline vt_features convert(const geojson_features& features, const double tolerance) {
