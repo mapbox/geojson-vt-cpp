@@ -38,6 +38,8 @@ struct Options {
 
 namespace detail {
 
+const Tile emptyTile{ {}, 0, 0, 0, 4096, 0, 0 };
+
 inline uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
     return (((1 << z) * y + x) * 32) + z;
 }
@@ -64,11 +66,73 @@ public:
     uint32_t total = 0;
     std::unordered_map<uint64_t, detail::Tile> tiles;
 
+    const detail::Tile& getTile(const uint8_t z, const uint32_t x_, const uint32_t y) {
+
+        if (z > options.maxZoom)
+            throw std::runtime_error("Requested zoom higher than maxZoom: " + std::to_string(z));
+
+        const uint32_t z2 = std::pow(2, z);
+        const uint32_t x = ((x_ % z2) + z2) % z2; // wrap tile x coordinate
+        const uint64_t id = detail::toID(z, x, y);
+
+        auto it = tiles.find(id);
+        if (it != tiles.end())
+            return it->second;
+
+        it = findParent(z, x, y);
+
+        if (it == tiles.end())
+            return detail::emptyTile;
+
+        // if we found a parent tile containing the original geometry, we can drill down from it
+        const auto& parent = it->second;
+
+        // parent tile is a solid clipped square, return it instead since it's identical
+        if (parent.is_solid)
+            return parent;
+
+        // drill down parent tile up to the requested one
+        splitTile(parent.source_features, parent.z, parent.x, parent.y, z, x, y);
+
+        it = tiles.find(id);
+        if (it != tiles.end())
+            return it->second;
+
+        // drilling stopped because parent was a solid square; return it instead
+        it = findParent(z, x, y);
+        if (it != tiles.end())
+            return it->second;
+
+        return detail::emptyTile;
+    }
+
 private:
+    std::unordered_map<uint64_t, detail::Tile>::iterator
+    findParent(const uint8_t z, const uint32_t x, const uint32_t y) {
+        uint8_t z0 = z;
+        uint32_t x0 = x;
+        uint32_t y0 = y;
+
+        const auto end = tiles.end();
+        auto parent = end;
+
+        while ((parent == end) && (z0 != 0)) {
+            z0--;
+            x0 = x0 / 2;
+            y0 = y0 / 2;
+            parent = tiles.find(detail::toID(z0, x0, y0));
+        }
+
+        return parent;
+    }
+
     void splitTile(const detail::vt_features& features,
                    const uint8_t z,
                    const uint32_t x,
-                   const uint32_t y) {
+                   const uint32_t y,
+                   const uint8_t cz = 0,
+                   const uint32_t cx = 0,
+                   const uint32_t cy = 0) {
 
         if (features.empty())
             return;
@@ -88,14 +152,33 @@ private:
                      .first;
             stats[z] = (stats.count(z) ? stats[z] + 1 : 1);
             total++;
+            // printf("tile z%i-%i-%i\n", z, x, y);
         }
 
         auto& tile = it->second;
 
-        // stop tiling if we reached max zoom, or if the tile is too simple
-        if (z == options.indexMaxZoom || tile.num_points <= options.indexMaxPoints) {
-            tile.source_features = features;
+        // stop tiling if the tile is solid clipped square
+        if (!options.solidChildren && tile.is_solid)
             return;
+
+        // if it's the first-pass tiling
+        if (cz == 0u) {
+            // stop tiling if we reached max zoom, or if the tile is too simple
+            if (z == options.indexMaxZoom || tile.num_points <= options.indexMaxPoints) {
+                tile.source_features = features;
+                return;
+            }
+
+        } else { // drilldown to a specific tile;
+            // stop tiling if we reached base zoom or our target tile zoom
+            if (z == options.maxZoom || z == cz)
+                return;
+
+            // stop tiling if it's not an ancestor of the target tile
+            const double m = 1 << (cz - z);
+            if (x != static_cast<uint32_t>(std::floor(cx / m)) ||
+                y != static_cast<uint32_t>(std::floor(cy / m)))
+                return;
         }
 
         const double p = 0.5 * options.buffer / options.extent;
@@ -120,6 +203,9 @@ private:
             splitTile(detail::clip<1>(right, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y),
                       z + 1, x * 2 + 1, y * 2 + 1);
         }
+
+        // if we sliced further down, no need to keep source geometry
+        tile.source_features = {};
     }
 };
 

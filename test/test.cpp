@@ -56,4 +56,18 @@ int main() {
         printf("    z%i: %i\n", pair.first, pair.second);
     }
     printf("}\n");
+
+    const unsigned max_z = 10;
+    std::size_t count = 0;
+    for (unsigned z = 0; z < max_z; ++z) {
+        unsigned num_tiles = std::pow(2, z);
+        for (unsigned x = 0; x < num_tiles; ++x) {
+            for (unsigned y = 0; y < num_tiles; ++y) {
+                auto const& tile = index.getTile(z, x, y);
+                if (!tile.features.empty())
+                    ++count;
+            }
+        }
+    }
+    timer("found " + std::to_string(count) + " tiles");
 }

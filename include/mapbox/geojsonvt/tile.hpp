@@ -9,7 +9,7 @@ namespace detail {
 class Tile {
 public:
     vt_features source_features;
-    std::vector<mapbox::geometry::feature<int16_t>> features;
+    mapbox::geometry::feature_collection<int16_t> features;
 
     const uint8_t z;
     const uint32_t x;
