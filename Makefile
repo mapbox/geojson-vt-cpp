@@ -19,7 +19,7 @@ build:
 	mkdir -p build
 
 build/test: build test/test.cpp mason_packages include/mapbox/geojsonvt/*.hpp include/mapbox/geojsonvt.hpp
-	$(CXX) $(CFLAGS) $(CXXFLAGS) $(DEPS) test/test.cpp -o build/test
+	$(CXX) $(CFLAGS) $(CXXFLAGS) test/test.cpp -o build/test $(DEPS)
 
 test: build/test
 	./build/test
