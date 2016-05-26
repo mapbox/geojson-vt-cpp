@@ -7,7 +7,7 @@ namespace geojsonvt {
 namespace detail {
 
 // square distance from a point to a segment
-double getSqSegDist(const vt_point& p, const vt_point& a, const vt_point& b) {
+inline double getSqSegDist(const vt_point& p, const vt_point& a, const vt_point& b) {
     double x = a.x;
     double y = a.y;
     double dx = b.x - a.x;
