@@ -82,8 +82,10 @@ private:
             const double tolerance =
                 (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
-            it = tiles.emplace(
-                id, detail::Tile{ features, z, x, y, options.extent, options.buffer, tolerance }).first;
+            it = tiles
+                     .emplace(id, detail::Tile{ features, z, x, y, options.extent, options.buffer,
+                                                tolerance })
+                     .first;
             stats[z] = (stats.count(z) ? stats[z] + 1 : 1);
             total++;
         }

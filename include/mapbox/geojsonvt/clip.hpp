@@ -15,13 +15,16 @@ inline vt_line_string newSlice(vt_multi_line_string& parts, vt_line_string& slic
 }
 
 template <uint8_t I>
-inline void
-clipLine(const vt_line_string& line, const double k1, const double k2, vt_multi_line_string& slices) {
+inline void clipLine(const vt_line_string& line,
+                     const double k1,
+                     const double k2,
+                     vt_multi_line_string& slices) {
 
     const double dist = line.dist;
     const size_t len = line.size();
 
-    if (len < 2) return;
+    if (len < 2)
+        return;
 
     vt_line_string slice;
 
@@ -80,7 +83,8 @@ inline vt_linear_ring clipRing(const vt_linear_ring& ring, double k1, double k2)
     vt_linear_ring slice;
     slice.area = ring.area;
 
-    if (len < 2) return slice;
+    if (len < 2)
+        return slice;
 
     for (size_t i = 0; i < (len - 1); ++i) {
         const auto& a = ring[i];
