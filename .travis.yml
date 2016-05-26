@@ -33,12 +33,8 @@ matrix:
       osx_image: xcode7.3
       env: BUILDTYPE=Debug
 
-install:
-- ./configure
-
 script:
-- make test -j2 V=1
-- make bench V=1
+- make test
 
 notifications:
   slack:
