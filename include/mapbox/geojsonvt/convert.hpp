@@ -23,6 +23,10 @@ inline vt_line_string project(const mapbox::geometry::line_string<double>& point
                               const double tolerance) {
     vt_line_string result;
     const size_t len = points.size();
+
+    if (len == 0)
+        return result;
+
     result.reserve(len);
 
     for (const auto& p : points) {
@@ -45,6 +49,10 @@ inline vt_linear_ring project(const mapbox::geometry::linear_ring<double>& ring,
                               const double tolerance) {
     vt_linear_ring result;
     const size_t len = ring.size();
+
+    if (len == 0)
+        return result;
+
     result.reserve(len);
 
     for (const auto& p : ring) {
