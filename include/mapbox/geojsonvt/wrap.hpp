@@ -7,18 +7,26 @@ namespace mapbox {
 namespace geojsonvt {
 namespace detail {
 
-template <typename IntersectCallback>
-inline vt_features wrap(const vt_features& features, double buffer, IntersectCallback intersectX) {
+inline void shiftCoords(vt_features& features, double offset) {
+    for (auto& feature : features) {
+        mapbox::geometry::for_each_point(feature.geometry,
+                                         [offset](vt_point& point) { point += offset; });
+        feature.bbox.min.x += offset;
+        feature.bbox.max.x += offset;
+    }
+}
+
+inline vt_features wrap(const vt_features& features, double buffer) {
     // left world copy
-    auto left = clip(features, -1 - buffer, buffer, 0, intersectX, -1, 2);
+    auto left = clip<0>(features, -1 - buffer, buffer, -1, 2);
     // right world copy
-    auto right = clip(features, 1 - buffer, 2 + buffer, 0, intersectX, -1, 2);
+    auto right = clip<0>(features, 1 - buffer, 2 + buffer, -1, 2);
 
     if (left.empty() && right.empty())
         return features;
 
     // center world copy
-    auto merged = clip(features, -buffer, 1 + buffer, 0, intersectX, -1, 2);
+    auto merged = clip<0>(features, -buffer, 1 + buffer, -1, 2);
 
     if (!left.empty()) {
         // merge left into center
@@ -31,14 +39,6 @@ inline vt_features wrap(const vt_features& features, double buffer, IntersectCal
         merged.insert(merged.end(), right.begin(), right.end());
     }
     return merged;
-}
-
-inline void shiftCoords(vt_features& features, double offset) {
-    for (auto& feature : features) {
-        mapbox::geometry::for_each_point(feature.geometry, [offset](vt_point& point) { point += offset; });
-        feature.bbox.min.x += offset;
-        feature.bbox.max.x += offset;
-    }
 }
 
 } // namespace detail

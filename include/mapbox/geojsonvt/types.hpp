@@ -16,6 +16,40 @@ struct vt_point : mapbox::geometry::point<double> {
     }
 };
 
+template <uint8_t I, typename T>
+inline double get(const T& p);
+
+template <>
+inline double get<0, vt_point>(const vt_point& p) {
+    return p.x;
+}
+template <>
+inline double get<1, vt_point>(const vt_point& p) {
+    return p.y;
+}
+template <>
+inline double get<0, mapbox::geometry::point<double>>(const mapbox::geometry::point<double>& p) {
+    return p.x;
+}
+template <>
+inline double get<1, mapbox::geometry::point<double>>(const mapbox::geometry::point<double>& p) {
+    return p.y;
+}
+
+template <uint8_t I>
+inline vt_point intersect(const vt_point& a, const vt_point& b, const double k);
+
+template <>
+inline vt_point intersect<0>(const vt_point& a, const vt_point& b, const double k) {
+    const double y = (k - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
+    return { k, y, 1.0 };
+}
+template <>
+inline vt_point intersect<1>(const vt_point& a, const vt_point& b, const double k) {
+    const double x = (k - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
+    return { x, k, 1.0 };
+}
+
 using vt_multi_point = std::vector<vt_point>;
 
 struct vt_line_string : std::vector<vt_point> {
