@@ -60,7 +60,6 @@ public:
 
     std::map<uint8_t, uint32_t> stats;
     uint32_t total = 0;
-    std::unordered_map<uint64_t, detail::InternalTile> tiles;
 
     const Tile& getTile(const uint8_t z, const uint32_t x_, const uint32_t y) {
 
@@ -103,6 +102,8 @@ public:
     }
 
 private:
+    std::unordered_map<uint64_t, detail::InternalTile> tiles;
+
     std::unordered_map<uint64_t, detail::InternalTile>::iterator
     findParent(const uint8_t z, const uint32_t x, const uint32_t y) {
         uint8_t z0 = z;
