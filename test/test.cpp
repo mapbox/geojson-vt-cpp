@@ -38,7 +38,7 @@ char* readFile(const char* path) {
 int main() {
     Timer timer;
 
-    char* json = readFile("data/hsa.json");
+    char* json = readFile("data/countries.geojson");
     timer("read file");
 
     const auto features = mapbox::geojson::parse(json).get<mapbox::geojson::feature_collection>();
