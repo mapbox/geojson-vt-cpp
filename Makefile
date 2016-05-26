@@ -1,4 +1,4 @@
-CXXFLAGS += -I include -std=c++14 -Wall -Wextra -Werror -O3
+CXXFLAGS += -I include -std=c++14 -Wall -Wextra -O3
 
 MASON ?= .mason/mason
 

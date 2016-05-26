@@ -2,6 +2,7 @@
 #include <mapbox/geojsonvt.hpp>
 
 #include <iostream>
+#include <fstream>
 
 class Timer {
 public:
@@ -17,28 +18,21 @@ public:
     }
 };
 
-char* readFile(const char* path) {
-    std::FILE* f = std::fopen(path, "r");
-    if (f == nullptr)
-        throw std::runtime_error("Error opening file " + std::string(path));
-
-    std::fseek(f, 0, SEEK_END);
-    size_t size = std::ftell(f);
-    char* str = new char[size];
-    std::rewind(f);
-
-    size_t result = std::fread(str, sizeof(char), size, f);
-    if (result != size)
-        throw std::runtime_error("Error reading file " + std::string(path));
-
-    delete[] str;
-    return str;
+std::string readFile(std::string const& path) {
+    std::ifstream stream(path.c_str(),std::ios_base::in|std::ios_base::binary);
+    if (!stream.is_open())
+    {
+        throw std::runtime_error("could not open: '" + path + "'");
+    }
+    std::string buffer(std::istreambuf_iterator<char>(stream.rdbuf()),(std::istreambuf_iterator<char>()));
+    stream.close();
+    return buffer;
 }
 
 int main() {
     Timer timer;
 
-    char* json = readFile("data/countries.geojson");
+    const std::string json = readFile("data/countries.geojson");
     timer("read file");
 
     const auto features = mapbox::geojson::parse(json).get<mapbox::geojson::feature_collection>();
