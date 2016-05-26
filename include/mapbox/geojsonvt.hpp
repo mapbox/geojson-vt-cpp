@@ -7,7 +7,6 @@
 
 #include <chrono>
 #include <cmath>
-#include <iostream>
 #include <map>
 #include <unordered_map>
 
@@ -77,19 +76,19 @@ private:
         const double z2 = 1 << z;
         const uint64_t id = detail::toID(z, x, y);
 
-        const auto it = tiles.find(id);
+        auto it = tiles.find(id);
 
         if (it == tiles.end()) {
             const double tolerance =
                 (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
-            tiles.emplace(
-                id, detail::Tile{ features, z, x, y, options.extent, options.buffer, tolerance });
+            it = tiles.emplace(
+                id, detail::Tile{ features, z, x, y, options.extent, options.buffer, tolerance }).first;
             stats[z] = (stats.count(z) ? stats[z] + 1 : 1);
             total++;
         }
 
-        auto& tile = tiles.find(id)->second;
+        auto& tile = it->second;
 
         // stop tiling if we reached max zoom, or if the tile is too simple
         if (z == options.indexMaxZoom || tile.num_points <= options.indexMaxPoints) {
