@@ -38,20 +38,12 @@ struct Options {
 };
 
 namespace detail {
+
 inline uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
     return (((1 << z) * y + x) * 32) + z;
 }
 
-inline vt_point intersectX(const vt_point& a, const vt_point& b, const double x) {
-    const double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
-    return { x, y, 1.0 };
-}
-
-inline vt_point intersectY(const vt_point& a, const vt_point& b, const double y) {
-    const double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
-    return { x, y, 1.0 };
-}
-}
+} // namespace detail
 
 class GeoJSONVT {
 public:
@@ -64,8 +56,7 @@ public:
         const uint32_t z2 = std::pow(2, options.maxZoom);
 
         auto converted = detail::convert(features_, options.tolerance / (z2 * options.extent));
-        auto features =
-            detail::wrap(converted, double(options.buffer) / options.extent, detail::intersectX);
+        auto features = detail::wrap(converted, double(options.buffer) / options.extent);
 
         splitTile(features, 0, 0, 0);
     }
@@ -110,27 +101,22 @@ private:
         const auto& min = tile.bbox.min;
         const auto& max = tile.bbox.max;
 
-        const auto left =
-            clip(features, (x - p) / z2, (x + 0.5 + p) / z2, 0, detail::intersectX, min.x, max.x);
+        const auto left = detail::clip<0>(features, (x - p) / z2, (x + 0.5 + p) / z2, min.x, max.x);
 
         if (!left.empty()) {
-            splitTile(
-                clip(left, (y - p) / z2, (y + 0.5 + p) / z2, 1, detail::intersectY, min.y, max.y),
-                z + 1, x * 2, y * 2);
-            splitTile(clip(left, (y + 0.5 - p) / z2, (y + 1 + p) / z2, 1, detail::intersectY, min.y,
-                           max.y),
+            splitTile(detail::clip<1>(left, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y), z + 1,
+                      x * 2, y * 2);
+            splitTile(detail::clip<1>(left, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y),
                       z + 1, x * 2, y * 2 + 1);
         }
 
-        const auto right = clip(features, (x + 0.5 - p) / z2, (x + 1 + p) / z2, 0,
-                                detail::intersectX, min.x, max.x);
+        const auto right =
+            detail::clip<0>(features, (x + 0.5 - p) / z2, (x + 1 + p) / z2, min.x, max.x);
 
         if (!right.empty()) {
-            splitTile(
-                clip(right, (y - p) / z2, (y + 0.5 + p) / z2, 1, detail::intersectY, min.y, max.y),
-                z + 1, x * 2 + 1, y * 2);
-            splitTile(clip(right, (y + 0.5 - p) / z2, (y + 1 + p) / z2, 1, detail::intersectY,
-                           min.y, max.y),
+            splitTile(detail::clip<1>(right, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y), z + 1,
+                      x * 2 + 1, y * 2);
+            splitTile(detail::clip<1>(right, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y),
                       z + 1, x * 2 + 1, y * 2 + 1);
         }
     }
