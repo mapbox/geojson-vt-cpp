@@ -36,15 +36,11 @@ struct Options {
     uint16_t buffer = 64;
 };
 
-namespace detail {
-
-const Tile emptyTile{ {}, 0, 0, 0, 4096, 0, 0 };
+const Tile empty_tile{};
 
 inline uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
     return (((1 << z) * y + x) * 32) + z;
 }
-
-} // namespace detail
 
 class GeoJSONVT {
 public:
@@ -64,50 +60,50 @@ public:
 
     std::map<uint8_t, uint32_t> stats;
     uint32_t total = 0;
-    std::unordered_map<uint64_t, detail::Tile> tiles;
+    std::unordered_map<uint64_t, detail::InternalTile> tiles;
 
-    const detail::Tile& getTile(const uint8_t z, const uint32_t x_, const uint32_t y) {
+    const Tile& getTile(const uint8_t z, const uint32_t x_, const uint32_t y) {
 
         if (z > options.maxZoom)
             throw std::runtime_error("Requested zoom higher than maxZoom: " + std::to_string(z));
 
         const uint32_t z2 = std::pow(2, z);
         const uint32_t x = ((x_ % z2) + z2) % z2; // wrap tile x coordinate
-        const uint64_t id = detail::toID(z, x, y);
+        const uint64_t id = toID(z, x, y);
 
         auto it = tiles.find(id);
         if (it != tiles.end())
-            return it->second;
+            return it->second.tile;
 
         it = findParent(z, x, y);
 
         if (it == tiles.end())
-            return detail::emptyTile;
+            return empty_tile;
 
         // if we found a parent tile containing the original geometry, we can drill down from it
         const auto& parent = it->second;
 
         // parent tile is a solid clipped square, return it instead since it's identical
         if (parent.is_solid)
-            return parent;
+            return parent.tile;
 
         // drill down parent tile up to the requested one
         splitTile(parent.source_features, parent.z, parent.x, parent.y, z, x, y);
 
         it = tiles.find(id);
         if (it != tiles.end())
-            return it->second;
+            return it->second.tile;
 
         // drilling stopped because parent was a solid square; return it instead
         it = findParent(z, x, y);
         if (it != tiles.end())
-            return it->second;
+            return it->second.tile;
 
-        return detail::emptyTile;
+        return empty_tile;
     }
 
 private:
-    std::unordered_map<uint64_t, detail::Tile>::iterator
+    std::unordered_map<uint64_t, detail::InternalTile>::iterator
     findParent(const uint8_t z, const uint32_t x, const uint32_t y) {
         uint8_t z0 = z;
         uint32_t x0 = x;
@@ -120,7 +116,7 @@ private:
             z0--;
             x0 = x0 / 2;
             y0 = y0 / 2;
-            parent = tiles.find(detail::toID(z0, x0, y0));
+            parent = tiles.find(toID(z0, x0, y0));
         }
 
         return parent;
@@ -138,7 +134,7 @@ private:
             return;
 
         const double z2 = 1 << z;
-        const uint64_t id = detail::toID(z, x, y);
+        const uint64_t id = toID(z, x, y);
 
         auto it = tiles.find(id);
 
@@ -147,8 +143,8 @@ private:
                 (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
             it = tiles
-                     .emplace(id, detail::Tile{ features, z, x, y, options.extent, options.buffer,
-                                                tolerance })
+                     .emplace(id, detail::InternalTile{ features, z, x, y, options.extent,
+                                                        options.buffer, tolerance })
                      .first;
             stats[z] = (stats.count(z) ? stats[z] + 1 : 1);
             total++;
@@ -164,7 +160,7 @@ private:
         // if it's the first-pass tiling
         if (cz == 0u) {
             // stop tiling if we reached max zoom, or if the tile is too simple
-            if (z == options.indexMaxZoom || tile.num_points <= options.indexMaxPoints) {
+            if (z == options.indexMaxZoom || tile.tile.num_points <= options.indexMaxPoints) {
                 tile.source_features = features;
                 return;
             }

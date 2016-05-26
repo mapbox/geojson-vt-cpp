@@ -4,76 +4,79 @@
 
 namespace mapbox {
 namespace geojsonvt {
+
+struct Tile {
+    mapbox::geometry::feature_collection<int16_t> features;
+    uint32_t num_points = 0;
+    uint32_t num_simplified = 0;
+};
+
 namespace detail {
 
-class Tile {
+class InternalTile {
 public:
-    vt_features source_features;
-    mapbox::geometry::feature_collection<int16_t> features;
-
     const uint8_t z;
     const uint32_t x;
     const uint32_t y;
-    const uint16_t extent;
-    const double tolerance;
-    bool is_solid = false;
 
-    uint32_t num_points = 0;
-    uint32_t num_simplified = 0;
+    vt_features source_features;
+    bool is_solid = false;
     mapbox::geometry::box<double> bbox = { { 2, 1 }, { -1, 0 } };
 
-    Tile(const vt_features& source,
-         const uint8_t z_,
-         const uint32_t x_,
-         const uint32_t y_,
-         const uint16_t extent_,
-         const uint16_t buffer,
-         const double tolerance_)
+    Tile tile;
+
+    InternalTile(const vt_features& source,
+                 const uint8_t z_,
+                 const uint32_t x_,
+                 const uint32_t y_,
+                 const uint16_t extent_,
+                 const uint16_t buffer,
+                 const double tolerance_)
         : z(z_),
           x(x_),
           y(y_),
+          z2(std::pow(2, z)),
           extent(extent_),
           tolerance(tolerance_),
-          z2(std::pow(2, z_)),
           sq_tolerance(tolerance_ * tolerance_) {
 
         for (const auto& feature : source) {
             const auto& geom = feature.geometry;
             const auto& props = feature.properties;
 
-            num_points += feature.num_points;
+            tile.num_points += feature.num_points;
 
             if (geom.is<vt_point>()) {
-                features.push_back({ { transform(geom.get<vt_point>()) }, props });
+                tile.features.push_back({ { transform(geom.get<vt_point>()) }, props });
 
             } else if (geom.is<vt_multi_point>()) {
-                features.push_back({ { transform(geom.get<vt_multi_point>()) }, props });
+                tile.features.push_back({ { transform(geom.get<vt_multi_point>()) }, props });
 
             } else if (geom.is<vt_line_string>()) {
                 const auto line = transform(geom.get<vt_line_string>());
                 if (!line.empty())
-                    features.push_back({ { line }, props });
+                    tile.features.push_back({ { line }, props });
 
             } else if (geom.is<vt_multi_line_string>()) {
                 const auto lines = transform(geom.get<vt_multi_line_string>());
                 const auto size = lines.size();
                 if (size == 1)
-                    features.push_back({ { lines[0] }, props });
+                    tile.features.push_back({ { lines[0] }, props });
                 else if (size > 1)
-                    features.push_back({ { lines }, props });
+                    tile.features.push_back({ { lines }, props });
 
             } else if (geom.is<vt_polygon>()) {
                 const auto polygon = transform(geom.get<vt_polygon>());
                 if (!polygon.empty())
-                    features.push_back({ { polygon }, props });
+                    tile.features.push_back({ { polygon }, props });
 
             } else if (geom.is<vt_multi_polygon>()) {
                 const auto polygons = transform(geom.get<vt_multi_polygon>());
                 const auto size = polygons.size();
                 if (size == 1)
-                    features.push_back({ { polygons[0] }, props });
+                    tile.features.push_back({ { polygons[0] }, props });
                 else if (size > 1)
-                    features.push_back({ { polygons }, props });
+                    tile.features.push_back({ { polygons }, props });
 
             } else {
                 throw std::runtime_error("Geometry type not supported");
@@ -90,13 +93,15 @@ public:
 
 private:
     const double z2;
+    const uint16_t extent;
+    const double tolerance;
     const double sq_tolerance;
 
     bool isSolid(const uint16_t buffer) {
-        if (features.size() != 1)
+        if (tile.features.size() != 1)
             return false;
 
-        const auto& geom = features.front().geometry;
+        const auto& geom = tile.features.front().geometry;
         if (!geom.is<mapbox::geometry::polygon<int16_t>>())
             return false;
 
@@ -119,7 +124,7 @@ private:
     }
 
     mapbox::geometry::point<int16_t> transform(const vt_point& p) {
-        ++num_simplified;
+        ++tile.num_simplified;
         return { static_cast<int16_t>(std::round((p.x * z2 - x) * extent)),
                  static_cast<int16_t>(std::round((p.y * z2 - y) * extent)) };
     }
