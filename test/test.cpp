@@ -19,11 +19,18 @@ public:
 
 char* readFile(const char* path) {
     std::FILE* f = std::fopen(path, "r");
+    if (f == nullptr)
+        throw std::runtime_error("Error opening file " + std::string(path));
+
     std::fseek(f, 0, SEEK_END);
     size_t size = std::ftell(f);
     char* str = new char[size];
     std::rewind(f);
-    std::fread(str, sizeof(char), size, f);
+
+    size_t result = std::fread(str, sizeof(char), size, f);
+    if (result != size)
+        throw std::runtime_error("Error reading file " + std::string(path));
+
     delete[] str;
     return str;
 }
