@@ -6,43 +6,6 @@ namespace mapbox {
 namespace geojsonvt {
 namespace detail {
 
-// calculate simplification data using optimized Douglas-Peucker algorithm
-
-template <typename Container>
-inline void simplify(Container& points, double tolerance) {
-    const size_t len = points.size();
-
-    // always retain the endpoints (1 is the max value)
-    points[0].z = 1.0;
-    points[len - 1].z = 1.0;
-
-    simplify(points, 0, len - 1, tolerance * tolerance);
-}
-
-template <typename Container>
-inline void simplify(Container& points, size_t first, size_t last, double sqTolerance) {
-    double maxSqDist = sqTolerance;
-    size_t index;
-
-    for (auto i = first + 1; i < last; i++) {
-        const double sqDist = getSqSegDist(points[i], points[first], points[last]);
-
-        if (sqDist > maxSqDist) {
-            index = i;
-            maxSqDist = sqDist;
-        }
-    }
-
-    if (maxSqDist > sqTolerance) {
-        // save the point importance in squared pixels as a z coordinate
-        points[index].z = maxSqDist;
-        if (index - first > 1)
-            simplify(points, first, index, sqTolerance);
-        if (last - index > 1)
-            simplify(points, index, last, sqTolerance);
-    }
-}
-
 // square distance from a point to a segment
 double getSqSegDist(const vt_point& p, const vt_point& a, const vt_point& b) {
     double x = a.x;
@@ -68,6 +31,40 @@ double getSqSegDist(const vt_point& p, const vt_point& a, const vt_point& b) {
     dy = p.y - y;
 
     return dx * dx + dy * dy;
+}
+
+// calculate simplification data using optimized Douglas-Peucker algorithm
+inline void simplify(std::vector<vt_point>& points, size_t first, size_t last, double sqTolerance) {
+    double maxSqDist = sqTolerance;
+    size_t index;
+
+    for (auto i = first + 1; i < last; i++) {
+        const double sqDist = getSqSegDist(points[i], points[first], points[last]);
+
+        if (sqDist > maxSqDist) {
+            index = i;
+            maxSqDist = sqDist;
+        }
+    }
+
+    if (maxSqDist > sqTolerance) {
+        // save the point importance in squared pixels as a z coordinate
+        points[index].z = maxSqDist;
+        if (index - first > 1)
+            simplify(points, first, index, sqTolerance);
+        if (last - index > 1)
+            simplify(points, index, last, sqTolerance);
+    }
+}
+
+inline void simplify(std::vector<vt_point>& points, double tolerance) {
+    const size_t len = points.size();
+
+    // always retain the endpoints (1 is the max value)
+    points[0].z = 1.0;
+    points[len - 1].z = 1.0;
+
+    simplify(points, 0, len - 1, tolerance * tolerance);
 }
 
 } // namespace detail
