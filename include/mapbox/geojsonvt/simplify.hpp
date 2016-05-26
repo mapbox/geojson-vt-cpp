@@ -36,7 +36,7 @@ inline double getSqSegDist(const vt_point& p, const vt_point& a, const vt_point&
 // calculate simplification data using optimized Douglas-Peucker algorithm
 inline void simplify(std::vector<vt_point>& points, size_t first, size_t last, double sqTolerance) {
     double maxSqDist = sqTolerance;
-    size_t index;
+    size_t index = 0;
 
     for (auto i = first + 1; i < last; i++) {
         const double sqDist = getSqSegDist(points[i], points[first], points[last]);
