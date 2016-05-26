@@ -17,37 +17,37 @@ struct vt_point : mapbox::geometry::point<double> {
 };
 
 template <uint8_t I, typename T>
-inline double get(const T& p);
+inline double get(const T&);
 
 template <>
-inline double get<0, vt_point>(const vt_point& p) {
+inline double get<0>(const vt_point& p) {
     return p.x;
 }
 template <>
-inline double get<1, vt_point>(const vt_point& p) {
+inline double get<1>(const vt_point& p) {
     return p.y;
 }
 template <>
-inline double get<0, mapbox::geometry::point<double>>(const mapbox::geometry::point<double>& p) {
+inline double get<0>(const mapbox::geometry::point<double>& p) {
     return p.x;
 }
 template <>
-inline double get<1, mapbox::geometry::point<double>>(const mapbox::geometry::point<double>& p) {
+inline double get<1>(const mapbox::geometry::point<double>& p) {
     return p.y;
 }
 
 template <uint8_t I>
-inline vt_point intersect(const vt_point& a, const vt_point& b, const double k);
+inline vt_point intersect(const vt_point&, const vt_point&, const double);
 
 template <>
-inline vt_point intersect<0>(const vt_point& a, const vt_point& b, const double k) {
-    const double y = (k - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
-    return { k, y, 1.0 };
+inline vt_point intersect<0>(const vt_point& a, const vt_point& b, const double x) {
+    const double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
+    return { x, y, 1.0 };
 }
 template <>
-inline vt_point intersect<1>(const vt_point& a, const vt_point& b, const double k) {
-    const double x = (k - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
-    return { x, k, 1.0 };
+inline vt_point intersect<1>(const vt_point& a, const vt_point& b, const double y) {
+    const double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
+    return { x, y, 1.0 };
 }
 
 using vt_multi_point = std::vector<vt_point>;
