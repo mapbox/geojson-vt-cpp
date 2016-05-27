@@ -47,7 +47,7 @@ public:
             tile.num_points += feature.num_points;
 
             vt_geometry::visit(geom, [&] (const auto& g) {
-                visit(transform(g), props);
+                addFeature(transform(g), props);
             });
 
             bbox.min.x = std::min(feature.bbox.min.x, bbox.min.x);
@@ -91,22 +91,22 @@ private:
         return true;
     }
 
-    void visit(geometry::point<int16_t>&& point, const property_map& props) {
+    void addFeature(geometry::point<int16_t>&& point, const property_map& props) {
         tile.features.push_back({ std::move(point), props });
     }
 
-    void visit(geometry::line_string<int16_t>&& line, const property_map& props) {
+    void addFeature(geometry::line_string<int16_t>&& line, const property_map& props) {
         if (!line.empty())
             tile.features.push_back({ std::move(line), props });
     }
 
-    void visit(geometry::polygon<int16_t>&& polygon, const property_map& props) {
+    void addFeature(geometry::polygon<int16_t>&& polygon, const property_map& props) {
         if (!polygon.empty())
             tile.features.push_back({ std::move(polygon), props });
     }
 
     template <class T>
-    void visit(T&& multi, const property_map& props) {
+    void addFeature(T&& multi, const property_map& props) {
         switch (multi.size()) {
         case 0: break;
         case 1:  tile.features.push_back({ std::move(multi[0]), props }); break;
