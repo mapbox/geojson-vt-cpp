@@ -46,41 +46,9 @@ public:
 
             tile.num_points += feature.num_points;
 
-            if (geom.is<vt_point>()) {
-                tile.features.push_back({ { transform(geom.get<vt_point>()) }, props });
-
-            } else if (geom.is<vt_multi_point>()) {
-                tile.features.push_back({ { transform(geom.get<vt_multi_point>()) }, props });
-
-            } else if (geom.is<vt_line_string>()) {
-                const auto line = transform(geom.get<vt_line_string>());
-                if (!line.empty())
-                    tile.features.push_back({ { line }, props });
-
-            } else if (geom.is<vt_multi_line_string>()) {
-                const auto lines = transform(geom.get<vt_multi_line_string>());
-                const auto size = lines.size();
-                if (size == 1)
-                    tile.features.push_back({ { lines[0] }, props });
-                else if (size > 1)
-                    tile.features.push_back({ { lines }, props });
-
-            } else if (geom.is<vt_polygon>()) {
-                const auto polygon = transform(geom.get<vt_polygon>());
-                if (!polygon.empty())
-                    tile.features.push_back({ { polygon }, props });
-
-            } else if (geom.is<vt_multi_polygon>()) {
-                const auto polygons = transform(geom.get<vt_multi_polygon>());
-                const auto size = polygons.size();
-                if (size == 1)
-                    tile.features.push_back({ { polygons[0] }, props });
-                else if (size > 1)
-                    tile.features.push_back({ { polygons }, props });
-
-            } else {
-                throw std::runtime_error("Geometry type not supported");
-            }
+            vt_geometry::visit(geom, [&] (const auto& g) {
+                visit(transform(g), props);
+            });
 
             bbox.min.x = std::min(feature.bbox.min.x, bbox.min.x);
             bbox.min.y = std::min(feature.bbox.min.y, bbox.min.y);
@@ -121,6 +89,40 @@ private:
         }
 
         return true;
+    }
+
+    void visit(const geometry::point<int16_t>& point, const property_map& props) {
+        tile.features.push_back({ { point }, props });
+    }
+
+    void visit(const geometry::line_string<int16_t>& line, const property_map& props) {
+        if (!line.empty())
+            tile.features.push_back({ { line }, props });
+    }
+
+    void visit(const geometry::polygon<int16_t>& polygon, const property_map& props) {
+        if (!polygon.empty())
+            tile.features.push_back({ { polygon }, props });
+    }
+
+    void visit(const geometry::multi_point<int16_t>& points, const property_map& props) {
+        tile.features.push_back({ { points }, props });
+    }
+
+    void visit(const geometry::multi_line_string<int16_t>& lines, const property_map& props) {
+        const auto size = lines.size();
+        if (size == 1)
+            tile.features.push_back({ { lines[0] }, props });
+        else if (size > 1)
+            tile.features.push_back({ { lines }, props });
+    }
+
+    void visit(const geometry::multi_polygon<int16_t>& polygons, const property_map& props) {
+        const auto size = polygons.size();
+        if (size == 1)
+            tile.features.push_back({ { polygons[0] }, props });
+        else if (size > 1)
+            tile.features.push_back({ { polygons }, props });
     }
 
     mapbox::geometry::point<int16_t> transform(const vt_point& p) {
