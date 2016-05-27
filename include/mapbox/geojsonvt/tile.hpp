@@ -105,24 +105,13 @@ private:
             tile.features.push_back({ { polygon }, props });
     }
 
-    void visit(const geometry::multi_point<int16_t>& points, const property_map& props) {
-        tile.features.push_back({ { points }, props });
-    }
-
-    void visit(const geometry::multi_line_string<int16_t>& lines, const property_map& props) {
-        const auto size = lines.size();
-        if (size == 1)
-            tile.features.push_back({ { lines[0] }, props });
-        else if (size > 1)
-            tile.features.push_back({ { lines }, props });
-    }
-
-    void visit(const geometry::multi_polygon<int16_t>& polygons, const property_map& props) {
-        const auto size = polygons.size();
-        if (size == 1)
-            tile.features.push_back({ { polygons[0] }, props });
-        else if (size > 1)
-            tile.features.push_back({ { polygons }, props });
+    template <class T>
+    void visit(const T& multi, const property_map& props) {
+        switch (multi.size()) {
+        case 0: break;
+        case 1:  tile.features.push_back({ { multi[0] }, props }); break;
+        default: tile.features.push_back({ { multi }, props });    break;
+        }
     }
 
     mapbox::geometry::point<int16_t> transform(const vt_point& p) {
