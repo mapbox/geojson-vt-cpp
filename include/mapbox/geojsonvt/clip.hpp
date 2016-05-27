@@ -71,6 +71,16 @@ public:
         return result;
     }
 
+    vt_geometry operator()(const vt_geometry_collection& geometries) const {
+        vt_geometry_collection result;
+        for (const auto& geometry : geometries) {
+            vt_geometry::visit(geometry, [&] (const auto& g) {
+                result.push_back(operator()(g));
+            });
+        }
+        return result;
+    }
+
 private:
     vt_line_string newSlice(vt_multi_line_string& parts, vt_line_string& slice, double dist) const {
         if (!slice.empty()) {

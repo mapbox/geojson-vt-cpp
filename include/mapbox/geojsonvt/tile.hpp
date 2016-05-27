@@ -178,6 +178,16 @@ private:
         }
         return result;
     }
+
+    mapbox::geometry::geometry_collection<int16_t> transform(const vt_geometry_collection& geometries) {
+        mapbox::geometry::geometry_collection<int16_t> result;
+        for (const auto& geometry : geometries) {
+            vt_geometry::visit(geometry, [&] (const auto& g) {
+                result.push_back(transform(g));
+            });
+        }
+        return result;
+    }
 };
 
 } // namespace detail
