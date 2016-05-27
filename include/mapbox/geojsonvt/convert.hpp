@@ -110,8 +110,13 @@ struct project {
         return result;
     }
 
-    vt_geometry operator()(const geometry::geometry_collection<double>&) {
-        throw std::runtime_error("unsupported geometry type");
+    vt_geometry_collection operator()(const geometry::geometry_collection<double>& geometries) {
+        vt_geometry_collection result;
+        result.reserve(geometries.size());
+        for (const auto& geometry : geometries) {
+            result.push_back(geometry::geometry<double>::visit(geometry, project { tolerance }));
+        }
+        return result;
     }
 };
 

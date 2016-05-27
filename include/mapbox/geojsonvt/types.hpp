@@ -64,12 +64,17 @@ using vt_multi_line_string = std::vector<vt_line_string>;
 using vt_polygon = std::vector<vt_linear_ring>;
 using vt_multi_polygon = std::vector<vt_polygon>;
 
+struct vt_geometry_collection;
+
 using vt_geometry = mapbox::util::variant<vt_point,
                                           vt_line_string,
                                           vt_polygon,
                                           vt_multi_point,
                                           vt_multi_line_string,
-                                          vt_multi_polygon>;
+                                          vt_multi_polygon,
+                                          vt_geometry_collection>;
+
+struct vt_geometry_collection : std::vector<vt_geometry> {};
 
 using property_map = std::unordered_map<std::string, mapbox::geometry::value>;
 
