@@ -78,6 +78,17 @@ struct vt_geometry_collection : std::vector<vt_geometry> {};
 
 using property_map = std::unordered_map<std::string, mapbox::geometry::value>;
 
+template <class T> struct vt_geometry_type;
+
+template <> struct vt_geometry_type<geometry::point<double>> { using type = vt_point; };
+template <> struct vt_geometry_type<geometry::line_string<double>> { using type = vt_line_string; };
+template <> struct vt_geometry_type<geometry::polygon<double>> { using type = vt_polygon; };
+template <> struct vt_geometry_type<geometry::multi_point<double>> { using type = vt_multi_point; };
+template <> struct vt_geometry_type<geometry::multi_line_string<double>> { using type = vt_multi_line_string; };
+template <> struct vt_geometry_type<geometry::multi_polygon<double>> { using type = vt_multi_polygon; };
+template <> struct vt_geometry_type<geometry::geometry<double>> { using type = vt_geometry; };
+template <> struct vt_geometry_type<geometry::geometry_collection<double>> { using type = vt_geometry_collection; };
+
 struct vt_feature {
     vt_geometry geometry;
     property_map properties;
