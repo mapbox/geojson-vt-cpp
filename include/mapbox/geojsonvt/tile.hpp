@@ -46,9 +46,7 @@ public:
 
             tile.num_points += feature.num_points;
 
-            vt_geometry::visit(geom, [&] (const auto& g) {
-                addFeature(transform(g), props);
-            });
+            vt_geometry::visit(geom, [&](const auto& g) { addFeature(transform(g), props); });
 
             bbox.min.x = std::min(feature.bbox.min.x, bbox.min.x);
             bbox.min.y = std::min(feature.bbox.min.y, bbox.min.y);
@@ -108,9 +106,14 @@ private:
     template <class T>
     void addFeature(T&& multi, const property_map& props) {
         switch (multi.size()) {
-        case 0: break;
-        case 1:  tile.features.push_back({ std::move(multi[0]), props }); break;
-        default: tile.features.push_back({ std::move(multi),    props }); break;
+        case 0:
+            break;
+        case 1:
+            tile.features.push_back({ std::move(multi[0]), props });
+            break;
+        default:
+            tile.features.push_back({ std::move(multi), props });
+            break;
         }
     }
 
@@ -179,12 +182,11 @@ private:
         return result;
     }
 
-    mapbox::geometry::geometry_collection<int16_t> transform(const vt_geometry_collection& geometries) {
+    mapbox::geometry::geometry_collection<int16_t>
+    transform(const vt_geometry_collection& geometries) {
         mapbox::geometry::geometry_collection<int16_t> result;
         for (const auto& geometry : geometries) {
-            vt_geometry::visit(geometry, [&] (const auto& g) {
-                result.push_back(transform(g));
-            });
+            vt_geometry::visit(geometry, [&](const auto& g) { result.push_back(transform(g)); });
         }
         return result;
     }

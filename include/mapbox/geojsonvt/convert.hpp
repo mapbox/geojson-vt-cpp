@@ -38,7 +38,8 @@ struct project {
         for (size_t i = 0; i < len - 1; ++i) {
             const auto& a = result[i];
             const auto& b = result[i + 1];
-            // use Manhattan distance instead of Euclidian to avoid expensive square root computation
+            // use Manhattan distance instead of Euclidian to avoid expensive square root
+            // computation
             result.dist += std::abs(b.x - a.x) + std::abs(b.y - a.y);
         }
 
@@ -75,7 +76,7 @@ struct project {
     }
 
     vt_geometry operator()(const geometry::geometry<double>& geometry) {
-        return geometry::geometry<double>::visit(geometry, project { tolerance });
+        return geometry::geometry<double>::visit(geometry, project{ tolerance });
     }
 
     // Handles polygon, multi_*, geometry_collection.
@@ -95,7 +96,9 @@ inline vt_features convert(const geometry::feature_collection<double>& features,
     vt_features projected;
     projected.reserve(features.size());
     for (const auto& feature : features) {
-        projected.emplace_back(geometry::geometry<double>::visit(feature.geometry, project { tolerance }), feature.properties);
+        projected.emplace_back(
+            geometry::geometry<double>::visit(feature.geometry, project{ tolerance }),
+            feature.properties);
     }
     return projected;
 }
