@@ -1,8 +1,8 @@
 #include <mapbox/geojson.hpp>
 #include <mapbox/geojsonvt.hpp>
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 class Timer {
 public:
@@ -19,12 +19,12 @@ public:
 };
 
 std::string readFile(std::string const& path) {
-    std::ifstream stream(path.c_str(),std::ios_base::in|std::ios_base::binary);
-    if (!stream.is_open())
-    {
+    std::ifstream stream(path.c_str(), std::ios_base::in | std::ios_base::binary);
+    if (!stream.is_open()) {
         throw std::runtime_error("could not open: '" + path + "'");
     }
-    std::string buffer(std::istreambuf_iterator<char>(stream.rdbuf()),(std::istreambuf_iterator<char>()));
+    std::string buffer(std::istreambuf_iterator<char>(stream.rdbuf()),
+                       (std::istreambuf_iterator<char>()));
     stream.close();
     return buffer;
 }

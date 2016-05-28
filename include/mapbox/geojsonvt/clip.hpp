@@ -74,9 +74,7 @@ public:
     vt_geometry operator()(const vt_geometry_collection& geometries) const {
         vt_geometry_collection result;
         for (const auto& geometry : geometries) {
-            vt_geometry::visit(geometry, [&] (const auto& g) {
-                result.push_back(operator()(g));
-            });
+            vt_geometry::visit(geometry, [&](const auto& g) { result.push_back(operator()(g)); });
         }
         return result;
     }
@@ -90,8 +88,7 @@ private:
         return {};
     }
 
-    void clipLine(const vt_line_string& line,
-                  vt_multi_line_string& slices) const {
+    void clipLine(const vt_line_string& line, vt_multi_line_string& slices) const {
 
         const double dist = line.dist;
         const size_t len = line.size();
@@ -238,7 +235,7 @@ inline vt_features clip(const vt_features& features,
             continue;
 
         } else {
-            clipped.emplace_back(vt_geometry::visit(geom, clipper<I> { k1, k2 }), props);
+            clipped.emplace_back(vt_geometry::visit(geom, clipper<I>{ k1, k2 }), props);
         }
     }
 
