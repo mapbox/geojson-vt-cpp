@@ -74,47 +74,17 @@ struct project {
         return result;
     }
 
-    vt_polygon operator()(const geometry::polygon<double>& rings) {
-        vt_polygon result;
-        result.reserve(rings.size());
-        for (const auto& ring : rings) {
-            result.push_back(operator()(ring));
-        }
-        return result;
+    vt_geometry operator()(const geometry::geometry<double>& geometry) {
+        return geometry::geometry<double>::visit(geometry, project { tolerance });
     }
 
-    vt_multi_point operator()(const geometry::multi_point<double>& points) {
-        vt_multi_point result;
-        result.reserve(points.size());
-        for (const auto& p : points) {
-            result.push_back(operator()(p));
-        }
-        return result;
-    }
-
-    vt_multi_line_string operator()(const geometry::multi_line_string<double>& lines) {
-        vt_multi_line_string result;
-        result.reserve(lines.size());
-        for (const auto& line : lines) {
-            result.push_back(operator()(line));
-        }
-        return result;
-    }
-
-    vt_multi_polygon operator()(const geometry::multi_polygon<double>& polygons) {
-        vt_multi_polygon result;
-        result.reserve(polygons.size());
-        for (const auto& polygon : polygons) {
-            result.push_back(operator()(polygon));
-        }
-        return result;
-    }
-
-    vt_geometry_collection operator()(const geometry::geometry_collection<double>& geometries) {
-        vt_geometry_collection result;
-        result.reserve(geometries.size());
-        for (const auto& geometry : geometries) {
-            result.push_back(geometry::geometry<double>::visit(geometry, project { tolerance }));
+    // Handles polygon, multi_*, geometry_collection.
+    template <class T>
+    auto operator()(const T& vector) {
+        typename vt_geometry_type<T>::type result;
+        result.reserve(vector.size());
+        for (const auto& e : vector) {
+            result.push_back(operator()(e));
         }
         return result;
     }
