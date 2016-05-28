@@ -46,7 +46,10 @@ public:
 
             tile.num_points += feature.num_points;
 
-            vt_geometry::visit(geom, [&](const auto& g) { addFeature(transform(g), props); });
+            vt_geometry::visit(geom, [&](const auto& g) {
+                // `this->` is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61636
+                this->addFeature(this->transform(g), props);
+            });
 
             bbox.min.x = std::min(feature.bbox.min.x, bbox.min.x);
             bbox.min.y = std::min(feature.bbox.min.y, bbox.min.y);
@@ -186,7 +189,10 @@ private:
     transform(const vt_geometry_collection& geometries) {
         mapbox::geometry::geometry_collection<int16_t> result;
         for (const auto& geometry : geometries) {
-            vt_geometry::visit(geometry, [&](const auto& g) { result.push_back(transform(g)); });
+            vt_geometry::visit(geometry, [&](const auto& g) {
+                // `this->` is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61636
+                result.push_back(this->transform(g));
+            });
         }
         return result;
     }
