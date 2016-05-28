@@ -174,7 +174,7 @@ private:
         for (const auto& polygon : polygons) {
             const auto p = transform(polygon);
             if (!p.empty())
-                result.push_back(p);
+                result.push_back(std::move(p));
         }
         return result;
     }
