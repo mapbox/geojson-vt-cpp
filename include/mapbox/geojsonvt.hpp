@@ -77,7 +77,7 @@ public:
         it = findParent(z, x, y);
 
         if (it == tiles.end())
-            return empty_tile;
+            throw std::runtime_error("Parent tile not found");
 
         // if we found a parent tile containing the original geometry, we can drill down from it
         const auto& parent = it->second;
@@ -93,11 +93,15 @@ public:
         if (it != tiles.end())
             return it->second.tile;
 
-        // drilling stopped because parent was a solid square; return it instead
         it = findParent(z, x, y);
-        if (it != tiles.end())
+        if (it == tiles.end())
+            throw std::runtime_error("Parent tile not found");
+
+        // drilling stopped because parent was a solid square; return it instead
+        if (it->second.is_solid)
             return it->second.tile;
 
+        // otherwise it was an empty tile
         return empty_tile;
     }
 
@@ -131,9 +135,6 @@ private:
                    const uint32_t cx = 0,
                    const uint32_t cy = 0) {
 
-        if (features.empty())
-            return;
-
         const double z2 = 1 << z;
         const uint64_t id = toID(z, x, y);
 
@@ -154,10 +155,12 @@ private:
 
         auto& tile = it->second;
 
-        // stop tiling if the tile is solid clipped square
-        if (!options.solidChildren && tile.is_solid) {
+        if (features.empty())
             return;
-        }
+
+        // stop tiling if the tile is solid clipped square
+        if (!options.solidChildren && tile.is_solid)
+            return;
 
         // if it's the first-pass tiling
         if (cz == 0u) {
@@ -193,22 +196,18 @@ private:
 
         const auto left = detail::clip<0>(features, (x - p) / z2, (x + 0.5 + p) / z2, min.x, max.x);
 
-        if (!left.empty()) {
-            splitTile(detail::clip<1>(left, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y), z + 1,
-                      x * 2, y * 2);
-            splitTile(detail::clip<1>(left, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y),
-                      z + 1, x * 2, y * 2 + 1);
-        }
+        splitTile(detail::clip<1>(left, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y), z + 1,
+                  x * 2, y * 2);
+        splitTile(detail::clip<1>(left, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y),
+                  z + 1, x * 2, y * 2 + 1);
 
         const auto right =
             detail::clip<0>(features, (x + 0.5 - p) / z2, (x + 1 + p) / z2, min.x, max.x);
 
-        if (!right.empty()) {
-            splitTile(detail::clip<1>(right, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y), z + 1,
-                      x * 2 + 1, y * 2);
-            splitTile(detail::clip<1>(right, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y),
-                      z + 1, x * 2 + 1, y * 2 + 1);
-        }
+        splitTile(detail::clip<1>(right, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y), z + 1,
+                  x * 2 + 1, y * 2);
+        splitTile(detail::clip<1>(right, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y),
+                  z + 1, x * 2 + 1, y * 2 + 1);
 
         // if we sliced further down, no need to keep source geometry
         tile.source_features = {};
