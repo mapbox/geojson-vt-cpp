@@ -74,9 +74,8 @@ public:
     vt_geometry operator()(const vt_geometry_collection& geometries) const {
         vt_geometry_collection result;
         for (const auto& geometry : geometries) {
-            vt_geometry::visit(geometry, [&](const auto& g) {
-                result.push_back(this->operator()(g));
-            });
+            vt_geometry::visit(geometry,
+                               [&](const auto& g) { result.push_back(this->operator()(g)); });
         }
         return result;
     }
