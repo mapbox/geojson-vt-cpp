@@ -155,8 +155,9 @@ private:
         auto& tile = it->second;
 
         // stop tiling if the tile is solid clipped square
-        if (!options.solidChildren && tile.is_solid)
+        if (!options.solidChildren && tile.is_solid) {
             return;
+        }
 
         // if it's the first-pass tiling
         if (cz == 0u) {
@@ -167,15 +168,23 @@ private:
             }
 
         } else { // drilldown to a specific tile;
-            // stop tiling if we reached base zoom or our target tile zoom
-            if (z == options.maxZoom || z == cz)
+            // stop tiling if we reached base zoom
+            if (z == options.maxZoom)
                 return;
+
+            // stop tiling if it's our target tile zoom
+            if (z == cz) {
+                tile.source_features = features;
+                return;
+            }
 
             // stop tiling if it's not an ancestor of the target tile
             const double m = 1 << (cz - z);
             if (x != static_cast<uint32_t>(std::floor(cx / m)) ||
-                y != static_cast<uint32_t>(std::floor(cy / m)))
+                y != static_cast<uint32_t>(std::floor(cy / m))) {
+                tile.source_features = features;
                 return;
+            }
         }
 
         const double p = 0.5 * options.buffer / options.extent;
