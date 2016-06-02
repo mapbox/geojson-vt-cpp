@@ -17,7 +17,7 @@ BASE_FLAGS = $(VARIANT_FLAGS) $(GEOMETRY_FLAGS) $(GEOJSON_FLAGS)
 
 DEPS = mason_packages include/mapbox/geojsonvt/*.hpp include/mapbox/geojsonvt.hpp bench/util.hpp Makefile
 
-default: bench
+default: test
 
 mason_packages: Makefile
 	$(MASON) install $(VARIANT)

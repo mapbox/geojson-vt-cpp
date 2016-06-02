@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <mapbox/geojsonvt/clip.hpp>
 #include <mapbox/geojsonvt/simplify.hpp>
 
 using namespace mapbox::geojsonvt;
@@ -14,7 +15,7 @@ bool operator==(const detail::vt_point& a, const detail::vt_point& b) {
     return true;
 }
 
-TEST(Simplify, SimplifiesPoints) {
+TEST(Simplify, Points) {
     std::vector<detail::vt_point> points = {
         { 0.22455, 0.25015 }, { 0.22691, 0.24419 }, { 0.23331, 0.24145 }, { 0.23498, 0.23606 },
         { 0.24421, 0.23276 }, { 0.26259, 0.21531 }, { 0.26776, 0.21381 }, { 0.27357, 0.20184 },
@@ -65,4 +66,30 @@ TEST(Simplify, SimplifiesPoints) {
     }
 
     ASSERT_EQ(simplified, result);
+}
+
+TEST(Clip, Polylines) {
+    const detail::vt_line_string points1{ { 0, 0 },   { 50, 0 },  { 50, 10 }, { 20, 10 },
+                                          { 20, 20 }, { 30, 20 }, { 30, 30 }, { 50, 30 },
+                                          { 50, 40 }, { 25, 40 }, { 25, 50 }, { 0, 50 },
+                                          { 0, 60 },  { 25, 60 } };
+
+    const detail::vt_line_string points2{ { 0, 0 }, { 50, 0 }, { 50, 10 }, { 0, 10 } };
+
+    const auto clip = detail::clipper<0>{ 10, 40 };
+
+    const auto clipped1 = clip(points1);
+    const auto clipped2 = clip(points2);
+
+    const detail::vt_geometry expected1{ detail::vt_multi_line_string{
+        { { 10, 0 }, { 40, 0 } },
+        { { 40, 10 }, { 20, 10 }, { 20, 20 }, { 30, 20 }, { 30, 30 }, { 40, 30 } },
+        { { 40, 40 }, { 25, 40 }, { 25, 50 }, { 10, 50 } },
+        { { 10, 60 }, { 25, 60 } } } };
+
+    const detail::vt_geometry expected2{ detail::vt_multi_line_string{
+        { { 10, 0 }, { 40, 0 } }, { { 40, 10 }, { 10, 10 } } } };
+
+    ASSERT_EQ(clipped1, expected1);
+    ASSERT_EQ(clipped2, expected2);
 }
