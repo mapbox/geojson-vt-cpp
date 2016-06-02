@@ -80,7 +80,7 @@ int main() {
         if (vt) {
             Timer tileTimer;
             tile = const_cast<Tile*>(&vt->getTile(pos.z, pos.x, pos.y));
-            tileTimer.report("tile " + name);
+            tileTimer("tile " + name);
             glfwSetWindowTitle(window, (std::string{ "GeoJSON VT — " } + name).c_str());
         }
         dirty = true;
@@ -89,14 +89,14 @@ int main() {
     static const auto loadGeoJSON = [&](const std::string& filename) {
         Timer timer;
         const std::string data = loadFile(filename);
-        timer.report("loadFile");
+        timer("loadFile");
 
         const auto features =
             mapbox::geojson::parse(data).get<mapbox::geojson::feature_collection>();
-        timer.report("parse into geometry");
+        timer("parse into geometry");
 
         vt = std::make_unique<GeoJSONVT>(features);
-        timer.report("generate tile index");
+        timer("generate tile index");
         updateTile();
     };
 

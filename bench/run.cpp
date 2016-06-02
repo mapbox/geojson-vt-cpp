@@ -1,42 +1,47 @@
-#include "util.hpp"
-#include <cmath>
+#include <mapbox/geojson.hpp>
 #include <mapbox/geojsonvt.hpp>
-#include <memory>
 
-using namespace mapbox::geojsonvt;
+#include "util.hpp"
+
+#include <fstream>
+#include <iostream>
 
 int main() {
-
-    unsigned iterations = 1000;
-
-    std::string filename("data/countries.geojson");
-    std::string data = loadFile(filename);
-    // load once before benchmarking to warm up
-    const auto features = GeoJSONVT::convertFeatures(data);
-    GeoJSONVT vt(features);
-
     Timer timer;
 
-    for (unsigned i = 0; i < iterations; ++i) {
-        GeoJSONVT::convertFeatures(data);
-    }
-    timer.report("convertFeatures");
+    const std::string json = loadFile("data/countries.geojson");
+    timer("read file");
 
-    for (unsigned i = 0; i < iterations; ++i) {
-        GeoJSONVT vt_(features);
+    const auto features = mapbox::geojson::parse(json).get<mapbox::geojson::feature_collection>();
+    timer("parse into geometry");
+
+    mapbox::geojsonvt::Options options;
+    options.indexMaxZoom = 7;
+    options.indexMaxPoints = 200;
+
+    mapbox::geojsonvt::GeoJSONVT index{ features, options };
+
+    for (uint32_t i = 0; i < 100; i++) {
+        mapbox::geojsonvt::GeoJSONVT index{ features, options };
     }
-    timer.report("parse");
-    const unsigned max_z = 12; // z 0...12 (5592405 tiles)
+    timer("generate tile index 100 times");
+
+    printf("tiles generated: %i {\n", static_cast<int>(index.total));
+    for (const auto& pair : index.stats) {
+        printf("    z%i: %i\n", pair.first, pair.second);
+    }
+    printf("}\n");
+
+    const unsigned max_z = 11;
     std::size_t count = 0;
     for (unsigned z = 0; z < max_z; ++z) {
         unsigned num_tiles = std::pow(2, z);
         for (unsigned x = 0; x < num_tiles; ++x) {
             for (unsigned y = 0; y < num_tiles; ++y) {
-                auto const& tile = vt.getTile(z, x, y);
-                if (tile)
-                    ++count;
+                auto const& tile = index.getTile(z, x, y);
+                count += tile.features.size();
             }
         }
     }
-    timer.report("getTile");
+    timer("getTile, found " + std::to_string(count) + " features");
 }

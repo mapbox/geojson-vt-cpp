@@ -13,9 +13,9 @@ GEOJSON_FLAGS = `$(MASON) cflags $(GEOJSON)` `$(MASON) static_libs $(GEOJSON)`
 GLFW_FLAGS = `$(MASON) cflags $(GLFW)` `$(MASON) ldflags $(GLFW)` `$(MASON) static_libs $(GLFW)`
 BASE_FLAGS = $(VARIANT_FLAGS) $(GEOMETRY_FLAGS) $(GEOJSON_FLAGS)
 
-DEPS = mason_packages include/mapbox/geojsonvt/*.hpp include/mapbox/geojsonvt.hpp Makefile
+DEPS = mason_packages include/mapbox/geojsonvt/*.hpp include/mapbox/geojsonvt.hpp bench/util.hpp Makefile
 
-default: test
+default: bench
 
 mason_packages: Makefile
 	$(MASON) install $(VARIANT)
@@ -26,8 +26,8 @@ mason_packages: Makefile
 build:
 	mkdir -p build
 
-build/test: build test/test.cpp $(DEPS)
-	$(CXX) $(CFLAGS) $(CXXFLAGS) test/test.cpp -o build/test $(BASE_FLAGS)
+build/bench: build bench/run.cpp $(DEPS)
+	$(CXX) $(CFLAGS) $(CXXFLAGS) bench/run.cpp -o build/bench $(BASE_FLAGS)
 
 build/debug: build debug/debug.cpp $(DEPS)
 	$(CXX) $(CFLAGS) $(CXXFLAGS) debug/debug.cpp -o build/debug $(BASE_FLAGS) $(GLFW_FLAGS)
@@ -35,11 +35,11 @@ build/debug: build debug/debug.cpp $(DEPS)
 debug: build/debug
 	./build/debug
 
-test: build/test
-	./build/test
+bench: build/bench
+	./build/bench
 
 format:
-	clang-format include/mapbox/geojsonvt/*.hpp include/mapbox/geojsonvt.hpp test/test.cpp debug/debug.cpp -i
+	clang-format include/mapbox/geojsonvt/*.hpp include/mapbox/geojsonvt.hpp test/test.cpp debug/debug.cpp bench/*.cpp -i
 
 clean:
 	rm -rf build
