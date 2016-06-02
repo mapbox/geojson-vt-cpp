@@ -1,9 +1,44 @@
 #include <GLFW/glfw3.h>
 
 #include "../bench/util.hpp"
+#include <mapbox/geojson.hpp>
 #include <mapbox/geojsonvt.hpp>
 
 using namespace mapbox::geojsonvt;
+
+template <typename T>
+void drawLine(const T points) {
+    glColor4f(1, 0, 0, 1);
+    glBegin(GL_LINE_STRIP);
+    for (const auto& pt : points) {
+        glVertex2s(pt.x, pt.y);
+    }
+    glEnd();
+}
+
+struct DrawFeature {
+    void operator()(const mapbox::geometry::point<int16_t>&) {
+    }
+
+    void operator()(const mapbox::geometry::line_string<int16_t>& points) {
+        drawLine(points);
+    }
+
+    void operator()(const mapbox::geometry::linear_ring<int16_t>& points) {
+        drawLine(points);
+    }
+
+    void operator()(const mapbox::geometry::geometry<int16_t>& geometry) {
+        mapbox::geometry::geometry<int16_t>::visit(geometry, DrawFeature{});
+    }
+
+    template <class T>
+    void operator()(const T& vector) {
+        for (const auto& e : vector) {
+            operator()(e);
+        }
+    }
+};
 
 int main() {
     if (glfwInit() == 0) {
@@ -55,10 +90,13 @@ int main() {
         Timer timer;
         const std::string data = loadFile(filename);
         timer.report("loadFile");
-        const auto features = GeoJSONVT::convertFeatures(data);
-        timer.report("convertFeatures");
+
+        const auto features =
+            mapbox::geojson::parse(data).get<mapbox::geojson::feature_collection>();
+        timer.report("parse into geometry");
+
         vt = std::make_unique<GeoJSONVT>(features);
-        timer.report("parse");
+        timer.report("generate tile index");
         updateTile();
     };
 
@@ -93,7 +131,7 @@ int main() {
             }
         });
 
-    glfwSetWindowSizeCallback(window, [](GLFWwindow* win, const int w, const int h) {
+    glfwSetWindowSizeCallback(window, [](GLFWwindow*, const int w, const int h) {
         width = w;
         height = h;
         dirty = true;
@@ -195,19 +233,7 @@ int main() {
                 glLineWidth(1);
 
                 for (const auto& feature : tile->features) {
-                    switch (feature.type) {
-                    case TileFeatureType::LineString:
-                    case TileFeatureType::Polygon: {
-                        glColor4f(1, 0, 0, 1);
-                        for (const auto& ring : feature.tileGeometry.get<TileRings>()) {
-                            glBegin(GL_LINE_STRIP);
-                            for (const auto& pt : ring) {
-                                glVertex2s(pt.x, pt.y);
-                            }
-                            glEnd();
-                        }
-                    } break;
-                    default: { } break; }
+                    mapbox::geometry::geometry<int16_t>::visit(feature.geometry, DrawFeature{});
                 }
 
                 // top left
