@@ -56,6 +56,8 @@ inline vt_point intersect<1>(const vt_point& a, const vt_point& b, const double 
 using vt_multi_point = std::vector<vt_point>;
 
 struct vt_line_string : std::vector<vt_point> {
+    using container_type = std::vector<vt_point>;
+    using container_type::container_type;
     double dist = 0.0; // line length
 };
 

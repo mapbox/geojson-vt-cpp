@@ -25,36 +25,6 @@ ProjectedPoint max1{ 50, 60 };
 ProjectedPoint min2{ 0, 0 };
 ProjectedPoint max2{ 50, 10 };
 
-TEST(Clip, Polylines) {
-    const std::map<std::string, std::string> tags1;
-    const std::map<std::string, std::string> tags2;
-
-    const std::vector<F> features{
-        F{ geom1, ProjectedFeatureType::LineString, tags1, min1, max1 },
-        F{ geom2, ProjectedFeatureType::LineString, tags2, min2, max2 },
-    };
-
-    const auto clipped =
-        Clip::clip(features, 1, 10, 40, 0, intersectX, -std::numeric_limits<double>::infinity(),
-                   std::numeric_limits<double>::infinity());
-
-    const std::vector<ProjectedFeature> expected = {
-        { GR{
-              R{ { P{ 10, 0 }, P{ 40, 0 } } },
-              R{ { P{ 40, 10 }, P{ 20, 10 }, P{ 20, 20 }, P{ 30, 20 }, P{ 30, 30 }, P{ 40, 30 } } },
-              R{ { P{ 40, 40 }, P{ 25, 40 }, P{ 25, 50 }, P{ 10, 50 } } },
-              R{ { P{ 10, 60 }, P{ 25, 60 } } },
-          },
-          ProjectedFeatureType::LineString, tags1, min1, max1 },
-        { GR{
-              R{ { P{ 10, 0 }, P{ 40, 0 } } }, R{ { P{ 40, 10 }, P{ 10, 10 } } },
-          },
-          ProjectedFeatureType::LineString, tags2, min2, max2 }
-    };
-
-    ASSERT_EQ(expected, clipped);
-}
-
 ProjectedGeometry closed(ProjectedGeometry geometry) {
     for (auto& ring : geometry.get<ProjectedRings>()) {
         ring.points.push_back(ring.points.front());
