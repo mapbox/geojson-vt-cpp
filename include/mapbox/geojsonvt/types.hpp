@@ -14,6 +14,9 @@ struct vt_point : mapbox::geometry::point<double> {
 
     vt_point(double x_, double y_, double z_) : mapbox::geometry::point<double>(x_, y_), z(z_) {
     }
+
+    vt_point(double x_, double y_) : vt_point(x_, y_, 0.0) {
+    }
 };
 
 template <uint8_t I, typename T>
