@@ -62,6 +62,8 @@ struct vt_line_string : std::vector<vt_point> {
 };
 
 struct vt_linear_ring : std::vector<vt_point> {
+    using container_type = std::vector<vt_point>;
+    using container_type::container_type;
     double area = 0.0; // polygon ring area
 };
 

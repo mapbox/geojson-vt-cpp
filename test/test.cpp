@@ -1,3 +1,4 @@
+#include "util.hpp"
 #include <gtest/gtest.h>
 #include <mapbox/geojsonvt/clip.hpp>
 #include <mapbox/geojsonvt/simplify.hpp>
@@ -65,7 +66,7 @@ TEST(Simplify, Points) {
         }
     }
 
-    ASSERT_EQ(simplified, result);
+    ASSERT_EQ(result, simplified);
 }
 
 TEST(Clip, Polylines) {
@@ -90,6 +91,54 @@ TEST(Clip, Polylines) {
     const detail::vt_geometry expected2{ detail::vt_multi_line_string{
         { { 10, 0 }, { 40, 0 } }, { { 40, 10 }, { 10, 10 } } } };
 
-    ASSERT_EQ(clipped1, expected1);
-    ASSERT_EQ(clipped2, expected2);
+    ASSERT_EQ(expected1, clipped1);
+    ASSERT_EQ(expected2, clipped2);
+}
+
+TEST(Clip, Polygons) {
+    const detail::vt_polygon points1{ { { 0, 0 },
+                                        { 50, 0 },
+                                        { 50, 10 },
+                                        { 20, 10 },
+                                        { 20, 20 },
+                                        { 30, 20 },
+                                        { 30, 30 },
+                                        { 50, 30 },
+                                        { 50, 40 },
+                                        { 25, 40 },
+                                        { 25, 50 },
+                                        { 0, 50 },
+                                        { 0, 60 },
+                                        { 25, 60 },
+                                        { 0, 0 } } };
+
+    const detail::vt_polygon points2{ { { 0, 0 }, { 50, 0 }, { 50, 10 }, { 0, 10 }, { 0, 0 } } };
+
+    const auto clip = detail::clipper<0>{ 10, 40 };
+
+    const auto clipped1 = clip(points1);
+    const auto clipped2 = clip(points2);
+
+    const detail::vt_geometry expected1{ detail::vt_polygon{ { { { 10, 0 },
+                                                                 { 40, 0 },
+                                                                 { 40, 10 },
+                                                                 { 20, 10 },
+                                                                 { 20, 20 },
+                                                                 { 30, 20 },
+                                                                 { 30, 30 },
+                                                                 { 40, 30 },
+                                                                 { 40, 40 },
+                                                                 { 25, 40 },
+                                                                 { 25, 50 },
+                                                                 { 10, 50 },
+                                                                 { 10, 60 },
+                                                                 { 25, 60 },
+                                                                 { 10, 24 },
+                                                                 { 10, 0 } } } } };
+
+    const detail::vt_geometry expected2{ detail::vt_polygon{
+        { { { 10, 0 }, { 40, 0 }, { 40, 10 }, { 10, 10 }, { 10, 0 } } } } };
+
+    ASSERT_EQ(expected1, clipped1);
+    ASSERT_EQ(expected2, clipped2);
 }
