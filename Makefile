@@ -24,6 +24,7 @@ mason_packages: Makefile
 	$(MASON) install $(GEOMETRY)
 	$(MASON) install $(GEOJSON)
 	$(MASON) install $(GLFW)
+	$(MASON) install $(GTEST)
 
 build:
 	mkdir -p build
