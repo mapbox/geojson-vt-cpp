@@ -142,3 +142,24 @@ TEST(Clip, Polygons) {
     ASSERT_EQ(expected1, clipped1);
     ASSERT_EQ(expected2, clipped2);
 }
+
+TEST(Clip, Points) {
+    const detail::vt_multi_point points1{ { 0, 0 },   { 50, 0 },  { 50, 10 }, { 20, 10 },
+                                          { 20, 20 }, { 30, 20 }, { 30, 30 }, { 50, 30 },
+                                          { 50, 40 }, { 25, 40 }, { 25, 50 }, { 0, 50 },
+                                          { 0, 60 },  { 25, 60 } };
+
+    const detail::vt_multi_point points2{ { 0, 0 }, { 50, 0 }, { 50, 10 }, { 0, 10 } };
+
+    const auto clip = detail::clipper<0>{ 10, 40 };
+
+    const auto clipped1 = clip(points1);
+    const auto clipped2 = clip(points2);
+
+    const detail::vt_geometry expected1{ detail::vt_multi_point{
+        { { 20, 10 }, { 20, 20 }, { 30, 20 }, { 30, 30 }, { 25, 40 }, { 25, 50 }, { 25, 60 } } } };
+    const detail::vt_geometry expected2{ detail::vt_multi_point{ {} } };
+
+    ASSERT_EQ(expected1, clipped1);
+    ASSERT_EQ(expected2, clipped2);
+}
