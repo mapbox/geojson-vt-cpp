@@ -1,45 +1,34 @@
-#ifndef MAPBOX_GEOJSONVT_TEST_UTIL
-#define MAPBOX_GEOJSONVT_TEST_UTIL
+#pragma once
 
 #include <mapbox/geojsonvt/types.hpp>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpragmas"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wpadded"
-#pragma GCC diagnostic ignored "-Wfloat-equal"
-#include <rapidjson/document.h>
-#pragma GCC diagnostic pop
+#include <sstream>
 
 namespace mapbox {
 namespace geojsonvt {
+namespace detail {
 
-std::string loadFile(const std::string& filename);
+std::ostream& operator<<(std::ostream& os, const vt_point& p) {
+    return os << "[" << p.x << "," << p.y << "]";
+}
 
-::std::ostream& operator<<(::std::ostream& os, ProjectedFeatureType t);
-::std::ostream& operator<<(::std::ostream& os, const TilePoint& p);
-::std::ostream& operator<<(::std::ostream& os, const TilePoints& points);
-::std::ostream& operator<<(::std::ostream& os, const TileRings& rings);
-::std::ostream& operator<<(::std::ostream& os, const TileFeature& f);
-::std::ostream& operator<<(::std::ostream& os, const ProjectedPoint& p);
-::std::ostream& operator<<(::std::ostream& os, const ProjectedFeature& f);
-::std::ostream& operator<<(::std::ostream& os, const ProjectedRing& c);
+std::ostream& operator<<(std::ostream& os, const vt_geometry& geom) {
+    vt_geometry::visit(geom, [&](const auto& g) { os << g; });
+    return os;
+}
 
-bool operator==(const TilePoint& a, const TilePoint& b);
-bool operator==(const TileFeature& a, const TileFeature& b);
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& items) {
+    os << "[";
+    size_t size = items.size();
+    for (size_t i = 0; i < size; i++) {
+        os << items[i];
+        if (i < size - 1)
+            os << ",";
+    }
+    return os << "]";
+}
 
-bool operator==(const ProjectedFeature& a, const ProjectedFeature& b);
-bool operator==(const ProjectedRing& a, const ProjectedRing& b);
-
-std::vector<TileFeature>
-parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>& tile);
-std::vector<TileFeature> parseJSONTile(const std::string& data);
-std::map<std::string, std::vector<TileFeature>> parseJSONTiles(const std::string& data);
-
+} // namespace detail
 } // namespace geojsonvt
 } // namespace mapbox
-
-#endif // MAPBOX_GEOJSONVT_TEST_UTIL
