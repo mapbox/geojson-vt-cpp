@@ -42,6 +42,7 @@
           '<@(variant_cflags)',
           '<@(geometry_cflags)',
           '<@(rapidjson_cflags)',
+          '${CXX_FLAGS}',
         ],
         'ldflags': [],
         'libraries': [],
