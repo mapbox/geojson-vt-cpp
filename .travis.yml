@@ -15,17 +15,17 @@ matrix:
           sources: [ 'ubuntu-toolchain-r-test' ]
           packages: [ 'g++-5', 'gcc-5' ]
     - os: linux
-      env: CXX=clang++-3.5 BUILDTYPE=Debug ASAN_OPTIONS=detect_leaks=1 CXXFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address"
+      env: CXX=clang++-3.8 BUILDTYPE=Debug ASAN_OPTIONS=detect_leaks=1 CXXFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address"
       addons:
         apt:
-          sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5' ]
-          packages: [ 'clang-3.5', 'llvm-3.5-dev', 'libstdc++6' ]
+          sources: [ 'ubuntu-toolchain-r-test' ]
+          packages: [ libstdc++-5-dev', 'libstdc++6', 'g++-5' ]
     - os: linux
-      env: CXX=clang++-3.5 BUILDTYPE=Release
+      env: CXX=clang++-3.8 BUILDTYPE=Release
       addons:
         apt:
-          sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.5' ]
-          packages: [ 'clang-3.5', 'libstdc++6' ]
+          sources: [ 'ubuntu-toolchain-r-test', ]
+          packages: [ libstdc++-5-dev', 'libstdc++6', 'g++-5' ]
     - os: osx
       osx_image: xcode7.3
       env: BUILDTYPE=Release
@@ -34,11 +34,19 @@ matrix:
       env: BUILDTYPE=Debug
 
 install:
-- ./configure
+  - |
+    if [[ ${CXX} =~ "clang" ]] && [[ $(uname -s) == "Linux" ]]; then
+      ./.mason/mason install clang 3.8.0
+      CLANG_PREFIX=$(./.mason/mason prefix clang 3.8.0)
+      export PATH=${CLANG_PREFIX}/bin:${PATH}
+      which clang++
+      clang++ -v
+    fi
+  - ./configure
 
 script:
-- make test -j2 V=1
-- make bench V=1
+  - make test -j2 V=1
+  - make bench V=1
 
 notifications:
   slack:
