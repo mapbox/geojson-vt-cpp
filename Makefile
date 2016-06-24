@@ -15,11 +15,11 @@ GLFW_FLAGS = `$(MASON) cflags $(GLFW)` `$(MASON) ldflags $(GLFW)` `$(MASON) stat
 GTEST_FLAGS = `$(MASON) cflags $(GTEST)` `$(MASON) ldflags $(GTEST)` `$(MASON) static_libs $(GTEST)`
 BASE_FLAGS = $(VARIANT_FLAGS) $(GEOMETRY_FLAGS) $(GEOJSON_FLAGS)
 
-DEPS = mason_packages include/mapbox/geojsonvt/*.hpp include/mapbox/geojsonvt.hpp bench/util.hpp Makefile
+DEPS = mason_packages/headers/geometry include/mapbox/geojsonvt/*.hpp include/mapbox/geojsonvt.hpp bench/util.hpp Makefile
 
 default: test
 
-mason_packages: Makefile
+mason_packages/headers/geometry: Makefile
 	$(MASON) install $(VARIANT)
 	$(MASON) install $(GEOMETRY)
 	$(MASON) install $(GEOJSON)
