@@ -1,7 +1,18 @@
 #include "util.hpp"
 #include <gtest/gtest.h>
+#include <mapbox/geometry.hpp>
+#include <mapbox/geojson.hpp>
+#include <mapbox/geojsonvt.hpp>
 #include <mapbox/geojsonvt/clip.hpp>
+#include <mapbox/geojsonvt/convert.hpp>
 #include <mapbox/geojsonvt/simplify.hpp>
+#include <mapbox/geojsonvt/tile.hpp>
+
+#include <cmath>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 using namespace mapbox::geojsonvt;
 
@@ -163,3 +174,129 @@ TEST(Clip, Points) {
     ASSERT_EQ(expected1, clipped1);
     ASSERT_EQ(expected2, clipped2);
 }
+
+TEST(GetTile, USStates) {
+    const auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/us-states.json"));
+    GeoJSONVT index{ geojson.get<mapbox::geojson::feature_collection>() };
+
+    const auto features = index.getTile(7, 37, 48).features;
+    const auto expected = parseJSONTile(loadFile("test/fixtures/us-states-z7-37-48.json"));
+    ASSERT_EQ(features == expected, true);
+
+    const auto square = parseJSONTile(loadFile("test/fixtures/us-states-square.json"));
+    ASSERT_EQ(square == index.getTile(9, 148, 192).features, true);  // clipped square
+    ASSERT_EQ(square == index.getTile(11, 592, 768).features, true); // clipped square
+
+    ASSERT_EQ(empty_tile == index.getTile(11, 800, 400), true);  // non-existing tile
+    ASSERT_EQ(&empty_tile == &index.getTile(11, 800, 400), true); // non-existing tile
+
+    // This test does not make sense in C++, since the parameters are cast to integers anyway.
+    // ASSERT_EQ(isEmpty(index.getTile(-5, 123.25, 400.25)), true); // invalid tile
+
+    ASSERT_EQ(37, index.total);
+}
+
+std::map<std::string, mapbox::geometry::feature_collection<int16_t>>
+genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 10000) {
+    Options options;
+    options.maxZoom = 14;
+    options.indexMaxZoom = maxZoom;
+    options.indexMaxPoints = maxPoints;
+
+    const auto geojson = mapbox::geojson::parse(data);
+    mapbox::geojson::feature_collection features;
+    if (geojson.is<mapbox::geojson::feature_collection>()) {
+        features = geojson.get<mapbox::geojson::feature_collection>();
+    } else if (geojson.is<mapbox::geojson::feature>()) {
+        features.emplace_back(geojson.get<mapbox::geojson::feature>());
+    } else if (geojson.is<mapbox::geojson::geometry>()) {
+        const auto &geom = geojson.get<mapbox::geojson::geometry>();
+        if (geom.is<mapbox::geojson::geometry_collection>()) {
+            for (const auto& item : geom.get<mapbox::geojson::geometry_collection>()) {
+                mapbox::geometry::feature<double> feat { item };
+                features.emplace_back(feat);
+            }
+        } else {
+            mapbox::geometry::feature<double> feat { geom };
+            features.emplace_back(feat);
+        }
+    }
+    GeoJSONVT index{ features, options };
+
+    std::map<std::string, mapbox::geometry::feature_collection<int16_t>> output;
+
+    for (const auto& pair : index.getInternalTiles()) {
+        auto& tile = pair.second;
+        const std::string key = std::string("z") + std::to_string(tile.z) + "-" +
+                                std::to_string(tile.x) + "-" + std::to_string(tile.y);
+        output.emplace(key, index.getTile(tile.z, tile.x, tile.y).features);
+    }
+
+    return output;
+}
+
+struct Arguments {
+    Arguments(const std::string inputFile_,
+              const std::string expectedFile_,
+              const uint32_t maxZoom_ = 0,
+              const uint32_t maxPoints_ = 10000)
+        : inputFile(inputFile_),
+          expectedFile(expectedFile_),
+          maxZoom(maxZoom_),
+          maxPoints(maxPoints_){};
+
+    const std::string inputFile;
+    const std::string expectedFile;
+    const uint32_t maxZoom;
+    const uint32_t maxPoints;
+};
+
+::std::ostream& operator<<(::std::ostream& os, const Arguments& a) {
+    return os << a.inputFile << " (" << a.maxZoom << ", " << a.maxPoints << ")";
+}
+
+class TileTest : public ::testing::TestWithParam<Arguments> {};
+
+TEST_P(TileTest, Tiles) {
+    const auto& params = GetParam();
+
+    const auto actual = genTiles(loadFile(params.inputFile), params.maxZoom, params.maxPoints);
+    const auto expected = parseJSONTiles(loadFile(params.expectedFile));
+
+    ASSERT_EQ(expected == actual, true);
+}
+
+TEST(GenTiles, InvalidGeoJSON) {
+    try {
+        genTiles("{\"type\": \"Pologon\"}");
+        FAIL() << "Expected exception";
+    } catch (const std::runtime_error& ex) {
+        ASSERT_STREQ("Pologon geometry must have a coordinates property", ex.what());
+    }
+}
+
+TEST(GenTiles, EmptyGeoJSON) {
+    const auto tiles = genTiles(loadFile("test/fixtures/empty.json"));
+    ASSERT_EQ(1, tiles.size());
+}
+
+TEST(GenTiles, NoObjectGeoJSON) {
+    try {
+        genTiles("42");
+        FAIL() << "Expected exception";
+    } catch (const std::runtime_error& ex) {
+        ASSERT_STREQ("GeoJSON must be an object", ex.what());
+    }
+}
+
+INSTANTIATE_TEST_CASE_P(
+    Full,
+    TileTest,
+    ::testing::ValuesIn(std::vector<Arguments>{
+        { "test/fixtures/us-states.json", "test/fixtures/us-states-tiles.json", 7, 200 },
+        { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },
+        { "test/fixtures/feature.json", "test/fixtures/feature-tiles.json" },
+        { "test/fixtures/collection.json", "test/fixtures/collection-tiles.json" },
+        { "test/fixtures/single-geom.json", "test/fixtures/single-geom-tiles.json" }
+    }));
+
