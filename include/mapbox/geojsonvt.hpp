@@ -105,6 +105,10 @@ public:
         return empty_tile;
     }
 
+    const std::unordered_map<uint64_t, detail::InternalTile>& getInternalTiles() const {
+        return tiles;
+    }
+
 private:
     std::unordered_map<uint64_t, detail::InternalTile> tiles;
 
