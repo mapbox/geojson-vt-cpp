@@ -39,8 +39,7 @@ install:
 
 script:
   - make test -j2 V=1
-  - make build/bench V=1
-  - make build/debug V=1
+  - make bench V=1
 
 notifications:
   slack:
