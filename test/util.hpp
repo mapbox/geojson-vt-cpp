@@ -1,20 +1,24 @@
 #pragma once
 
-#include <mapbox/geometry.hpp>
+#include <map>
 #include <mapbox/geojsonvt/tile.hpp>
 #include <mapbox/geojsonvt/types.hpp>
+#include <mapbox/geometry.hpp>
 #include <sstream>
-#include <map>
 
 namespace mapbox {
 namespace geojsonvt {
 
 std::string loadFile(const std::string& filename);
 mapbox::geometry::feature_collection<int16_t> parseJSONTile(const std::string& data);
-std::map<std::string, mapbox::geometry::feature_collection<int16_t>> parseJSONTiles(const std::string& data);
-bool operator==(const mapbox::geometry::feature<short>& a, const mapbox::geometry::feature<short>& b);
-bool operator==(const mapbox::geometry::feature_collection<short>& a, const mapbox::geometry::feature_collection<short>& b);
-bool operator==(const std::map<std::string, mapbox::geometry::feature_collection<short>>& a, const std::map<std::string, mapbox::geometry::feature_collection<short>>& b);
+std::map<std::string, mapbox::geometry::feature_collection<int16_t>>
+parseJSONTiles(const std::string& data);
+bool operator==(const mapbox::geometry::feature<short>& a,
+                const mapbox::geometry::feature<short>& b);
+bool operator==(const mapbox::geometry::feature_collection<short>& a,
+                const mapbox::geometry::feature_collection<short>& b);
+bool operator==(const std::map<std::string, mapbox::geometry::feature_collection<short>>& a,
+                const std::map<std::string, mapbox::geometry::feature_collection<short>>& b);
 bool operator==(const mapbox::geojsonvt::Tile& a, const mapbox::geojsonvt::Tile& b);
 
 namespace detail {

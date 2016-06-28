@@ -1,7 +1,7 @@
 #pragma once
 
-#include <mapbox/geojsonvt/types.hpp>
 #include <cmath>
+#include <mapbox/geojsonvt/types.hpp>
 
 namespace mapbox {
 namespace geojsonvt {

@@ -18,8 +18,8 @@
 #pragma GCC diagnostic pop
 
 #include <fstream>
-#include <sstream>
 #include <map>
+#include <sstream>
 
 namespace mapbox {
 namespace geojsonvt {
@@ -35,14 +35,16 @@ std::string loadFile(const std::string& filename) {
     throw std::runtime_error("Error opening file");
 }
 
-bool operator==(const mapbox::geometry::feature<short>& a, const mapbox::geometry::feature<short>& b) {
+bool operator==(const mapbox::geometry::feature<short>& a,
+                const mapbox::geometry::feature<short>& b) {
     // EXPECT_EQ(a.geometry, b.geometry);
     EXPECT_EQ(typeid(a.geometry), typeid(b.geometry));
     EXPECT_EQ(a.properties, b.properties);
     return true;
 }
 
-bool operator==(const mapbox::geometry::feature_collection<short>& a, const mapbox::geometry::feature_collection<short>& b) {
+bool operator==(const mapbox::geometry::feature_collection<short>& a,
+                const mapbox::geometry::feature_collection<short>& b) {
     EXPECT_EQ(a.size(), b.size());
     if (a.size() == b.size()) {
         unsigned i = 0;
@@ -53,9 +55,11 @@ bool operator==(const mapbox::geometry::feature_collection<short>& a, const mapb
     return true;
 }
 
-bool operator==(const std::map<std::string, mapbox::geometry::feature_collection<short>>& a, const std::map<std::string, mapbox::geometry::feature_collection<short>>& b) {
+bool operator==(const std::map<std::string, mapbox::geometry::feature_collection<short>>& a,
+                const std::map<std::string, mapbox::geometry::feature_collection<short>>& b) {
     EXPECT_EQ(a.size(), b.size());
-    typedef std::map<std::string, mapbox::geometry::feature_collection<short>>::const_iterator it_type;
+    typedef std::map<std::string, mapbox::geometry::feature_collection<short>>::const_iterator
+        it_type;
     for (it_type it = a.begin(); it != a.end(); it++) {
         if (b.find(it->first) != b.end()) {
             EXPECT_TRUE(it->second == b.find(it->first)->second);
@@ -87,7 +91,7 @@ parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAll
     for (rapidjson::SizeType k = 0; k < tile.Size(); ++k) {
         const auto& feature = tile[k];
 
-        mapbox::geometry::feature<short> feat { mapbox::geometry::point<short>() };
+        mapbox::geometry::feature<short> feat{ mapbox::geometry::point<short>() };
 
         if (feature.HasMember("tags") && feature["tags"].IsObject()) {
             const auto& tags = feature["tags"];
@@ -104,7 +108,8 @@ parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAll
                     feat.properties.emplace(tagKey, true);
                     break;
                 case rapidjson::kStringType:
-                    feat.properties.emplace(tagKey, std::string{ jt->value.GetString(), jt->value.GetStringLength() });
+                    feat.properties.emplace(
+                        tagKey, std::string{ jt->value.GetString(), jt->value.GetStringLength() });
                     break;
                 case rapidjson::kNumberType:
                     if (jt->value.IsUint64()) {
@@ -136,11 +141,9 @@ parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAll
                     EXPECT_TRUE(pt[0].IsNumber());
                     EXPECT_TRUE(pt[1].IsNumber());
                     feat.geometry = mapbox::geometry::point<int16_t>(
-                        static_cast<int16_t>(pt[0].GetInt()),
-                        static_cast<int16_t>(pt[1].GetInt())
-                    );
+                        static_cast<int16_t>(pt[0].GetInt()), static_cast<int16_t>(pt[1].GetInt()));
                 }
-            // polygon geometry
+                // polygon geometry
             } else if (geomType == 3) {
                 mapbox::geometry::polygon<int16_t> poly;
                 for (rapidjson::SizeType j = 0; j < geometry.Size(); ++j) {
@@ -153,10 +156,8 @@ parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAll
                         EXPECT_TRUE(pt.Size() >= 2);
                         EXPECT_TRUE(pt[0].IsNumber());
                         EXPECT_TRUE(pt[1].IsNumber());
-                        linear_ring.emplace_back(
-                            static_cast<int16_t>(pt[0].GetInt()),
-                            static_cast<int16_t>(pt[1].GetInt())
-                        );
+                        linear_ring.emplace_back(static_cast<int16_t>(pt[0].GetInt()),
+                                                 static_cast<int16_t>(pt[1].GetInt()));
                     }
                     poly.emplace_back(linear_ring);
                 }
@@ -183,7 +184,8 @@ mapbox::geometry::feature_collection<int16_t> parseJSONTile(const std::string& d
     return parseJSONTile(d);
 }
 
-std::map<std::string, mapbox::geometry::feature_collection<int16_t>> parseJSONTiles(const std::string& data) {
+std::map<std::string, mapbox::geometry::feature_collection<int16_t>>
+parseJSONTiles(const std::string& data) {
     std::map<std::string, mapbox::geometry::feature_collection<int16_t>> result;
     rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> d;
     d.Parse<0>(data.c_str());

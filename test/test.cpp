@@ -1,12 +1,12 @@
 #include "util.hpp"
 #include <gtest/gtest.h>
-#include <mapbox/geometry.hpp>
 #include <mapbox/geojson.hpp>
 #include <mapbox/geojsonvt.hpp>
 #include <mapbox/geojsonvt/clip.hpp>
 #include <mapbox/geojsonvt/convert.hpp>
 #include <mapbox/geojsonvt/simplify.hpp>
 #include <mapbox/geojsonvt/tile.hpp>
+#include <mapbox/geometry.hpp>
 
 #include <cmath>
 #include <iostream>
@@ -187,7 +187,7 @@ TEST(GetTile, USStates) {
     ASSERT_EQ(square == index.getTile(9, 148, 192).features, true);  // clipped square
     ASSERT_EQ(square == index.getTile(11, 592, 768).features, true); // clipped square
 
-    ASSERT_EQ(empty_tile == index.getTile(11, 800, 400), true);  // non-existing tile
+    ASSERT_EQ(empty_tile == index.getTile(11, 800, 400), true);   // non-existing tile
     ASSERT_EQ(&empty_tile == &index.getTile(11, 800, 400), true); // non-existing tile
 
     // This test does not make sense in C++, since the parameters are cast to integers anyway.
@@ -210,14 +210,14 @@ genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 1000
     } else if (geojson.is<mapbox::geojson::feature>()) {
         features.emplace_back(geojson.get<mapbox::geojson::feature>());
     } else if (geojson.is<mapbox::geojson::geometry>()) {
-        const auto &geom = geojson.get<mapbox::geojson::geometry>();
+        const auto& geom = geojson.get<mapbox::geojson::geometry>();
         if (geom.is<mapbox::geojson::geometry_collection>()) {
             for (const auto& item : geom.get<mapbox::geojson::geometry_collection>()) {
-                mapbox::geometry::feature<double> feat { item };
+                mapbox::geometry::feature<double> feat{ item };
                 features.emplace_back(feat);
             }
         } else {
-            mapbox::geometry::feature<double> feat { geom };
+            mapbox::geometry::feature<double> feat{ geom };
             features.emplace_back(feat);
         }
     }
@@ -297,6 +297,4 @@ INSTANTIATE_TEST_CASE_P(
         { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },
         { "test/fixtures/feature.json", "test/fixtures/feature-tiles.json" },
         { "test/fixtures/collection.json", "test/fixtures/collection-tiles.json" },
-        { "test/fixtures/single-geom.json", "test/fixtures/single-geom-tiles.json" }
-    }));
-
+        { "test/fixtures/single-geom.json", "test/fixtures/single-geom-tiles.json" } }));
