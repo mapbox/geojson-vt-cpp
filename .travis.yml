@@ -36,7 +36,6 @@ install:
       which clang++
       clang++ -v
     fi
-  - ./configure
 
 script:
   - make test -j2 V=1
