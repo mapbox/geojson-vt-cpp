@@ -39,7 +39,7 @@ struct Options {
 const Tile empty_tile{};
 
 inline uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
-    return (((1 << z) * y + x) * 32) + z;
+    return (((1ull << z) * y + x) * 32) + z;
 }
 
 class GeoJSONVT {
@@ -139,7 +139,7 @@ private:
                    const uint32_t cx = 0,
                    const uint32_t cy = 0) {
 
-        const double z2 = 1 << z;
+        const double z2 = 1u << z;
         const uint64_t id = toID(z, x, y);
 
         auto it = tiles.find(id);
@@ -186,7 +186,7 @@ private:
             }
 
             // stop tiling if it's not an ancestor of the target tile
-            const double m = 1 << (cz - z);
+            const double m = 1u << (cz - z);
             if (x != static_cast<uint32_t>(std::floor(cx / m)) ||
                 y != static_cast<uint32_t>(std::floor(cy / m))) {
                 tile.source_features = features;
