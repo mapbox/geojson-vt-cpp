@@ -1,72 +1,108 @@
-#ifndef MAPBOX_GEOJSONVT_CONVERT
-#define MAPBOX_GEOJSONVT_CONVERT
+#pragma once
 
-#include "types.hpp"
+#include <mapbox/geojsonvt/simplify.hpp>
+#include <mapbox/geojsonvt/types.hpp>
+#include <mapbox/geometry.hpp>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpragmas"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wpadded"
-#pragma GCC diagnostic ignored "-Wfloat-equal"
-#include <rapidjson/document.h>
-#pragma GCC diagnostic pop
-
-#include <vector>
+#include <cmath>
 
 namespace mapbox {
 namespace geojsonvt {
+namespace detail {
 
-// Use the CrtAllocator, because the MemoryPoolAllocator is broken on ARM
-// https://github.com/miloyip/rapidjson/issues/200
-// https://github.com/miloyip/rapidjson/issues/301
-// https://github.com/miloyip/rapidjson/issues/388
-using JSDocument = rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator>;
-using JSValue = rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator>;
+struct project {
+    const double tolerance;
+    using result_type = vt_geometry;
 
-class __attribute__((visibility("default"))) Convert {
-private:
-    // This class has only static functions; disallow creating instances of it.
-    Convert() = delete;
+    vt_point operator()(const geometry::point<double>& p) {
+        const double sine = std::sin(p.y * M_PI / 180);
+        const double x = p.x / 360 + 0.5;
+        const double y =
+            std::max(std::min(0.5 - 0.25 * std::log((1 + sine) / (1 - sine)) / M_PI, 1.0), 0.0);
+        return { x, y, 0.0 };
+    }
 
-public:
-    static std::vector<ProjectedFeature> convert(const JSValue& data, double tolerance);
+    vt_line_string operator()(const geometry::line_string<double>& points) {
+        vt_line_string result;
+        const size_t len = points.size();
 
-    static ProjectedFeature
-    create(const Tags& tags, ProjectedFeatureType type, ProjectedGeometry const& geometry);
+        if (len == 0)
+            return result;
 
-    static ProjectedRing projectRing(geometry::linear_ring<double> const& points,
-                                     double tolerance = 0);
+        result.reserve(len);
 
-private:
-    static void convertFeature(std::vector<ProjectedFeature>& features,
-                               const JSValue& feature,
-                               double tolerance);
+        for (const auto& p : points) {
+            result.push_back(operator()(p));
+        }
 
-    static void convertGeometry(std::vector<ProjectedFeature>& features,
-                                const Tags& tags,
-                                const JSValue& geom,
-                                double tolerance);
+        for (size_t i = 0; i < len - 1; ++i) {
+            const auto& a = result[i];
+            const auto& b = result[i + 1];
+            // use Manhattan distance instead of Euclidian to avoid expensive square root
+            // computation
+            result.dist += std::abs(b.x - a.x) + std::abs(b.y - a.y);
+        }
 
-    static ProjectedPoint projectPoint(geometry::point<double> const& pt);
+        simplify(result, tolerance);
 
-    static void calcSize(ProjectedRing& ring);
+        return result;
+    }
 
-    static void calcBBox(ProjectedFeature& feature);
+    vt_linear_ring operator()(const geometry::linear_ring<double>& ring) {
+        vt_linear_ring result;
+        const size_t len = ring.size();
 
-    static void
-    calcRingBBox(ProjectedPoint& minPoint, ProjectedPoint& maxPoint, const ProjectedPoints& points);
+        if (len == 0)
+            return result;
 
-    static geometry::point<double> readCoordinate(const JSValue& value);
+        result.reserve(len);
 
-    static ProjectedRing readCoordinateRing(const JSValue& rawRing, double tolerance);
+        for (const auto& p : ring) {
+            result.push_back(operator()(p));
+        }
 
-    static const JSValue& validArray(const JSValue& value, rapidjson::SizeType minSize = 1);
+        double area = 0.0;
+
+        for (size_t i = 0; i < len - 1; ++i) {
+            const auto& a = result[i];
+            const auto& b = result[i + 1];
+            area += a.x * b.y - b.x * a.y;
+        }
+        result.area = std::abs(area / 2);
+
+        simplify(result, tolerance);
+
+        return result;
+    }
+
+    vt_geometry operator()(const geometry::geometry<double>& geometry) {
+        return geometry::geometry<double>::visit(geometry, project{ tolerance });
+    }
+
+    // Handles polygon, multi_*, geometry_collection.
+    template <class T>
+    auto operator()(const T& vector) {
+        typename vt_geometry_type<T>::type result;
+        result.reserve(vector.size());
+        for (const auto& e : vector) {
+            result.push_back(operator()(e));
+        }
+        return result;
+    }
 };
 
+inline vt_features convert(const geometry::feature_collection<double>& features,
+                           const double tolerance) {
+    vt_features projected;
+    projected.reserve(features.size());
+    for (const auto& feature : features) {
+        projected.emplace_back(
+            geometry::geometry<double>::visit(feature.geometry, project{ tolerance }),
+            feature.properties);
+    }
+    return projected;
+}
+
+} // namespace detail
 } // namespace geojsonvt
 } // namespace mapbox
-
-#endif // MAPBOX_GEOJSONVT_CONVERT

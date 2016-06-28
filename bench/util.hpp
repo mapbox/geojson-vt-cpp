@@ -4,8 +4,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string>
 #include <stdexcept>
+#include <string>
 
 std::string loadFile(const std::string& filename) {
     std::ifstream in(filename, std::ios::in | std::ios::binary);
@@ -19,22 +19,15 @@ std::string loadFile(const std::string& filename) {
 }
 
 class Timer {
-    using Clock = std::chrono::steady_clock;
-    using SystemClock = std::chrono::system_clock;
-
-    using TimePoint = Clock::time_point;
-    using Duration = Clock::duration;
-
-    TimePoint start = Clock::now();
-
 public:
-    void report(const std::string& name) {
-        Duration duration = Clock::now() - start;
-        std::cerr << name << ": "
-                  << double(
-                         std::chrono::duration_cast<std::chrono::microseconds>(duration).count()) /
-                         1000
-                  << "ms" << std::endl;
-        start += duration;
+    std::chrono::high_resolution_clock::time_point started;
+    Timer() {
+        started = std::chrono::high_resolution_clock::now();
+    }
+    void operator()(std::string msg) {
+        const auto now = std::chrono::high_resolution_clock::now();
+        const auto ms = std::chrono::duration_cast<std::chrono::microseconds>(now - started);
+        std::cerr << msg << ": " << double(ms.count()) / 1000 << "ms\n";
+        started = now;
     }
 };
