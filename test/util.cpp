@@ -37,8 +37,22 @@ std::string loadFile(const std::string& filename) {
 
 bool operator==(const mapbox::geometry::feature<short>& a,
                 const mapbox::geometry::feature<short>& b) {
-    // EXPECT_EQ(a.geometry, b.geometry);
     EXPECT_EQ(typeid(a.geometry), typeid(b.geometry));
+
+    if (a.geometry.is<mapbox::geometry::point<int16_t>>()) {
+        if (b.geometry.is<mapbox::geometry::point<int16_t>>()) {
+            mapbox::geometry::point<int16_t> pointA = a.geometry.get<mapbox::geometry::point<int16_t>>();
+            mapbox::geometry::point<int16_t> pointB = b.geometry.get<mapbox::geometry::point<int16_t>>();
+            EXPECT_EQ(pointA.x, pointB.x);
+            EXPECT_EQ(pointA.y, pointB.y);
+        } else {
+            EXPECT_EQ(
+                a.geometry.is<mapbox::geometry::point<int16_t>>(),
+                b.geometry.is<mapbox::geometry::point<int16_t>>()
+            );
+        }
+    }
+
     EXPECT_EQ(a.properties, b.properties);
     return true;
 }
