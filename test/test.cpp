@@ -196,6 +196,78 @@ TEST(GetTile, USStates) {
     ASSERT_EQ(37, index.total);
 }
 
+TEST(GetTile, Projection) {
+    const auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/linestring.json"));
+
+    mapbox::geojsonvt::Options options;
+    options.maxZoom = 20;
+    options.extent = 8192;
+    options.tolerance = 0;
+
+    GeoJSONVT index { geojson.get<mapbox::geojson::feature_collection>(), options };
+
+    struct TileCoordinate {
+        uint8_t z;
+        uint32_t x;
+        uint32_t y;
+    };
+
+    std::vector<TileCoordinate> tileCoordinates {
+        { 0, 0, 0 },
+        { 1, 0, 0 },
+        { 2, 0, 1 },
+        { 3, 1, 3 },
+        { 4, 2, 6 },
+        { 5, 5, 12 },
+        { 6, 10, 24 },
+        { 7, 20, 49 },
+        { 8, 40, 98 },
+        { 9, 81, 197 },
+        { 10, 163, 395 },
+        { 11, 327, 791 },
+        { 12, 655, 1583 },
+        { 13, 1310, 3166 },
+        { 14, 2620, 6332 },
+        { 15, 5241, 12664 },
+        { 16, 10482, 25329 },
+        { 17, 20964, 50660 },
+        { 18, 41929, 101320 },
+        { 19, 83859, 202640 },
+        { 20, 167719, 405281 },
+    };
+
+    for (const auto tileCoordinate: tileCoordinates) {
+        auto tile = index.getTile(tileCoordinate.z, tileCoordinate.x, tileCoordinate.y);
+        ASSERT_EQ(tile.num_points, tile.num_simplified);
+        ASSERT_EQ(tile.features.size(), 1);
+        const auto& geometry = tile.features.front().geometry;
+        ASSERT_TRUE(geometry.is<mapbox::geometry::line_string<int16_t>>());
+        const auto& lineString = geometry.get<mapbox::geometry::line_string<int16_t>>();
+        ASSERT_EQ(lineString.size(), 2);
+
+        const double totalFeatures = (1u << tileCoordinate.z) * 8192.0;
+
+        const auto toWebMercatorLon = [&](const mapbox::geometry::point<int16_t> &point) -> double {
+            const double x0 = 8192.0 * tileCoordinate.x;
+            return (x0 + point.x) * 360.0 / totalFeatures - 180.0;
+        };
+
+        const auto toWebMercatorLat = [&](const mapbox::geometry::point<int16_t> &point) -> double {
+            const double y0 = 8192.0 * tileCoordinate.y;
+            const double y2 = 180.0 - (y0 + point.y) * 360.0 / totalFeatures;
+            return 360.0 / M_PI * std::atan(std::exp(y2 * M_PI / 180.0)) - 90.0;
+        };
+
+        const auto tolerance = 0.1 / (1 + tileCoordinate.z);
+
+        ASSERT_NEAR(-122.41822421550751, toWebMercatorLon(lineString[0]), tolerance);
+        ASSERT_NEAR(37.77852514599172, toWebMercatorLat(lineString[0]), tolerance);
+
+        ASSERT_NEAR(-122.41707086563109, toWebMercatorLon(lineString[1]), tolerance);
+        ASSERT_NEAR(37.780424620898664, toWebMercatorLat(lineString[1]), tolerance);
+    }
+}
+
 std::map<std::string, mapbox::geometry::feature_collection<int16_t>>
 genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 10000) {
     Options options;
