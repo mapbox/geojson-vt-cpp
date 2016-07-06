@@ -87,20 +87,8 @@ public:
         splitTile(features, 0, 0, 0);
     }
 
-    GeoJSONVT(const geojson& geojson_,
-              const Options& options_ = Options())
-        : options(options_) {
-        ToFeatureCollection toFeatureCollection;
-
-        const mapbox::geometry::feature_collection<double> features_ = apply_visitor(toFeatureCollection, geojson_);
-
-        const uint32_t z2 = std::pow(2, options.maxZoom);
-
-        auto converted = detail::convert(features_, options.tolerance / (z2 * options.extent));
-        auto features = detail::wrap(converted, double(options.buffer) / options.extent);
-
-        splitTile(features, 0, 0, 0);
-    }
+    GeoJSONVT(const geojson& geojson_, const Options& options_ = Options())
+        : GeoJSONVT(apply_visitor(toFeatureCollection, geojson_), options_) {}
 
     std::map<uint8_t, uint32_t> stats;
     uint32_t total = 0;
@@ -154,6 +142,8 @@ public:
     }
 
 private:
+    ToFeatureCollection toFeatureCollection;
+
     std::unordered_map<uint64_t, detail::InternalTile> tiles;
 
     std::unordered_map<uint64_t, detail::InternalTile>::iterator
