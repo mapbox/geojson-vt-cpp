@@ -204,7 +204,7 @@ TEST(GetTile, Projection) {
     options.extent = 8192;
     options.tolerance = 0;
 
-    GeoJSONVT index { geojson.get<mapbox::geojson::feature_collection>(), options };
+    GeoJSONVT index { geojson, options };
 
     struct TileCoordinate {
         uint8_t z;
@@ -276,24 +276,7 @@ genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 1000
     options.indexMaxPoints = maxPoints;
 
     const auto geojson = mapbox::geojson::parse(data);
-    mapbox::geojson::feature_collection features;
-    if (geojson.is<mapbox::geojson::feature_collection>()) {
-        features = geojson.get<mapbox::geojson::feature_collection>();
-    } else if (geojson.is<mapbox::geojson::feature>()) {
-        features.emplace_back(geojson.get<mapbox::geojson::feature>());
-    } else if (geojson.is<mapbox::geojson::geometry>()) {
-        const auto& geom = geojson.get<mapbox::geojson::geometry>();
-        if (geom.is<mapbox::geojson::geometry_collection>()) {
-            for (const auto& item : geom.get<mapbox::geojson::geometry_collection>()) {
-                mapbox::geometry::feature<double> feat{ item };
-                features.emplace_back(feat);
-            }
-        } else {
-            mapbox::geometry::feature<double> feat{ geom };
-            features.emplace_back(feat);
-        }
-    }
-    GeoJSONVT index{ features, options };
+    GeoJSONVT index{ geojson, options };
 
     std::map<std::string, mapbox::geometry::feature_collection<int16_t>> output;
 
