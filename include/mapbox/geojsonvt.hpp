@@ -27,18 +27,7 @@ struct ToFeatureCollection {
         return { value };
     }
     feature_collection operator()(const geometry& value) const {
-        if (value.is<geometry_collection>()) {
-            geometry_collection collection = std::move(value.get<geometry_collection>());
-            feature_collection features;
-            features.reserve(collection.size());
-            for (const auto& geom : collection) {
-                feature feat{ geom };
-                features.emplace_back(std::move(feat));
-            }
-            return features;
-        } else {
-            return { { value } };
-        }
+        return { { value } };
     }
 };
 

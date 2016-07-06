@@ -49,7 +49,7 @@ public:
 
             vt_geometry::visit(geom, [&](const auto& g) {
                 // `this->` is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61636
-                this->addFeature(this->transform(g), props);
+                this->addFeature(g, props);
             });
 
             bbox.min.x = std::min(feature.bbox.min.x, bbox.min.x);
@@ -93,30 +93,43 @@ private:
         return true;
     }
 
-    void addFeature(geometry::point<int16_t>&& point, const property_map& props) {
-        tile.features.push_back({ std::move(point), props });
+    void addFeature(const vt_point& point, const property_map& props) {
+        tile.features.push_back({ transform(point), props });
     }
 
-    void addFeature(geometry::line_string<int16_t>&& line, const property_map& props) {
-        if (!line.empty())
-            tile.features.push_back({ std::move(line), props });
+    void addFeature(const vt_line_string& line, const property_map& props) {
+        const auto new_line = transform(line);
+        if (!new_line.empty())
+            tile.features.push_back({ std::move(new_line), props });
     }
 
-    void addFeature(geometry::polygon<int16_t>&& polygon, const property_map& props) {
-        if (!polygon.empty())
-            tile.features.push_back({ std::move(polygon), props });
+    void addFeature(const vt_polygon& polygon, const property_map& props) {
+        const auto new_polygon = transform(polygon);
+        if (!new_polygon.empty())
+            tile.features.push_back({ std::move(new_polygon), props });
+    }
+
+    void addFeature(const vt_geometry_collection& collection, const property_map& props) {
+        for (const auto& geom : collection) {
+            vt_geometry::visit(geom, [&](const auto& g) {
+                // `this->` is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61636
+                this->addFeature(g, props);
+            });
+        }
     }
 
     template <class T>
-    void addFeature(T&& multi, const property_map& props) {
-        switch (multi.size()) {
+    void addFeature(const T& multi, const property_map& props) {
+        const auto new_multi = transform(multi);
+
+        switch (new_multi.size()) {
         case 0:
             break;
         case 1:
-            tile.features.push_back({ std::move(multi[0]), props });
+            tile.features.push_back({ std::move(new_multi[0]), props });
             break;
         default:
-            tile.features.push_back({ std::move(multi), props });
+            tile.features.push_back({ std::move(new_multi), props });
             break;
         }
     }
@@ -182,18 +195,6 @@ private:
             const auto p = transform(polygon);
             if (!p.empty())
                 result.push_back(std::move(p));
-        }
-        return result;
-    }
-
-    mapbox::geometry::geometry_collection<int16_t>
-    transform(const vt_geometry_collection& geometries) {
-        mapbox::geometry::geometry_collection<int16_t> result;
-        for (const auto& geometry : geometries) {
-            vt_geometry::visit(geometry, [&](const auto& g) {
-                // `this->` is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61636
-                result.push_back(this->transform(g));
-            });
         }
         return result;
     }
