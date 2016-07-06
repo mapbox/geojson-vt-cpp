@@ -13,6 +13,35 @@
 namespace mapbox {
 namespace geojsonvt {
 
+using geometry            = mapbox::geometry::geometry<double>;
+using feature             = mapbox::geometry::feature<double>;
+using feature_collection  = mapbox::geometry::feature_collection<double>;
+using geometry_collection = mapbox::geometry::geometry_collection<double>;
+using geojson             = mapbox::util::variant<geometry, feature, feature_collection>;
+
+struct ToFeatureCollection {
+    feature_collection operator()(const feature_collection& value) const {
+        return value;
+    }
+    feature_collection operator()(const feature& value) const {
+        return { value };
+    }
+    feature_collection operator()(const geometry& value) const {
+        if (value.is<geometry_collection>()) {
+            geometry_collection collection = std::move(value.get<geometry_collection>());
+            feature_collection features;
+            features.reserve(collection.size());
+            for (const auto& geom : collection) {
+                feature feat{ geom };
+                features.emplace_back(std::move(feat));
+            }
+            return features;
+        } else {
+            return { { value } };
+        }
+    }
+};
+
 struct Options {
     // max zoom to preserve detail on
     uint8_t maxZoom = 18;
@@ -56,6 +85,10 @@ public:
         auto features = detail::wrap(converted, double(options.buffer) / options.extent);
 
         splitTile(features, 0, 0, 0);
+    }
+
+    GeoJSONVT(const geojson& geojson_, const Options& options_ = Options())
+        : GeoJSONVT(geojson::visit(geojson_, ToFeatureCollection{}), options_) {
     }
 
     std::map<uint8_t, uint32_t> stats;

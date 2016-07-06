@@ -204,7 +204,7 @@ TEST(GetTile, Projection) {
     options.extent = 8192;
     options.tolerance = 0;
 
-    GeoJSONVT index { geojson.get<mapbox::geojson::feature_collection>(), options };
+    GeoJSONVT index{ geojson, options };
 
     struct TileCoordinate {
         uint8_t z;
@@ -212,31 +212,17 @@ TEST(GetTile, Projection) {
         uint32_t y;
     };
 
-    std::vector<TileCoordinate> tileCoordinates {
-        { 0, 0, 0 },
-        { 1, 0, 0 },
-        { 2, 0, 1 },
-        { 3, 1, 3 },
-        { 4, 2, 6 },
-        { 5, 5, 12 },
-        { 6, 10, 24 },
-        { 7, 20, 49 },
-        { 8, 40, 98 },
-        { 9, 81, 197 },
-        { 10, 163, 395 },
-        { 11, 327, 791 },
-        { 12, 655, 1583 },
-        { 13, 1310, 3166 },
-        { 14, 2620, 6332 },
-        { 15, 5241, 12664 },
-        { 16, 10482, 25329 },
-        { 17, 20964, 50660 },
-        { 18, 41929, 101320 },
-        { 19, 83859, 202640 },
-        { 20, 167719, 405281 },
+    std::vector<TileCoordinate> tileCoordinates{
+        { 0, 0, 0 },           { 1, 0, 0 },           { 2, 0, 1 },
+        { 3, 1, 3 },           { 4, 2, 6 },           { 5, 5, 12 },
+        { 6, 10, 24 },         { 7, 20, 49 },         { 8, 40, 98 },
+        { 9, 81, 197 },        { 10, 163, 395 },      { 11, 327, 791 },
+        { 12, 655, 1583 },     { 13, 1310, 3166 },    { 14, 2620, 6332 },
+        { 15, 5241, 12664 },   { 16, 10482, 25329 },  { 17, 20964, 50660 },
+        { 18, 41929, 101320 }, { 19, 83859, 202640 }, { 20, 167719, 405281 },
     };
 
-    for (const auto tileCoordinate: tileCoordinates) {
+    for (const auto tileCoordinate : tileCoordinates) {
         auto tile = index.getTile(tileCoordinate.z, tileCoordinate.x, tileCoordinate.y);
         ASSERT_EQ(tile.num_points, tile.num_simplified);
         ASSERT_EQ(tile.features.size(), 1);
@@ -247,12 +233,12 @@ TEST(GetTile, Projection) {
 
         const double totalFeatures = (1u << tileCoordinate.z) * 8192.0;
 
-        const auto toWebMercatorLon = [&](const mapbox::geometry::point<int16_t> &point) -> double {
+        const auto toWebMercatorLon = [&](const mapbox::geometry::point<int16_t>& point) -> double {
             const double x0 = 8192.0 * tileCoordinate.x;
             return (x0 + point.x) * 360.0 / totalFeatures - 180.0;
         };
 
-        const auto toWebMercatorLat = [&](const mapbox::geometry::point<int16_t> &point) -> double {
+        const auto toWebMercatorLat = [&](const mapbox::geometry::point<int16_t>& point) -> double {
             const double y0 = 8192.0 * tileCoordinate.y;
             const double y2 = 180.0 - (y0 + point.y) * 360.0 / totalFeatures;
             return 360.0 / M_PI * std::atan(std::exp(y2 * M_PI / 180.0)) - 90.0;
@@ -276,24 +262,7 @@ genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 1000
     options.indexMaxPoints = maxPoints;
 
     const auto geojson = mapbox::geojson::parse(data);
-    mapbox::geojson::feature_collection features;
-    if (geojson.is<mapbox::geojson::feature_collection>()) {
-        features = geojson.get<mapbox::geojson::feature_collection>();
-    } else if (geojson.is<mapbox::geojson::feature>()) {
-        features.emplace_back(geojson.get<mapbox::geojson::feature>());
-    } else if (geojson.is<mapbox::geojson::geometry>()) {
-        const auto& geom = geojson.get<mapbox::geojson::geometry>();
-        if (geom.is<mapbox::geojson::geometry_collection>()) {
-            for (const auto& item : geom.get<mapbox::geojson::geometry_collection>()) {
-                mapbox::geometry::feature<double> feat{ item };
-                features.emplace_back(feat);
-            }
-        } else {
-            mapbox::geometry::feature<double> feat{ geom };
-            features.emplace_back(feat);
-        }
-    }
-    GeoJSONVT index{ features, options };
+    GeoJSONVT index{ geojson, options };
 
     std::map<std::string, mapbox::geometry::feature_collection<int16_t>> output;
 
