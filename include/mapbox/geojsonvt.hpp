@@ -32,7 +32,7 @@ struct ToFeatureCollection {
             feature_collection features;
             features.reserve(collection.size());
             for (const auto& geom : collection) {
-                feature feat { geom };
+                feature feat{ geom };
                 features.emplace_back(std::move(feat));
             }
             return features;
@@ -88,7 +88,8 @@ public:
     }
 
     GeoJSONVT(const geojson& geojson_, const Options& options_ = Options())
-        : GeoJSONVT(apply_visitor(toFeatureCollection, geojson_), options_) {}
+        : GeoJSONVT(geojson::visit(geojson_, ToFeatureCollection{}), options_) {
+    }
 
     std::map<uint8_t, uint32_t> stats;
     uint32_t total = 0;
@@ -142,8 +143,6 @@ public:
     }
 
 private:
-    ToFeatureCollection toFeatureCollection;
-
     std::unordered_map<uint64_t, detail::InternalTile> tiles;
 
     std::unordered_map<uint64_t, detail::InternalTile>::iterator
