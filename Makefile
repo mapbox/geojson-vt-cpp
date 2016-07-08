@@ -3,8 +3,8 @@ CXXFLAGS += -I include -std=c++14 -Wall -Wextra -O3
 MASON ?= .mason/mason
 
 VARIANT = variant 1.1.0
-GEOMETRY = geometry 0.7.0
-GEOJSON = geojson 0.1.2-cxx03abi
+GEOMETRY = geometry 0.8.0
+GEOJSON = geojson 0.1.4-cxx03abi
 GLFW = glfw 3.1.2
 GTEST = gtest 1.7.0
 RAPIDJSON = rapidjson 1.0.2
