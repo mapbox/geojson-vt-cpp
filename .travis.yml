@@ -8,19 +8,19 @@ matrix:
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test' ]
-          packages: [ 'g++-5' ]
+          packages: [ 'libstdc++-5-dev', 'g++-5', 'libxi-dev','libglu1-mesa-dev','x11proto-randr-dev','x11proto-xext-dev','libxrandr-dev','x11proto-xf86vidmode-dev','libxxf86vm-dev','libxcursor-dev','libxinerama-dev' ]
     - os: linux
       env: CXX=clang++-3.8 BUILDTYPE=Debug ASAN_OPTIONS=detect_leaks=1 CXXFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address"
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test' ]
-          packages: [ libstdc++-5-dev', 'libstdc++6', 'g++-5' ]
+          packages: [ 'libstdc++-5-dev', 'libxi-dev','libglu1-mesa-dev','x11proto-randr-dev','x11proto-xext-dev','libxrandr-dev','x11proto-xf86vidmode-dev','libxxf86vm-dev','libxcursor-dev','libxinerama-dev' ]
     - os: linux
       env: CXX=clang++-3.8 BUILDTYPE=Release
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test', ]
-          packages: [ libstdc++-5-dev', 'libstdc++6', 'g++-5' ]
+          packages: [ 'libstdc++-5-dev', 'libxi-dev','libglu1-mesa-dev','x11proto-randr-dev','x11proto-xext-dev','libxrandr-dev','x11proto-xf86vidmode-dev','libxxf86vm-dev','libxcursor-dev','libxinerama-dev']
     - os: osx
       osx_image: xcode7.3
       env: BUILDTYPE=Release
