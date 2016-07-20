@@ -1,5 +1,5 @@
 #include <GLFW/glfw3.h>
-
+#include <memory>
 #include "../bench/util.hpp"
 #include <mapbox/geojson.hpp>
 #include <mapbox/geojsonvt.hpp>
