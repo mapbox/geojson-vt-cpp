@@ -70,7 +70,7 @@ public:
 
         const uint32_t z2 = std::pow(2, options.maxZoom);
 
-        auto converted = detail::convert(features_, options.tolerance / (z2 * options.extent));
+        auto converted = detail::convert(features_, (options.tolerance / options.extent) / z2);
         auto features = detail::wrap(converted, double(options.buffer) / options.extent);
 
         splitTile(features, 0, 0, 0);
