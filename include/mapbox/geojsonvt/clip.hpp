@@ -137,8 +137,10 @@ private:
                 } else if (bk > k2) { // |  ---|-->
                     slice.push_back(intersect<I>(a, b, k2));
                     slice = newSlice(slices, slice, dist);
+
+                } else if (i == len - 2) { // | --> |
+                    slice.push_back(b);
                 }
-                // | --> |
             }
         }
 
