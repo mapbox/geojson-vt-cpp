@@ -4,6 +4,7 @@
 #include <mapbox/geojsonvt/types.hpp>
 #include <mapbox/geometry.hpp>
 
+#include <algorithm>
 #include <cmath>
 
 namespace mapbox {
