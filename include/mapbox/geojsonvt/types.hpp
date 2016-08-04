@@ -3,6 +3,7 @@
 #include <mapbox/geometry.hpp>
 #include <mapbox/variant.hpp>
 
+#include <algorithm>
 #include <vector>
 
 namespace mapbox {
