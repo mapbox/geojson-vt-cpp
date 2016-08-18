@@ -196,6 +196,32 @@ TEST(GetTile, USStates) {
     ASSERT_EQ(37, index.total);
 }
 
+TEST(GetTile, AntimeridianTriangle) {
+    const auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/dateline-triangle.json"));
+
+    // Using default options.
+    GeoJSONVT index { geojson };
+
+    struct TileCoordinate {
+        uint8_t z;
+        uint32_t x;
+        uint32_t y;
+    };
+
+    std::vector<TileCoordinate> tileCoordinates {
+        { 1, 0, 0 },
+        { 1, 0, 1 },
+        { 1, 1, 0 },
+        { 1, 1, 1 }
+    };
+
+    for (const auto tileCoordinate : tileCoordinates) {
+        auto tile = index.getTile(tileCoordinate.z, tileCoordinate.x, tileCoordinate.y);
+        ASSERT_EQ(tile.num_points, tile.num_simplified);
+        ASSERT_EQ(tile.features.size(), 1);
+    }
+}
+
 TEST(GetTile, Projection) {
     const auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/linestring.json"));
 

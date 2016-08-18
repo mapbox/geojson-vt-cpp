@@ -10,7 +10,7 @@ namespace detail {
 inline void shiftCoords(vt_features& features, double offset) {
     for (auto& feature : features) {
         mapbox::geometry::for_each_point(feature.geometry,
-                                         [offset](vt_point& point) { point += offset; });
+                                         [offset](vt_point& point) { point.x += offset; });
         feature.bbox.min.x += offset;
         feature.bbox.max.x += offset;
     }
