@@ -99,7 +99,7 @@ parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAll
                 const std::string tagKey{ jt->name.GetString(), jt->name.GetStringLength() };
                 switch (jt->value.GetType()) {
                 case rapidjson::kNullType:
-                    feat.properties.emplace(tagKey, nullptr);
+                    feat.properties.emplace(tagKey, mapbox::geometry::null_value);
                     break;
                 case rapidjson::kFalseType:
                     feat.properties.emplace(tagKey, false);
