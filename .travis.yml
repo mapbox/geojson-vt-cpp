@@ -10,13 +10,13 @@ matrix:
           sources: [ 'ubuntu-toolchain-r-test' ]
           packages: [ 'libstdc++-5-dev', 'g++-5', 'libxi-dev','libglu1-mesa-dev','x11proto-randr-dev','x11proto-xext-dev','libxrandr-dev','x11proto-xf86vidmode-dev','libxxf86vm-dev','libxcursor-dev','libxinerama-dev' ]
     - os: linux
-      env: CXX=clang++-3.8 BUILDTYPE=Debug ASAN_OPTIONS=detect_leaks=1 CXXFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address"
+      env: CXX=clang++-3.9 BUILDTYPE=Debug ASAN_OPTIONS=detect_leaks=1 CXXFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address"
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test' ]
           packages: [ 'libstdc++-5-dev', 'libxi-dev','libglu1-mesa-dev','x11proto-randr-dev','x11proto-xext-dev','libxrandr-dev','x11proto-xf86vidmode-dev','libxxf86vm-dev','libxcursor-dev','libxinerama-dev' ]
     - os: linux
-      env: CXX=clang++-3.8 BUILDTYPE=Release
+      env: CXX=clang++-3.9 BUILDTYPE=Release
       addons:
         apt:
           sources: [ 'ubuntu-toolchain-r-test', ]
@@ -30,8 +30,8 @@ cache: apt
 install:
   - |
     if [[ ${CXX} =~ "clang" ]] && [[ $(uname -s) == "Linux" ]]; then
-      ./.mason/mason install clang 3.8.0
-      CLANG_PREFIX=$(./.mason/mason prefix clang 3.8.0)
+      ./.mason/mason install clang++ 3.9.1
+      CLANG_PREFIX=$(./.mason/mason prefix clang++ 3.9.1)
       export PATH=${CLANG_PREFIX}/bin:${PATH}
       which clang++
       clang++ -v
