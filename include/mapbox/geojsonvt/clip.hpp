@@ -227,6 +227,7 @@ inline vt_features clip(const vt_features& features,
     for (const auto& feature : features) {
         const auto& geom = feature.geometry;
         const auto& props = feature.properties;
+        const auto& id = feature.id;
 
         const double min = get<I>(feature.bbox.min);
         const double max = get<I>(feature.bbox.max);
@@ -238,7 +239,7 @@ inline vt_features clip(const vt_features& features,
             continue;
 
         } else {
-            clipped.emplace_back(vt_geometry::visit(geom, clipper<I>{ k1, k2 }), props);
+            clipped.emplace_back(vt_geometry::visit(geom, clipper<I>{ k1, k2 }), props, id);
         }
     }
 

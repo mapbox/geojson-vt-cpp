@@ -99,7 +99,8 @@ inline vt_features convert(const geometry::feature_collection<double>& features,
     for (const auto& feature : features) {
         projected.emplace_back(
             geometry::geometry<double>::visit(feature.geometry, project{ tolerance }),
-            feature.properties);
+            feature.properties,
+            feature.id);
     }
     return projected;
 }

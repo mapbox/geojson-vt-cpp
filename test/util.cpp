@@ -40,6 +40,7 @@ bool operator==(const mapbox::geometry::feature<short>& a,
     // EXPECT_EQ(a.geometry, b.geometry);
     EXPECT_EQ(typeid(a.geometry), typeid(b.geometry));
     EXPECT_EQ(a.properties, b.properties);
+    EXPECT_EQ(a.id, b.id);
     return true;
 }
 
@@ -124,6 +125,11 @@ parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAll
                     EXPECT_TRUE(false) << "invalid JSON type";
                 }
             }
+        }
+
+        if (feature.HasMember("id")) {
+            EXPECT_TRUE(feature["id"].IsString());
+            feat.id = { std::string{ feature["id"].GetString(), feature["id"].GetStringLength() } };
         }
 
         if (feature.HasMember("type") && feature.HasMember("geometry")) {

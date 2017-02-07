@@ -86,7 +86,8 @@ using vt_geometry = mapbox::util::variant<vt_point,
 
 struct vt_geometry_collection : std::vector<vt_geometry> {};
 
-using property_map = std::unordered_map<std::string, mapbox::geometry::value>;
+using property_map = mapbox::geometry::property_map;
+using identifier = mapbox::geometry::identifier;
 
 template <class T>
 struct vt_geometry_type;
@@ -127,11 +128,13 @@ struct vt_geometry_type<geometry::geometry_collection<double>> {
 struct vt_feature {
     vt_geometry geometry;
     property_map properties;
+    std::experimental::optional<identifier> id;
+
     mapbox::geometry::box<double> bbox = { { 2, 1 }, { -1, 0 } };
     uint32_t num_points = 0;
 
-    vt_feature(const vt_geometry& geom, const property_map& props)
-        : geometry(geom), properties(props) {
+    vt_feature(const vt_geometry& geom, const property_map& props, const std::experimental::optional<identifier>& id_)
+        : geometry(geom), properties(props), id(id_) {
 
         mapbox::geometry::for_each_point(geom, [&](const vt_point& p) {
             bbox.min.x = std::min(p.x, bbox.min.x);
