@@ -7,7 +7,7 @@ MASON ?= .mason/mason
 VARIANT = variant 1.1.4
 GEOMETRY = geometry 0.9.0
 GEOJSON = geojson 0.4.0
-GLFW = glfw 3.2.1
+GLFW = glfw 3.1.2
 GTEST = gtest 1.8.0
 RAPIDJSON = rapidjson 1.1.0
 
