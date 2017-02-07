@@ -90,6 +90,9 @@ using property_map = mapbox::geometry::property_map;
 using identifier = mapbox::geometry::identifier;
 
 template <class T>
+using optional = std::experimental::optional<T>;
+
+template <class T>
 struct vt_geometry_type;
 
 template <>
@@ -128,12 +131,12 @@ struct vt_geometry_type<geometry::geometry_collection<double>> {
 struct vt_feature {
     vt_geometry geometry;
     property_map properties;
-    std::experimental::optional<identifier> id;
+    optional<identifier> id;
 
     mapbox::geometry::box<double> bbox = { { 2, 1 }, { -1, 0 } };
     uint32_t num_points = 0;
 
-    vt_feature(const vt_geometry& geom, const property_map& props, const std::experimental::optional<identifier>& id_)
+    vt_feature(const vt_geometry& geom, const property_map& props, const optional<identifier>& id_)
         : geometry(geom), properties(props), id(id_) {
 
         mapbox::geometry::for_each_point(geom, [&](const vt_point& p) {
