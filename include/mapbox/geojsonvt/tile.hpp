@@ -138,8 +138,8 @@ private:
 
     mapbox::geometry::point<int16_t> transform(const vt_point& p) {
         ++tile.num_simplified;
-        return { static_cast<int16_t>(std::round((p.x * z2 - x) * extent)),
-                 static_cast<int16_t>(std::round((p.y * z2 - y) * extent)) };
+        return { static_cast<int16_t>(::round((p.x * z2 - x) * extent)),
+                 static_cast<int16_t>(::round((p.y * z2 - y) * extent)) };
     }
 
     mapbox::geometry::multi_point<int16_t> transform(const vt_multi_point& points) {
