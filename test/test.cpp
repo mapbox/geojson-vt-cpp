@@ -366,3 +366,24 @@ INSTANTIATE_TEST_CASE_P(
         { "test/fixtures/feature.json", "test/fixtures/feature-tiles.json" },
         { "test/fixtures/collection.json", "test/fixtures/collection-tiles.json" },
         { "test/fixtures/single-geom.json", "test/fixtures/single-geom-tiles.json" } }));
+
+TEST(geoJSONToTile, Simple) {
+    auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/single-tile.json"));
+    const Tile tile = mapbox::geojsonvt::geoJSONToTile(geojson, 12, 1171, 1566);
+
+    ASSERT_EQ(tile.features.size(), 1);
+    auto& props = tile.features.at(0).properties;
+    auto name = (props.find("name")->second).get<std::string>();
+    ASSERT_EQ(name, std::string("P Street Northwest - Massachusetts Avenue Northwest"));
+}
+
+TEST(geoJSONToTile, Clips) {
+    auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/us-states.json"));
+    const Tile tile =
+        mapbox::geojsonvt::geoJSONToTile(geojson, 12, 1171, 1566, TileOptions(), false, true);
+
+    ASSERT_EQ(tile.features.size(), 2);
+    auto& props = tile.features.at(0).properties;
+    auto name = (props.find("name")->second).get<std::string>();
+    ASSERT_EQ(name, std::string("District of Columbia"));
+}

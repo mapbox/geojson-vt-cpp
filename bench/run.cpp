@@ -44,4 +44,23 @@ int main() {
         }
     }
     timer("getTile, found " + std::to_string(count) + " features");
+
+    const std::string singleTileJson = loadFile("test/fixtures/single-tile.json");
+    timer("read single tile file");
+
+    const auto singleTileFeatures = mapbox::geojson::parse(json);
+    timer("parse into geometry");
+
+    options.indexMaxPoints = 10000;
+
+    for (uint32_t i = 0; i < 100; i++) {
+        mapbox::geojsonvt::GeoJSONVT index{ singleTileFeatures, options };
+        index.getTile(12, 1171, 1566);
+    }
+    timer("GeoJSON VT: generate tile index and getTile(12/1171/1566) x 100");
+
+    for (uint32_t i = 0; i < 100; i++) {
+        mapbox::geojsonvt::geoJSONToTile(singleTileFeatures, 12, 1171, 1566);
+    }
+    timer("GeoJSON-to-Tile: generate tile(12/1171/1566) x 100");
 }
