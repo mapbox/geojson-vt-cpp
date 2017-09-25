@@ -62,7 +62,7 @@ inline uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
     return (((1ull << z) * y + x) * 32) + z;
 }
 
-const Tile geoJSONToTile(const geojson& geojson_,
+inline const Tile geoJSONToTile(const geojson& geojson_,
                          uint8_t z,
                          uint32_t x,
                          uint32_t y,
