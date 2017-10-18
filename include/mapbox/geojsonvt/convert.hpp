@@ -3,6 +3,7 @@
 #include <mapbox/geojsonvt/simplify.hpp>
 #include <mapbox/geojsonvt/types.hpp>
 #include <mapbox/geometry.hpp>
+#include <mapbox/feature.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -92,7 +93,7 @@ struct project {
     }
 };
 
-inline vt_features convert(const geometry::feature_collection<double>& features,
+inline vt_features convert(const feature::feature_collection<double>& features,
                            const double tolerance) {
     vt_features projected;
     projected.reserve(features.size());

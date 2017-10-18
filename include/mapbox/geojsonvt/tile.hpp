@@ -8,7 +8,7 @@ namespace mapbox {
 namespace geojsonvt {
 
 struct Tile {
-    mapbox::geometry::feature_collection<int16_t> features;
+    mapbox::feature::feature_collection<int16_t> features;
     uint32_t num_points = 0;
     uint32_t num_simplified = 0;
 };

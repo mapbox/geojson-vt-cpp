@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mapbox/geometry.hpp>
+#include <mapbox/feature.hpp>
 #include <mapbox/variant.hpp>
 
 #include <algorithm>
@@ -86,8 +87,8 @@ using vt_geometry = mapbox::util::variant<vt_point,
 
 struct vt_geometry_collection : std::vector<vt_geometry> {};
 
-using property_map = mapbox::geometry::property_map;
-using identifier = mapbox::geometry::identifier;
+using property_map = mapbox::feature::property_map;
+using identifier = mapbox::feature::identifier;
 
 template <class T>
 using optional = std::experimental::optional<T>;
