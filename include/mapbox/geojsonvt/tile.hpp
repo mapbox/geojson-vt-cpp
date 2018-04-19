@@ -33,14 +33,16 @@ public:
                  const uint32_t y_,
                  const uint16_t extent_,
                  const uint16_t buffer,
-                 const double tolerance_)
+                 const double tolerance_,
+                 const bool lineMetrics_)
         : z(z_),
           x(x_),
           y(y_),
           z2(std::pow(2, z)),
           extent(extent_),
           tolerance(tolerance_),
-          sq_tolerance(tolerance_ * tolerance_) {
+          sq_tolerance(tolerance_ * tolerance_),
+          lineMetrics(lineMetrics_) {
 
         for (const auto& feature : source) {
             const auto& geom = feature.geometry;
@@ -68,6 +70,7 @@ private:
     const uint16_t extent;
     const double tolerance;
     const double sq_tolerance;
+    const bool lineMetrics;
 
     bool isSolid(const uint16_t buffer) {
         if (tile.features.size() != 1)
@@ -101,8 +104,15 @@ private:
 
     void addFeature(const vt_line_string& line, const property_map& props, const optional<identifier>& id) {
         const auto new_line = transform(line);
-        if (!new_line.empty())
-            tile.features.push_back({ std::move(new_line), props, id });
+        if (!new_line.empty()) {
+            if (lineMetrics) {
+                property_map newProps = props;
+                newProps["mapbox_clip_start"] = line.segStart / line.dist;
+                newProps["mapbox_clip_start"] = line.segEnd / line.dist;
+                tile.features.push_back({ std::move(new_line), newProps, id });
+            } else
+                tile.features.push_back({ std::move(new_line), props, id });
+        }
     }
 
     void addFeature(const vt_polygon& polygon, const property_map& props, const optional<identifier>& id) {

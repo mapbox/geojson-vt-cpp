@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 using namespace mapbox::geojsonvt;
 
@@ -91,8 +92,8 @@ TEST(Clip, Polylines) {
 
     const auto clip = detail::clipper<0>{ 10, 40 };
 
-    const auto clipped1 = clip(points1);
-    const auto clipped2 = clip(points2);
+    const auto clipped1 = clip(points1, false);
+    const auto clipped2 = clip(points2, false);
 
     const detail::vt_geometry expected1{ detail::vt_multi_line_string{
         { { 10, 0 }, { 40, 0 } },
@@ -105,6 +106,29 @@ TEST(Clip, Polylines) {
 
     ASSERT_EQ(expected1, clipped1);
     ASSERT_EQ(expected2, clipped2);
+}
+
+TEST(Clip, PolylinesLineMetrics) {
+    const detail::vt_line_string points1{ { 0, 0 },   { 50, 0 },  { 50, 10 }, { 20, 10 },
+                                          { 20, 20 }, { 30, 20 }, { 30, 30 }, { 50, 30 },
+                                          { 50, 40 }, { 25, 40 }, { 25, 50 }, { 0, 50 },
+                                          { 0, 60 },  { 25, 60 } };
+
+    const auto clip = detail::clipper<0>{ 10, 40 };
+
+    const auto clipped = clip(points1, true).get<mapbox::geojsonvt::detail::vt_multi_line_string>();
+
+    ASSERT_EQ(clipped[0].segStart, 10.0);
+    ASSERT_EQ(clipped[0].segEnd, 40.0);
+
+    ASSERT_EQ(clipped[1].segStart, 70.0);
+    ASSERT_EQ(clipped[1].segEnd, 130.0);
+
+    ASSERT_EQ(clipped[2].segStart, 160.0);
+    ASSERT_EQ(clipped[2].segEnd, 200.0);
+
+    ASSERT_EQ(clipped[3].segStart, 230.0);
+    ASSERT_EQ(clipped[3].segEnd, 245.0);
 }
 
 TEST(Clip, Polygons) {
@@ -128,8 +152,8 @@ TEST(Clip, Polygons) {
 
     const auto clip = detail::clipper<0>{ 10, 40 };
 
-    const auto clipped1 = clip(points1);
-    const auto clipped2 = clip(points2);
+    const auto clipped1 = clip(points1, false);
+    const auto clipped2 = clip(points2, false);
 
     const detail::vt_geometry expected1{ detail::vt_polygon{ { { { 10, 0 },
                                                                  { 40, 0 },
@@ -165,8 +189,8 @@ TEST(Clip, Points) {
 
     const auto clip = detail::clipper<0>{ 10, 40 };
 
-    const auto clipped1 = clip(points1);
-    const auto clipped2 = clip(points2);
+    const auto clipped1 = clip(points1, false);
+    const auto clipped2 = clip(points2, false);
 
     const detail::vt_geometry expected1{ detail::vt_multi_point{
         { { 20, 10 }, { 20, 20 }, { 30, 20 }, { 30, 30 }, { 25, 40 }, { 25, 50 }, { 25, 60 } } } };
@@ -282,11 +306,12 @@ TEST(GetTile, Projection) {
 }
 
 std::map<std::string, mapbox::geometry::feature_collection<int16_t>>
-genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 10000) {
+genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 10000, bool lineMetrics = false) {
     Options options;
     options.maxZoom = 14;
     options.indexMaxZoom = maxZoom;
     options.indexMaxPoints = maxPoints;
+    options.lineMetrics = lineMetrics;
 
     const auto geojson = mapbox::geojson::parse(data);
     GeoJSONVT index{ geojson, options };
@@ -307,20 +332,23 @@ struct Arguments {
     Arguments(const std::string inputFile_,
               const std::string expectedFile_,
               const uint32_t maxZoom_ = 0,
-              const uint32_t maxPoints_ = 10000)
+              const uint32_t maxPoints_ = 10000,
+              const bool lineMetrics_ = false)
         : inputFile(inputFile_),
           expectedFile(expectedFile_),
           maxZoom(maxZoom_),
-          maxPoints(maxPoints_){};
+          maxPoints(maxPoints_),
+          lineMetrics(lineMetrics_){};
 
     const std::string inputFile;
     const std::string expectedFile;
     const uint32_t maxZoom;
     const uint32_t maxPoints;
+    const bool lineMetrics;
 };
 
 ::std::ostream& operator<<(::std::ostream& os, const Arguments& a) {
-    return os << a.inputFile << " (" << a.maxZoom << ", " << a.maxPoints << ")";
+    return os << a.inputFile << " (" << a.maxZoom << ", " << a.maxPoints << ", " << a.lineMetrics << ")";
 }
 
 class TileTest : public ::testing::TestWithParam<Arguments> {};
@@ -328,7 +356,7 @@ class TileTest : public ::testing::TestWithParam<Arguments> {};
 TEST_P(TileTest, Tiles) {
     const auto& params = GetParam();
 
-    const auto actual = genTiles(loadFile(params.inputFile), params.maxZoom, params.maxPoints);
+    const auto actual = genTiles(loadFile(params.inputFile), params.maxZoom, params.maxPoints, params.lineMetrics);
     const auto expected = parseJSONTiles(loadFile(params.expectedFile));
 
     ASSERT_EQ(expected == actual, true);
@@ -362,7 +390,11 @@ INSTANTIATE_TEST_CASE_P(
     TileTest,
     ::testing::ValuesIn(std::vector<Arguments>{
         { "test/fixtures/us-states.json", "test/fixtures/us-states-tiles.json", 7, 200 },
-        { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },
+        { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 }, // TODO why are indexMaxZoom + indexMaxPoints diff from js?
+
+        // TODO -- when logging exploded segments starts/ends in clip.hpp, all were 0
+        // these log tiny coord numbers that do not look like tile units -- why?
+        { "test/fixtures/dateline.json", "test/fixtures/dateline-metrics-tiles.json", 0, 10000, true },
         { "test/fixtures/feature.json", "test/fixtures/feature-tiles.json" },
         { "test/fixtures/collection.json", "test/fixtures/collection-tiles.json" },
         { "test/fixtures/single-geom.json", "test/fixtures/single-geom-tiles.json" } }));

@@ -43,16 +43,29 @@ inline double get<1>(const mapbox::geometry::point<double>& p) {
 }
 
 template <uint8_t I>
-inline vt_point intersect(const vt_point&, const vt_point&, const double);
+inline double calc_progress(const vt_point&, const vt_point&, const double);
 
 template <>
-inline vt_point intersect<0>(const vt_point& a, const vt_point& b, const double x) {
-    const double y = (x - a.x) * (b.y - a.y) / (b.x - a.x) + a.y;
+inline double calc_progress<0>(const vt_point& a, const vt_point& b, const double x) {
+    return (x - a.x) / (b.x - a.x);
+}
+
+template <>
+inline double calc_progress<1>(const vt_point& a, const vt_point& b, const double y) {
+    return (y - a.y) / (b.y - a.y);
+}
+
+template <uint8_t I>
+inline vt_point intersect(const vt_point&, const vt_point&, const double, const double);
+
+template <>
+inline vt_point intersect<0>(const vt_point& a, const vt_point& b, const double x, const double t) {
+    const double y = (b.y - a.y) * t + a.y;
     return { x, y, 1.0 };
 }
 template <>
-inline vt_point intersect<1>(const vt_point& a, const vt_point& b, const double y) {
-    const double x = (y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
+inline vt_point intersect<1>(const vt_point& a, const vt_point& b, const double y, const double t) {
+    const double x = (b.x - a.x) * t + a.x;
     return { x, y, 1.0 };
 }
 
@@ -62,6 +75,8 @@ struct vt_line_string : std::vector<vt_point> {
     using container_type = std::vector<vt_point>;
     using container_type::container_type;
     double dist = 0.0; // line length
+    double segStart = 0.0;
+    double segEnd = 0.0; // segStart and segEnd are distance along a line in tile units, when lineMetrics = true
 };
 
 struct vt_linear_ring : std::vector<vt_point> {
