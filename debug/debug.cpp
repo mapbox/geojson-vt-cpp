@@ -2,6 +2,7 @@
 #include <memory>
 #include "../bench/util.hpp"
 #include <mapbox/geojson.hpp>
+#include <mapbox/geojson_impl.hpp>
 #include <mapbox/geojsonvt.hpp>
 
 using namespace mapbox::geojsonvt;
