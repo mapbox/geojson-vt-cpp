@@ -13,7 +13,7 @@ RAPIDJSON = rapidjson 1.1.0
 
 VARIANT_FLAGS = `$(MASON) cflags $(VARIANT)`
 GEOMETRY_FLAGS = `$(MASON) cflags $(GEOMETRY)`
-GEOJSON_FLAGS = `$(MASON) cflags $(GEOJSON)` `$(MASON) static_libs $(GEOJSON)`
+GEOJSON_FLAGS = `$(MASON) cflags $(GEOJSON)`
 GLFW_FLAGS = `$(MASON) cflags $(GLFW)` `$(MASON) static_libs $(GLFW)` `$(MASON) ldflags $(GLFW)`
 GTEST_FLAGS = `$(MASON) cflags $(GTEST)` `$(MASON) static_libs $(GTEST)` `$(MASON) ldflags $(GTEST)`
 RAPIDJSON_FLAGS = `$(MASON) cflags $(RAPIDJSON)`
@@ -35,10 +35,10 @@ build:
 	mkdir -p build
 
 build/bench: build bench/run.cpp $(DEPS)
-	$(CXX) $(CFLAGS) $(CXXFLAGS) $(RELEASE_FLAGS) bench/run.cpp -o build/bench $(BASE_FLAGS)
+	$(CXX) $(CFLAGS) $(CXXFLAGS) $(RELEASE_FLAGS) bench/run.cpp -o build/bench $(BASE_FLAGS) $(RAPIDJSON_FLAGS)
 
 build/debug: build debug/debug.cpp $(DEPS)
-	$(CXX) $(CFLAGS) $(CXXFLAGS) $(DEBUG_FLAGS) debug/debug.cpp -o build/debug $(BASE_FLAGS) $(GLFW_FLAGS)
+	$(CXX) $(CFLAGS) $(CXXFLAGS) $(DEBUG_FLAGS) debug/debug.cpp -o build/debug $(BASE_FLAGS) $(GLFW_FLAGS) $(RAPIDJSON_FLAGS)
 
 build/test: build test/*.cpp test/*.hpp $(DEPS)
 	$(CXX) $(CFLAGS) $(CXXFLAGS) $(DEBUG_FLAGS) test/test.cpp test/util.cpp -o build/test $(BASE_FLAGS) $(GTEST_FLAGS) $(RAPIDJSON_FLAGS)

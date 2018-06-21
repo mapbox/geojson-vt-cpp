@@ -1,4 +1,5 @@
 #include <mapbox/geojson.hpp>
+#include <mapbox/geojson_impl.hpp>
 #include <mapbox/geojsonvt.hpp>
 
 #include "util.hpp"
