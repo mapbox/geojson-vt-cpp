@@ -17,12 +17,17 @@ namespace detail {
 
 class InternalTile {
 public:
+    const uint16_t extent;
+    bool is_solid = false;
     const uint8_t z;
     const uint32_t x;
     const uint32_t y;
 
+    const double z2;
+    const double tolerance;
+    const double sq_tolerance;
+
     vt_features source_features;
-    bool is_solid = false;
     mapbox::geometry::box<double> bbox = { { 2, 1 }, { -1, 0 } };
 
     Tile tile;
@@ -34,11 +39,11 @@ public:
                  const uint16_t extent_,
                  const uint16_t buffer,
                  const double tolerance_)
-        : z(z_),
+        : extent(extent_),
+          z(z_),
           x(x_),
           y(y_),
           z2(std::pow(2, z)),
-          extent(extent_),
           tolerance(tolerance_),
           sq_tolerance(tolerance_ * tolerance_) {
 
@@ -64,11 +69,6 @@ public:
     }
 
 private:
-    const double z2;
-    const uint16_t extent;
-    const double tolerance;
-    const double sq_tolerance;
-
     bool isSolid(const uint16_t buffer) {
         if (tile.features.size() != 1)
             return false;
