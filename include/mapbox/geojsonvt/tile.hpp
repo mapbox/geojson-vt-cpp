@@ -18,7 +18,6 @@ namespace detail {
 class InternalTile {
 public:
     const uint16_t extent;
-    bool is_solid = false;
     const uint8_t z;
     const uint32_t x;
     const uint32_t y;
@@ -37,7 +36,6 @@ public:
                  const uint32_t x_,
                  const uint32_t y_,
                  const uint16_t extent_,
-                 const uint16_t buffer,
                  const double tolerance_)
         : extent(extent_),
           z(z_),
@@ -64,37 +62,9 @@ public:
             bbox.max.x = std::max(feature.bbox.max.x, bbox.max.x);
             bbox.max.y = std::max(feature.bbox.max.y, bbox.max.y);
         }
-
-        is_solid = isSolid(buffer);
     }
 
 private:
-    bool isSolid(const uint16_t buffer) {
-        if (tile.features.size() != 1)
-            return false;
-
-        const auto& geom = tile.features.front().geometry;
-        if (!geom.is<mapbox::geometry::polygon<int16_t>>())
-            return false;
-
-        const auto& rings = geom.get<mapbox::geometry::polygon<int16_t>>();
-        if (rings.size() > 1)
-            return false;
-
-        const auto& ring = rings.front();
-        if (ring.size() != 5)
-            return false;
-
-        const int16_t min = -static_cast<int16_t>(buffer);
-        const int16_t max = static_cast<int16_t>(extent + buffer);
-        for (const auto& p : ring) {
-            if ((p.x != min && p.x != max) || (p.y != min && p.y != max))
-                return false;
-        }
-
-        return true;
-    }
-
     void addFeature(const vt_point& point, const property_map& props, const optional<identifier>& id) {
         tile.features.push_back({ transform(point), props, id });
     }

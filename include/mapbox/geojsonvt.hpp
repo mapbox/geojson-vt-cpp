@@ -51,9 +51,6 @@ struct Options : TileOptions {
 
     // max number of points per tile in the tile index
     uint32_t indexMaxPoints = 100000;
-
-    // whether to tile solid square tiles further
-    bool solidChildren = false;
 };
 
 const Tile empty_tile{};
@@ -83,7 +80,7 @@ inline const Tile geoJSONToTile(const geojson& geojson_,
         const auto left = detail::clip<0>(features, (x - p) / z2, (x + 1 + p) / z2, -1, 2);
         features = detail::clip<1>(left, (y - p) / z2, (y + 1 + p) / z2, -1, 2);
     }
-    return detail::InternalTile({ features, z, x, y, options.extent, options.buffer, tolerance })
+    return detail::InternalTile({ features, z, x, y, options.extent, tolerance })
         .tile;
 }
 
@@ -131,10 +128,6 @@ public:
         // if we found a parent tile containing the original geometry, we can drill down from it
         const auto& parent = it->second;
 
-        // parent tile is a solid clipped square, return it instead since it's identical
-        if (parent.is_solid)
-            return parent.tile;
-
         // drill down parent tile up to the requested one
         splitTile(parent.source_features, parent.z, parent.x, parent.y, z, x, y);
 
@@ -146,11 +139,6 @@ public:
         if (it == tiles.end())
             throw std::runtime_error("Parent tile not found");
 
-        // drilling stopped because parent was a solid square; return it instead
-        if (it->second.is_solid)
-            return it->second.tile;
-
-        // otherwise it was an empty tile
         return empty_tile;
     }
 
@@ -198,8 +186,7 @@ private:
                 (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
             it = tiles
-                     .emplace(id, detail::InternalTile{ features, z, x, y, options.extent,
-                                                        options.buffer, tolerance })
+                     .emplace(id, detail::InternalTile{ features, z, x, y, options.extent, tolerance })
                      .first;
             stats[z] = (stats.count(z) ? stats[z] + 1 : 1);
             total++;
@@ -209,10 +196,6 @@ private:
         auto& tile = it->second;
 
         if (features.empty())
-            return;
-
-        // stop tiling if the tile is solid clipped square
-        if (!options.solidChildren && tile.is_solid)
             return;
 
         // if it's the first-pass tiling

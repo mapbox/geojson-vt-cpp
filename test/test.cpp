@@ -186,7 +186,6 @@ TEST(GetTile, USStates) {
 
     const auto square = parseJSONTile(loadFile("test/fixtures/us-states-square.json"));
     ASSERT_EQ(square == index.getTile(9, 148, 192).features, true);  // clipped square
-    ASSERT_EQ(square == index.getTile(11, 592, 768).features, true); // clipped square
 
     ASSERT_EQ(empty_tile == index.getTile(11, 800, 400), true);   // non-existing tile
     ASSERT_EQ(&empty_tile == &index.getTile(11, 800, 400), true); // non-existing tile
