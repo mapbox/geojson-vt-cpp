@@ -116,13 +116,13 @@ private:
                     if (i == len - 2)
                         slice.push_back(b); // last point
                 }
-            } else if (ak > k2) {
+            } else if (ak >= k2) {
                 if (bk < k1) { // <--|-----|---
                     slice.push_back(intersect<I>(a, b, k2));
                     slice.push_back(intersect<I>(a, b, k1));
                     slice = newSlice(slices, slice, dist);
 
-                } else if (bk <= k2) { // |  <--|---
+                } else if (bk < k2) { // |  <--|---
                     slice.push_back(intersect<I>(a, b, k2));
                     if (i == len - 2)
                         slice.push_back(b); // last point
@@ -171,8 +171,8 @@ private:
                     else if (i == len - 2)
                         slice.push_back(b); // last point
                 }
-            } else if (ak > k2) {
-                if (bk <= k2) { // |  <--|---
+            } else if (ak >= k2) {
+                if (bk < k2) { // |  <--|---
                     slice.push_back(intersect<I>(a, b, k2));
                     if (bk < k1) // <--|-----|---
                         slice.push_back(intersect<I>(a, b, k1));
@@ -216,10 +216,10 @@ inline vt_features clip(const vt_features& features,
                         const double minAll,
                         const double maxAll) {
 
-    if (minAll >= k1 && maxAll <= k2) // trivial accept
+    if (minAll >= k1 && maxAll < k2) // trivial accept
         return features;
 
-    if (minAll > k2 || maxAll < k1) // trivial reject
+    if (maxAll < k1 || minAll >= k2) // trivial reject
         return {};
 
     vt_features clipped;
@@ -232,10 +232,10 @@ inline vt_features clip(const vt_features& features,
         const double min = get<I>(feature.bbox.min);
         const double max = get<I>(feature.bbox.max);
 
-        if (min >= k1 && max <= k2) { // trivial accept
+        if (min >= k1 && max < k2) { // trivial accept
             clipped.push_back(feature);
 
-        } else if (min > k2 || max < k1) { // trivial reject
+        } else if (max < k1 || min >= k2) { // trivial reject
             continue;
 
         } else {
