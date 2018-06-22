@@ -1,9 +1,9 @@
-#include <GLFW/glfw3.h>
-#include <memory>
 #include "../bench/util.hpp"
+#include <GLFW/glfw3.h>
 #include <mapbox/geojson.hpp>
 #include <mapbox/geojson_impl.hpp>
 #include <mapbox/geojsonvt.hpp>
+#include <memory>
 
 using namespace mapbox::geojsonvt;
 

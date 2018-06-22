@@ -60,12 +60,12 @@ inline uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
 }
 
 inline const Tile geoJSONToTile(const geojson& geojson_,
-                         uint8_t z,
-                         uint32_t x,
-                         uint32_t y,
-                         const TileOptions& options = TileOptions(),
-                         bool wrap = false,
-                         bool clip = false) {
+                                uint8_t z,
+                                uint32_t x,
+                                uint32_t y,
+                                const TileOptions& options = TileOptions(),
+                                bool wrap = false,
+                                bool clip = false) {
 
     const auto features_ = geojson::visit(geojson_, ToFeatureCollection{});
     auto z2 = 1u << z;
@@ -80,8 +80,7 @@ inline const Tile geoJSONToTile(const geojson& geojson_,
         const auto left = detail::clip<0>(features, (x - p) / z2, (x + 1 + p) / z2, -1, 2);
         features = detail::clip<1>(left, (y - p) / z2, (y + 1 + p) / z2, -1, 2);
     }
-    return detail::InternalTile({ features, z, x, y, options.extent, tolerance })
-        .tile;
+    return detail::InternalTile({ features, z, x, y, options.extent, tolerance }).tile;
 }
 
 class GeoJSONVT {
@@ -186,7 +185,8 @@ private:
                 (z == options.maxZoom ? 0 : options.tolerance / (z2 * options.extent));
 
             it = tiles
-                     .emplace(id, detail::InternalTile{ features, z, x, y, options.extent, tolerance })
+                     .emplace(id,
+                              detail::InternalTile{ features, z, x, y, options.extent, tolerance })
                      .first;
             stats[z] = (stats.count(z) ? stats[z] + 1 : 1);
             total++;

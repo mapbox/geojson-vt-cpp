@@ -185,7 +185,7 @@ TEST(GetTile, USStates) {
     ASSERT_EQ(features == expected, true);
 
     const auto square = parseJSONTile(loadFile("test/fixtures/us-states-square.json"));
-    ASSERT_EQ(square == index.getTile(9, 148, 192).features, true);  // clipped square
+    ASSERT_EQ(square == index.getTile(9, 148, 192).features, true); // clipped square
 
     ASSERT_EQ(empty_tile == index.getTile(11, 800, 400), true);   // non-existing tile
     ASSERT_EQ(&empty_tile == &index.getTile(11, 800, 400), true); // non-existing tile
@@ -200,7 +200,7 @@ TEST(GetTile, AntimeridianTriangle) {
     const auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/dateline-triangle.json"));
 
     // Using default options.
-    GeoJSONVT index { geojson };
+    GeoJSONVT index{ geojson };
 
     struct TileCoordinate {
         uint8_t z;
@@ -208,11 +208,8 @@ TEST(GetTile, AntimeridianTriangle) {
         uint32_t y;
     };
 
-    std::vector<TileCoordinate> tileCoordinates {
-        { 1, 0, 0 },
-        { 1, 0, 1 },
-        { 1, 1, 0 },
-        { 1, 1, 1 }
+    std::vector<TileCoordinate> tileCoordinates{
+        { 1, 0, 0 }, { 1, 0, 1 }, { 1, 1, 0 }, { 1, 1, 1 }
     };
 
     for (const auto tileCoordinate : tileCoordinates) {
