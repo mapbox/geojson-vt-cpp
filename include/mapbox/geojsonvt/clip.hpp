@@ -35,10 +35,10 @@ public:
             return parts;
     }
 
-    vt_geometry operator()(const vt_multi_line_string& lines, const bool) const {
+    vt_geometry operator()(const vt_multi_line_string& lines, const bool lineMetrics) const {
         vt_multi_line_string parts;
         for (const auto& line : lines) {
-            clipLine(line, parts, false);
+            clipLine(line, parts, lineMetrics);
         }
         if (parts.size() == 1)
             return parts[0];
@@ -94,8 +94,8 @@ private:
 
         const double dist = line.dist;
         const size_t len = line.size();
-        size_t lineLen = line.segStart;
-        size_t segLen;
+        double lineLen = line.segStart;
+        double segLen;
         double t;
 
         if (len < 2)
@@ -114,7 +114,7 @@ private:
             const double ak = get<I>(a);
             const double bk = get<I>(b);
 
-            if (trackMetrics) segLen = std::abs(b.x - a.x) + std::abs(b.y - a.y);
+            if (trackMetrics) segLen = std::sqrt(std::pow(a.x - b.x, 2) + std::pow(a.y - b.y, 2));
 
             if (ak < k1) {
                 if (bk > k2) { // ---|-----|-->

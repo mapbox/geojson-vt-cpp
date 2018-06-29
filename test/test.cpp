@@ -390,10 +390,7 @@ INSTANTIATE_TEST_CASE_P(
     TileTest,
     ::testing::ValuesIn(std::vector<Arguments>{
         { "test/fixtures/us-states.json", "test/fixtures/us-states-tiles.json", 7, 200 },
-        { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 }, // TODO why are indexMaxZoom + indexMaxPoints diff from js?
-
-        // TODO -- when logging exploded segments starts/ends in clip.hpp, all were 0
-        // these log tiny coord numbers that do not look like tile units -- why?
+        { "test/fixtures/dateline.json", "test/fixtures/dateline-tiles.json", 7, 200 },
         { "test/fixtures/dateline.json", "test/fixtures/dateline-metrics-tiles.json", 0, 10000, true },
         { "test/fixtures/feature.json", "test/fixtures/feature-tiles.json" },
         { "test/fixtures/collection.json", "test/fixtures/collection-tiles.json" },
@@ -418,4 +415,36 @@ TEST(geoJSONToTile, Clips) {
     auto& props = tile.features.at(0).properties;
     auto name = (props.find("name")->second).get<std::string>();
     ASSERT_EQ(name, std::string("District of Columbia"));
+}
+
+TEST(geoJSONToTile, Metrics) {
+    auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/single-tile.json"));
+    TileOptions options;
+    options.lineMetrics = true;
+    options.buffer = 64;
+    options.tolerance = 3;
+
+    const Tile tileLeft = mapbox::geojsonvt::geoJSONToTile(geojson, 13, 2342, 3133, options);
+
+    const auto expected = parseJSONTile(loadFile("test/fixtures/single-tile-tiles.json"));
+    ASSERT_EQ(tileLeft.features == expected, true);
+    const Tile tileRight = mapbox::geojsonvt::geoJSONToTile(geojson, 13, 2343, 3133, options);
+
+    ASSERT_EQ(tileLeft.features.size(), 1);
+    ASSERT_EQ(tileRight.features.size(), 1);
+
+    auto& leftProps = tileLeft.features.at(0).properties;
+
+    auto leftClipStart = (leftProps.find("mapbox_clip_start")->second).get<double>();
+
+    ASSERT_EQ(leftClipStart, 0);
+    auto leftClipEnd = (leftProps.find("mapbox_clip_end")->second).get<double>();
+    ASSERT_DOUBLE_EQ(leftClipEnd, 0.4210252774113724);
+
+    auto& rightProps = tileRight.features.at(0).properties;
+
+    auto rightClipStart = (rightProps.find("mapbox_clip_start")->second).get<double>();
+    ASSERT_DOUBLE_EQ(rightClipStart, 0.403490429909717);
+    auto rightClipEnd = (rightProps.find("mapbox_clip_end")->second).get<double>();
+    ASSERT_EQ(rightClipEnd, 1);
 }

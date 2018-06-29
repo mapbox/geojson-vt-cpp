@@ -108,7 +108,7 @@ private:
             if (lineMetrics) {
                 property_map newProps = props;
                 newProps["mapbox_clip_start"] = line.segStart / line.dist;
-                newProps["mapbox_clip_start"] = line.segEnd / line.dist;
+                newProps["mapbox_clip_end"] = line.segEnd / line.dist;
                 tile.features.push_back({ std::move(new_line), newProps, id });
             } else
                 tile.features.push_back({ std::move(new_line), props, id });
