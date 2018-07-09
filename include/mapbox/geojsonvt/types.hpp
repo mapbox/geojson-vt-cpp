@@ -60,13 +60,19 @@ using vt_multi_point = std::vector<vt_point>;
 
 struct vt_line_string : std::vector<vt_point> {
     using container_type = std::vector<vt_point>;
-    using container_type::container_type;
+    vt_line_string() = default;
+    vt_line_string(std::initializer_list<vt_point> args)
+      : container_type(std::move(args)) {}
+
     double dist = 0.0; // line length
 };
 
 struct vt_linear_ring : std::vector<vt_point> {
     using container_type = std::vector<vt_point>;
-    using container_type::container_type;
+    vt_linear_ring() = default;
+    vt_linear_ring(std::initializer_list<vt_point> args)
+      : container_type(std::move(args)) {}
+
     double area = 0.0; // polygon ring area
 };
 
