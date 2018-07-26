@@ -37,8 +37,8 @@ inline double getSqSegDist(const vt_point& p, const vt_point& a, const vt_point&
 inline void simplify(std::vector<vt_point>& points, size_t first, size_t last, double sqTolerance) {
     double maxSqDist = sqTolerance;
     size_t index = 0;
-    const int32_t mid = (last - first) >> 1;
-    int32_t minPosToMid = last - first;
+    const int64_t mid = (last - first) >> 1;
+    int64_t minPosToMid = last - first;
 
     for (auto i = first + 1; i < last; i++) {
         const double sqDist = getSqSegDist(points[i], points[first], points[last]);
@@ -51,7 +51,7 @@ inline void simplify(std::vector<vt_point>& points, size_t first, size_t last, d
             // a workaround to ensure we choose a pivot close to the middle of the list,
             // reducing recursion depth, for certain degenerate inputs
             // https://github.com/mapbox/geojson-vt/issues/104
-            auto posToMid = std::abs(static_cast<int32_t>(i) - mid);
+            auto posToMid = std::abs(static_cast<int64_t>(i) - mid);
             if (posToMid < minPosToMid) {
                 index = i;
                 minPosToMid = posToMid;
