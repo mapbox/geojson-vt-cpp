@@ -61,7 +61,7 @@ int main() {
     timer("GeoJSON VT: generate tile index and getTile(12/1171/1566) x 100");
 
     for (uint32_t i = 0; i < 100; i++) {
-        mapbox::geojsonvt::geoJSONToTile(singleTileFeatures, 12, 1171, 1566);
+        mapbox::geojsonvt::geoJSONToTile(singleTileFeatures, 12, 1171, 1566, {}, false, true);
     }
     timer("GeoJSON-to-Tile: generate tile(12/1171/1566) x 100");
 }
