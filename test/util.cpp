@@ -35,11 +35,51 @@ std::string loadFile(const std::string& filename) {
     throw std::runtime_error("Error opening file");
 }
 
+namespace {
+
+struct ToDouble {
+    double operator()(double value) const { return value; }
+    double operator()(int64_t value) const { return double(value); }
+    double operator()(uint64_t value) const { return double(value); }
+    template <typename T>
+    double operator()(const T&) const { return std::numeric_limits<double>::quiet_NaN(); }
+};
+
+template <typename T>
+inline void compareValues(const T& a, const T& b) {
+    EXPECT_TRUE(a == b);
+}
+
+void compareValues(const mapbox::geometry::value& a,
+                   const mapbox::geometry::value& b) {
+    if (a == b) return;
+
+    double a_as_double = mapbox::geometry::value::visit(a, ToDouble{});
+    double b_as_double = mapbox::geometry::value::visit(b, ToDouble{});
+    EXPECT_DOUBLE_EQ(a_as_double, b_as_double);
+}
+
+template <typename MapType>
+void compareMaps(const MapType& a, const MapType& b) {
+    EXPECT_EQ(a.size(), b.size());
+    for (auto it = a.begin(); it != a.end(); ++it) {
+        auto found = b.find(it->first);
+        if (found != b.end()) {
+            compareValues(it->second, found->second);
+        } else {
+            ADD_FAILURE();
+        }
+    }
+}
+
+} // namespace
+
 bool operator==(const mapbox::geometry::feature<short>& a,
                 const mapbox::geometry::feature<short>& b) {
     // EXPECT_EQ(a.geometry, b.geometry);
     EXPECT_EQ(typeid(a.geometry), typeid(b.geometry));
-    EXPECT_EQ(a.properties, b.properties);
+    compareMaps(a.properties, b.properties);
+
     EXPECT_EQ(a.id, b.id);
     return true;
 }
@@ -149,7 +189,33 @@ parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAll
                     feat.geometry = mapbox::geometry::point<int16_t>(
                         static_cast<int16_t>(pt[0].GetInt()), static_cast<int16_t>(pt[1].GetInt()));
                 }
-                // polygon geometry
+            // linestring geometry
+            } else if (geomType == 2) {
+                mapbox::geometry::multi_line_string<int16_t> multi_line;
+                const bool is_multi = geometry.Size() > 1;
+                for (rapidjson::SizeType j = 0; j < geometry.Size(); ++j) {
+                    const auto& part = geometry[j];
+                    EXPECT_TRUE(part.IsArray());
+                    mapbox::geometry::line_string<int16_t> line_string;
+                    for (rapidjson::SizeType i = 0; i < part.Size(); ++i) {
+                        const auto& pt = part[i];
+                        EXPECT_TRUE(pt.IsArray());
+                        EXPECT_TRUE(pt.Size() >= 2);
+                        EXPECT_TRUE(pt[0].IsNumber());
+                        EXPECT_TRUE(pt[1].IsNumber());
+                        line_string.emplace_back(static_cast<int16_t>(pt[0].GetInt()),
+                                                 static_cast<int16_t>(pt[1].GetInt()));
+                    }
+                    if (!is_multi) {
+                        feat.geometry = line_string;
+                        break;
+                    } else {
+                        multi_line.emplace_back(line_string);
+                    }
+                }
+                if (is_multi)
+                    feat.geometry = multi_line;
+            // polygon geometry
             } else if (geomType == 3) {
                 mapbox::geometry::polygon<int16_t> poly;
                 for (rapidjson::SizeType j = 0; j < geometry.Size(); ++j) {

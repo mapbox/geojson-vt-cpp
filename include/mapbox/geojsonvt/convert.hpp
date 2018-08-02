@@ -39,12 +39,13 @@ struct project {
         for (size_t i = 0; i < len - 1; ++i) {
             const auto& a = result[i];
             const auto& b = result[i + 1];
-            // use Manhattan distance instead of Euclidian to avoid expensive square root
-            // computation
-            result.dist += std::abs(b.x - a.x) + std::abs(b.y - a.y);
+            result.dist += std::hypot((b.x - a.x), (b.y - a.y));
         }
 
         simplify(result, tolerance);
+
+        result.segStart = 0;
+        result.segEnd = result.dist;
 
         return result;
     }

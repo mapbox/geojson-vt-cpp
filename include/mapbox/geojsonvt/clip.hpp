@@ -9,8 +9,12 @@ namespace detail {
 template <uint8_t I>
 class clipper {
 public:
+    clipper(double k1_, double k2_, bool lineMetrics_ = false)
+        : k1(k1_), k2(k2_), lineMetrics(lineMetrics_) {}
+
     const double k1;
     const double k2;
+    const bool lineMetrics;
 
     vt_geometry operator()(const vt_point& point) const {
         return point;
@@ -81,23 +85,26 @@ public:
     }
 
 private:
-    vt_line_string newSlice(vt_multi_line_string& parts, vt_line_string& slice, double dist) const {
-        if (!slice.empty()) {
-            slice.dist = dist;
-            parts.push_back(std::move(slice));
+    vt_line_string newSlice(const vt_line_string& line) const {
+        vt_line_string slice;
+        slice.dist = line.dist;
+        if (lineMetrics) {
+            slice.segStart = line.segStart;
+            slice.segEnd = line.segEnd;
         }
-        return {};
+        return slice;
     }
 
     void clipLine(const vt_line_string& line, vt_multi_line_string& slices) const {
-
-        const double dist = line.dist;
         const size_t len = line.size();
+        double lineLen = line.segStart;
+        double segLen = 0.0;
+        double t = 0.0;
 
         if (len < 2)
             return;
 
-        vt_line_string slice;
+        vt_line_string slice = newSlice(line);
 
         for (size_t i = 0; i < (len - 1); ++i) {
             const auto& a = line[i];
@@ -105,25 +112,47 @@ private:
             const double ak = get<I>(a);
             const double bk = get<I>(b);
 
+            if (lineMetrics) segLen = std::hypot((b.x - a.x), (b.y - a.y));
+
             if (ak < k1) {
                 if (bk > k2) { // ---|-----|-->
-                    slice.push_back(intersect<I>(a, b, k1));
-                    slice.push_back(intersect<I>(a, b, k2));
-                    slice = newSlice(slices, slice, dist);
+                    t = calc_progress<I>(a, b, k1);
+                    slice.push_back(intersect<I>(a, b, k1, t));
+                    if (lineMetrics) slice.segStart = lineLen + segLen * t;
+
+                    t = calc_progress<I>(a, b, k2);
+                    slice.push_back(intersect<I>(a, b, k2, t));
+                    if (lineMetrics) slice.segEnd = lineLen + segLen * t;
+                    slices.push_back(std::move(slice));
+
+                    slice = newSlice(line);
 
                 } else if (bk >= k1) { // ---|-->  |
-                    slice.push_back(intersect<I>(a, b, k1));
+                    t = calc_progress<I>(a, b, k1);
+                    slice.push_back(intersect<I>(a, b, k1, t));
+                    if (lineMetrics) slice.segStart = lineLen + segLen * t;
+
                     if (i == len - 2)
                         slice.push_back(b); // last point
                 }
             } else if (ak >= k2) {
                 if (bk < k1) { // <--|-----|---
-                    slice.push_back(intersect<I>(a, b, k2));
-                    slice.push_back(intersect<I>(a, b, k1));
-                    slice = newSlice(slices, slice, dist);
+                    t = calc_progress<I>(a, b, k2);
+                    slice.push_back(intersect<I>(a, b, k2, t));
+                    if (lineMetrics) slice.segStart = lineLen + segLen * t;
 
+                    t = calc_progress<I>(a, b, k1);
+                    slice.push_back(intersect<I>(a, b, k1, t));
+                    if (lineMetrics) slice.segEnd = lineLen + segLen * t;
+
+                    slices.push_back(std::move(slice));
+
+                    slice = newSlice(line);
                 } else if (bk < k2) { // |  <--|---
-                    slice.push_back(intersect<I>(a, b, k2));
+                    t = calc_progress<I>(a, b, k2);
+                    slice.push_back(intersect<I>(a, b, k2, t));
+                    if (lineMetrics) slice.segStart = lineLen + segLen * t;
+
                     if (i == len - 2)
                         slice.push_back(b); // last point
                 }
@@ -131,26 +160,35 @@ private:
                 slice.push_back(a);
 
                 if (bk < k1) { // <--|---  |
-                    slice.push_back(intersect<I>(a, b, k1));
-                    slice = newSlice(slices, slice, dist);
+                    t = calc_progress<I>(a, b, k1);
+                    slice.push_back(intersect<I>(a, b, k1, t));
+                    if (lineMetrics) slice.segEnd = lineLen + segLen * t;
+                    slices.push_back(std::move(slice));
+                    slice = newSlice(line);
 
                 } else if (bk > k2) { // |  ---|-->
-                    slice.push_back(intersect<I>(a, b, k2));
-                    slice = newSlice(slices, slice, dist);
+                    t = calc_progress<I>(a, b, k2);
+                    slice.push_back(intersect<I>(a, b, k2, t));
+                    if (lineMetrics) slice.segEnd = lineLen + segLen * t;
+                    slices.push_back(std::move(slice));
+                    slice = newSlice(line);
 
                 } else if (i == len - 2) { // | --> |
                     slice.push_back(b);
                 }
             }
+
+            if (lineMetrics) lineLen += segLen;
         }
 
-        // add the final slice
-        newSlice(slices, slice, dist);
+        if (!slice.empty()) { // add the final slice
+            slice.segEnd = lineLen;
+            slices.push_back(std::move(slice));
+        }
     }
 
     vt_linear_ring clipRing(const vt_linear_ring& ring) const {
         const size_t len = ring.size();
-
         vt_linear_ring slice;
         slice.area = ring.area;
 
@@ -165,27 +203,31 @@ private:
 
             if (ak < k1) {
                 if (bk >= k1) {
-                    slice.push_back(intersect<I>(a, b, k1)); // ---|-->  |
-                    if (bk > k2)                             // ---|-----|-->
-                        slice.push_back(intersect<I>(a, b, k2));
+                    // ---|-->  |
+                    slice.push_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
+                    if (bk > k2)
+                        // ---|-----|-->
+                        slice.push_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
                     else if (i == len - 2)
                         slice.push_back(b); // last point
                 }
             } else if (ak >= k2) {
                 if (bk < k2) { // |  <--|---
-                    slice.push_back(intersect<I>(a, b, k2));
+                    slice.push_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
                     if (bk < k1) // <--|-----|---
-                        slice.push_back(intersect<I>(a, b, k1));
+                        slice.push_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
                     else if (i == len - 2)
                         slice.push_back(b); // last point
                 }
             } else {
-                slice.push_back(a);
-                if (bk < k1) // <--|---  |
-                    slice.push_back(intersect<I>(a, b, k1));
-                else if (bk > k2) // |  ---|-->
-                    slice.push_back(intersect<I>(a, b, k2));
                 // | --> |
+                slice.push_back(a);
+                if (bk < k1)
+                    // <--|---  |
+                    slice.push_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
+                else if (bk > k2)
+                    // |  ---|-->
+                    slice.push_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
             }
         }
 
@@ -214,7 +256,8 @@ inline vt_features clip(const vt_features& features,
                         const double k1,
                         const double k2,
                         const double minAll,
-                        const double maxAll) {
+                        const double maxAll,
+                        const bool lineMetrics) {
 
     if (minAll >= k1 && maxAll < k2) // trivial accept
         return features;
@@ -239,7 +282,22 @@ inline vt_features clip(const vt_features& features,
             continue;
 
         } else {
-            clipped.emplace_back(vt_geometry::visit(geom, clipper<I>{ k1, k2 }), props, id);
+            const auto& clippedGeom = vt_geometry::visit(geom, clipper<I>{ k1, k2, lineMetrics });
+
+            clippedGeom.match(
+                [&](const auto&) {
+                    clipped.emplace_back(clippedGeom, props, id);
+                },
+                [&](const vt_multi_line_string& result) {
+                    if (lineMetrics) {
+                        for (const auto& segment : result) {
+                            clipped.emplace_back(segment, props, id);
+                        }
+                    } else {
+                        clipped.emplace_back(clippedGeom, props, id);
+                    }
+                }
+            );
         }
     }
 

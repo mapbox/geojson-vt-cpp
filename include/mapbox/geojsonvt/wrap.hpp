@@ -16,17 +16,17 @@ inline void shiftCoords(vt_features& features, double offset) {
     }
 }
 
-inline vt_features wrap(const vt_features& features, double buffer) {
+inline vt_features wrap(const vt_features& features, double buffer, const bool lineMetrics) {
     // left world copy
-    auto left = clip<0>(features, -1 - buffer, buffer, -1, 2);
+    auto left = clip<0>(features, -1 - buffer, buffer, -1, 2, lineMetrics);
     // right world copy
-    auto right = clip<0>(features, 1 - buffer, 2 + buffer, -1, 2);
+    auto right = clip<0>(features, 1 - buffer, 2 + buffer, -1, 2, lineMetrics);
 
     if (left.empty() && right.empty())
         return features;
 
     // center world copy
-    auto merged = clip<0>(features, -buffer, 1 + buffer, -1, 2);
+    auto merged = clip<0>(features, -buffer, 1 + buffer, -1, 2, lineMetrics);
 
     if (!left.empty()) {
         // merge left into center
