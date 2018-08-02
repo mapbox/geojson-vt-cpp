@@ -25,6 +25,7 @@ public:
     const double z2;
     const double tolerance;
     const double sq_tolerance;
+    const bool lineMetrics;
 
     vt_features source_features;
     mapbox::geometry::box<double> bbox = { { 2, 1 }, { -1, 0 } };
@@ -36,14 +37,16 @@ public:
                  const uint32_t x_,
                  const uint32_t y_,
                  const uint16_t extent_,
-                 const double tolerance_)
+                 const double tolerance_,
+                 const bool lineMetrics_)
         : extent(extent_),
           z(z_),
           x(x_),
           y(y_),
           z2(std::pow(2, z)),
           tolerance(tolerance_),
-          sq_tolerance(tolerance_ * tolerance_) {
+          sq_tolerance(tolerance_ * tolerance_),
+          lineMetrics(lineMetrics_) {
 
         for (const auto& feature : source) {
             const auto& geom = feature.geometry;
@@ -74,8 +77,15 @@ private:
                     const property_map& props,
                     const optional<identifier>& id) {
         const auto new_line = transform(line);
-        if (!new_line.empty())
-            tile.features.push_back({ std::move(new_line), props, id });
+        if (!new_line.empty()) {
+            if (lineMetrics) {
+                property_map newProps = props;
+                newProps["mapbox_clip_start"] = line.segStart / line.dist;
+                newProps["mapbox_clip_end"] = line.segEnd / line.dist;
+                tile.features.push_back({ std::move(new_line), newProps, id });
+            } else
+                tile.features.push_back({ std::move(new_line), props, id });
+        }
     }
 
     void addFeature(const vt_polygon& polygon,

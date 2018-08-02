@@ -40,6 +40,9 @@ struct TileOptions {
 
     // tile buffer on each side
     uint16_t buffer = 64;
+
+    // enable line metrics tracking for LineString/MultiLineString features
+    bool lineMetrics = false;
 };
 
 struct Options : TileOptions {
@@ -72,15 +75,15 @@ inline const Tile geoJSONToTile(const geojson& geojson_,
     auto tolerance = (options.tolerance / options.extent) / z2;
     auto features = detail::convert(features_, tolerance);
     if (wrap) {
-        features = detail::wrap(features, double(options.buffer) / options.extent);
+        features = detail::wrap(features, double(options.buffer) / options.extent, options.lineMetrics);
     }
-    if (clip) {
+    if (clip || options.lineMetrics) {
         const double p = options.buffer / options.extent;
 
-        const auto left = detail::clip<0>(features, (x - p) / z2, (x + 1 + p) / z2, -1, 2);
-        features = detail::clip<1>(left, (y - p) / z2, (y + 1 + p) / z2, -1, 2);
+        const auto left = detail::clip<0>(features, (x - p) / z2, (x + 1 + p) / z2, -1, 2, options.lineMetrics);
+        features = detail::clip<1>(left, (y - p) / z2, (y + 1 + p) / z2, -1, 2, options.lineMetrics);
     }
-    return detail::InternalTile({ features, z, x, y, options.extent, tolerance }).tile;
+    return detail::InternalTile({ features, z, x, y, options.extent, tolerance, options.lineMetrics }).tile;
 }
 
 class GeoJSONVT {
@@ -94,7 +97,7 @@ public:
         const uint32_t z2 = 1u << options.maxZoom;
 
         auto converted = detail::convert(features_, (options.tolerance / options.extent) / z2);
-        auto features = detail::wrap(converted, double(options.buffer) / options.extent);
+        auto features = detail::wrap(converted, double(options.buffer) / options.extent, options.lineMetrics);
 
         splitTile(features, 0, 0, 0);
     }
@@ -186,7 +189,7 @@ private:
 
             it = tiles
                      .emplace(id,
-                              detail::InternalTile{ features, z, x, y, options.extent, tolerance })
+                              detail::InternalTile{ features, z, x, y, options.extent, tolerance, options.lineMetrics })
                      .first;
             stats[z] = (stats.count(z) ? stats[z] + 1 : 1);
             total++;
@@ -230,19 +233,19 @@ private:
         const auto& min = tile.bbox.min;
         const auto& max = tile.bbox.max;
 
-        const auto left = detail::clip<0>(features, (x - p) / z2, (x + 0.5 + p) / z2, min.x, max.x);
+        const auto left = detail::clip<0>(features, (x - p) / z2, (x + 0.5 + p) / z2, min.x, max.x, options.lineMetrics);
 
-        splitTile(detail::clip<1>(left, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y), z + 1,
+        splitTile(detail::clip<1>(left, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y, options.lineMetrics), z + 1,
                   x * 2, y * 2, cz, cx, cy);
-        splitTile(detail::clip<1>(left, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y), z + 1,
+        splitTile(detail::clip<1>(left, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y, options.lineMetrics), z + 1,
                   x * 2, y * 2 + 1, cz, cx, cy);
 
         const auto right =
-            detail::clip<0>(features, (x + 0.5 - p) / z2, (x + 1 + p) / z2, min.x, max.x);
+            detail::clip<0>(features, (x + 0.5 - p) / z2, (x + 1 + p) / z2, min.x, max.x, options.lineMetrics);
 
-        splitTile(detail::clip<1>(right, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y), z + 1,
+        splitTile(detail::clip<1>(right, (y - p) / z2, (y + 0.5 + p) / z2, min.y, max.y, options.lineMetrics), z + 1,
                   x * 2 + 1, y * 2, cz, cx, cy);
-        splitTile(detail::clip<1>(right, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y), z + 1,
+        splitTile(detail::clip<1>(right, (y + 0.5 - p) / z2, (y + 1 + p) / z2, min.y, max.y, options.lineMetrics), z + 1,
                   x * 2 + 1, y * 2 + 1, cz, cx, cy);
 
         // if we sliced further down, no need to keep source geometry
