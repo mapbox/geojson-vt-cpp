@@ -412,3 +412,30 @@ TEST(geoJSONToTile, Clips) {
     auto name = (props.find("name")->second).get<std::string>();
     ASSERT_EQ(name, std::string("District of Columbia"));
 }
+
+TEST(geoJSONToTile, Metrics) {
+    auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/single-tile.json"));
+    TileOptions options;
+    options.lineMetrics = true;
+    options.buffer = 64;
+    options.tolerance = 3;
+    const double kEpsilon = 1e-5;
+
+    const Tile& tileLeft = mapbox::geojsonvt::geoJSONToTile(geojson, 13, 2342, 3133, options);
+    ASSERT_EQ(tileLeft.features.size(), 1u);
+
+    const Tile& tileRight = mapbox::geojsonvt::geoJSONToTile(geojson, 13, 2343, 3133, options);
+    ASSERT_EQ(tileRight.features.size(), 1u);
+
+    auto& leftProps = tileLeft.features.at(0).properties;
+    double leftClipStart = (leftProps.find("mapbox_clip_start")->second).get<double>();
+    EXPECT_DOUBLE_EQ(leftClipStart, 0.0);
+    double leftClipEnd = (leftProps.find("mapbox_clip_end")->second).get<double>();
+    EXPECT_NEAR(leftClipEnd, 0.42103, kEpsilon);
+
+    auto& rightProps = tileRight.features.at(0).properties;
+    double rightClipStart = (rightProps.find("mapbox_clip_start")->second).get<double>();
+    EXPECT_NEAR(rightClipStart, 0.40349, kEpsilon);
+    double rightClipEnd = (rightProps.find("mapbox_clip_end")->second).get<double>();
+    EXPECT_DOUBLE_EQ(rightClipEnd, 1.0);
+}

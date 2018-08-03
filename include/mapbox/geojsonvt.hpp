@@ -78,7 +78,7 @@ inline const Tile geoJSONToTile(const geojson& geojson_,
         features = detail::wrap(features, double(options.buffer) / options.extent, options.lineMetrics);
     }
     if (clip || options.lineMetrics) {
-        const double p = options.buffer / options.extent;
+        const double p = double(options.buffer) / options.extent;
 
         const auto left = detail::clip<0>(features, (x - p) / z2, (x + 1 + p) / z2, -1, 2, options.lineMetrics);
         features = detail::clip<1>(left, (y - p) / z2, (y + 1 + p) / z2, -1, 2, options.lineMetrics);
