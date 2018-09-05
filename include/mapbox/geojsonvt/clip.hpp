@@ -112,7 +112,7 @@ private:
             const double ak = get<I>(a);
             const double bk = get<I>(b);
 
-            if (lineMetrics) segLen = std::hypot((b.x - a.x), (b.y - a.y));
+            if (lineMetrics) segLen = ::hypot((b.x - a.x), (b.y - a.y));
 
             if (ak < k1) {
                 if (bk > k2) { // ---|-----|-->
