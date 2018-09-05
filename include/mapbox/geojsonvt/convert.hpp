@@ -39,7 +39,7 @@ struct project {
         for (size_t i = 0; i < len - 1; ++i) {
             const auto& a = result[i];
             const auto& b = result[i + 1];
-            result.dist += std::hypot((b.x - a.x), (b.y - a.y));
+            result.dist += ::hypot((b.x - a.x), (b.y - a.y));
         }
 
         simplify(result, tolerance);
