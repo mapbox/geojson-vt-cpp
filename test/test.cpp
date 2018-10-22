@@ -243,6 +243,27 @@ TEST(GetTile, AntimeridianTriangle) {
     }
 }
 
+TEST(GetTile, PolygonClippingBug) {
+    const auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/polygon-bug.json"));
+
+    Options options;
+    options.buffer = 1024;
+
+    GeoJSONVT index{ geojson, options };
+
+    auto tile = index.getTile(5, 19, 9);
+    ASSERT_EQ(tile.features.size(), 1);
+    ASSERT_EQ(tile.num_points, 5);
+
+    const mapbox::geometry::polygon<int16_t> expected{
+        { {3072, 3072}, {5120, 3072}, {5120, 5120}, {3072, 5120}, {3072, 3072} }
+    };
+
+    const auto actual = tile.features[0].geometry.get<mapbox::geometry::polygon<int16_t>>();
+
+    ASSERT_EQ(actual, expected);
+}
+
 TEST(GetTile, Projection) {
     const auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/linestring.json"));
 

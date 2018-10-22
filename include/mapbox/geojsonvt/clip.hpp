@@ -127,7 +127,7 @@ private:
 
                     slice = newSlice(line);
 
-                } else if (bk >= k1) { // ---|-->  |
+                } else if (bk > k1) { // ---|-->  |
                     t = calc_progress<I>(a, b, k1);
                     slice.push_back(intersect<I>(a, b, k1, t));
                     if (lineMetrics) slice.segStart = lineLen + segLen * t;
@@ -135,7 +135,7 @@ private:
                     if (i == len - 2)
                         slice.push_back(b); // last point
                 }
-            } else if (ak >= k2) {
+            } else if (ak > k2) {
                 if (bk < k1) { // <--|-----|---
                     t = calc_progress<I>(a, b, k2);
                     slice.push_back(intersect<I>(a, b, k2, t));
@@ -202,7 +202,7 @@ private:
             const double bk = get<I>(b);
 
             if (ak < k1) {
-                if (bk >= k1) {
+                if (bk > k1) {
                     // ---|-->  |
                     slice.push_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
                     if (bk > k2)
@@ -211,7 +211,7 @@ private:
                     else if (i == len - 2)
                         slice.push_back(b); // last point
                 }
-            } else if (ak >= k2) {
+            } else if (ak > k2) {
                 if (bk < k2) { // |  <--|---
                     slice.push_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
                     if (bk < k1) // <--|-----|---
