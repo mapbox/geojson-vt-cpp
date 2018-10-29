@@ -10,6 +10,9 @@ GEOJSON = geojson 0.4.2
 GLFW = glfw 3.1.2
 GTEST = gtest 1.8.0
 RAPIDJSON = rapidjson 1.1.0
+JNIHPP = jni.hpp 4.0.1
+VTZERO = vtzero 1.0.3
+PROTOZERO = protozero 1.6.3
 
 VARIANT_FLAGS = `$(MASON) cflags $(VARIANT)`
 GEOMETRY_FLAGS = `$(MASON) cflags $(GEOMETRY)`
@@ -18,6 +21,13 @@ GLFW_FLAGS = `$(MASON) cflags $(GLFW)` `$(MASON) static_libs $(GLFW)` `$(MASON) 
 GTEST_FLAGS = `$(MASON) cflags $(GTEST)` `$(MASON) static_libs $(GTEST)` `$(MASON) ldflags $(GTEST)`
 RAPIDJSON_FLAGS = `$(MASON) cflags $(RAPIDJSON)`
 BASE_FLAGS = $(VARIANT_FLAGS) $(GEOMETRY_FLAGS) $(GEOJSON_FLAGS)
+
+JAVA_HOME=$(shell /usr/libexec/java_home)
+JNIHPP_FLAGS = `$(MASON) cflags $(JNIHPP)` -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/darwin
+VTZERO_FLAGS = `$(MASON) cflags $(VTZERO)`
+PROTOZERO_FLAGS = `$(MASON) cflags $(PROTOZERO)`
+
+TILER_CLASS_NAME_FLAGS = -DTILER_CLASS_NAME=\"$(TILER_KLASS)\"\;
 
 DEPS = mason_packages/headers/geometry include/mapbox/geojsonvt/*.hpp include/mapbox/geojsonvt.hpp bench/util.hpp Makefile
 
@@ -30,6 +40,9 @@ mason_packages/headers/geometry: Makefile
 	$(MASON) install $(GLFW)
 	$(MASON) install $(GTEST)
 	$(MASON) install $(RAPIDJSON)
+	$(MASON) install $(JNIHPP)
+	$(MASON) install $(VTZERO)
+	$(MASON) install $(PROTOZERO)
 
 build:
 	mkdir -p build
@@ -57,3 +70,7 @@ format:
 
 clean:
 	rm -rf build
+
+jni: build $(DEPS)
+	$(CXX) $(CFLAGS) $(CXXFLAGS) $(RELEASE_FLAGS) $(JNIHPP_FLAGS) $(VTZERO_FLAGS) $(PROTOZERO_FLAGS) $(TILER_CLASS_NAME_FLAGS) $(BASE_FLAGS) $(RAPIDJSON_FLAGS) jni/tiler.cpp -dynamiclib -o build/libtiler.jnilib
+
