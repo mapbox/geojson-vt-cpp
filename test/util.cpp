@@ -168,8 +168,12 @@ parseJSONTile(const rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAll
         }
 
         if (feature.HasMember("id")) {
-            EXPECT_TRUE(feature["id"].IsString());
-            feat.id = { std::string{ feature["id"].GetString(), feature["id"].GetStringLength() } };
+            EXPECT_TRUE(feature["id"].IsString() || feature["id"].IsNumber());
+            if (feature["id"].IsString()) {
+                feat.id = { std::string{ feature["id"].GetString(), feature["id"].GetStringLength() } };
+            } else {
+                feat.id = { std::uint64_t{ feature["id"].GetUint64() } };
+            }
         }
 
         if (feature.HasMember("type") && feature.HasMember("geometry")) {
