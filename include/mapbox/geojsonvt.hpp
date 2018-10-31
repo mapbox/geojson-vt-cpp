@@ -54,6 +54,9 @@ struct Options : TileOptions {
 
     // max number of points per tile in the tile index
     uint32_t indexMaxPoints = 100000;
+
+    // whether to generate feature ids, overriding existing ids  
+    bool generateId = false;
 };
 
 const Tile empty_tile{};
@@ -73,7 +76,7 @@ inline const Tile geoJSONToTile(const geojson& geojson_,
     const auto features_ = geojson::visit(geojson_, ToFeatureCollection{});
     auto z2 = 1u << z;
     auto tolerance = (options.tolerance / options.extent) / z2;
-    auto features = detail::convert(features_, tolerance);
+    auto features = detail::convert(features_, tolerance, false);
     if (wrap) {
         features = detail::wrap(features, double(options.buffer) / options.extent, options.lineMetrics);
     }
@@ -96,7 +99,7 @@ public:
 
         const uint32_t z2 = 1u << options.maxZoom;
 
-        auto converted = detail::convert(features_, (options.tolerance / options.extent) / z2);
+        auto converted = detail::convert(features_, (options.tolerance / options.extent) / z2, options.generateId);
         auto features = detail::wrap(converted, double(options.buffer) / options.extent, options.lineMetrics);
 
         splitTile(features, 0, 0, 0);

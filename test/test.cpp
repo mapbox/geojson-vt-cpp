@@ -220,6 +220,21 @@ TEST(GetTile, USStates) {
     ASSERT_EQ(37, index.total);
 }
 
+TEST(GetTile, GenerateIds) {
+    auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/us-states.json"));
+        mapbox::geojsonvt::Options options;
+    options.maxZoom = 20;
+    options.extent = 8192;
+    options.tolerance = 0;
+    options.generateId = true;
+
+    GeoJSONVT index{ geojson, options };
+
+    const auto features = index.getTile(7, 37, 48).features;
+    const auto expected = parseJSONTile(loadFile("test/fixtures/us-states-z7-37-48-gen-ids.json"));
+    ASSERT_EQ(features == expected, true);
+}
+
 TEST(GetTile, AntimeridianTriangle) {
     const auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/dateline-triangle.json"));
 

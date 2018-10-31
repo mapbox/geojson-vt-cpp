@@ -94,13 +94,18 @@ struct project {
 };
 
 inline vt_features convert(const geometry::feature_collection<double>& features,
-                           const double tolerance) {
+                           const double tolerance, bool generateId) {
     vt_features projected;
     projected.reserve(features.size());
+    uint64_t genId = 0;
     for (const auto& feature : features) {
+        optional<identifier> featureId = feature.id;
+        if (generateId) {
+            featureId = { uint64_t {genId++} };
+        }
         projected.emplace_back(
             geometry::geometry<double>::visit(feature.geometry, project{ tolerance }),
-            feature.properties, feature.id);
+            feature.properties, featureId);
     }
     return projected;
 }
