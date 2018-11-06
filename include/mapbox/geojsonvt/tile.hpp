@@ -8,7 +8,7 @@ namespace mapbox {
 namespace geojsonvt {
 
 struct Tile {
-    mapbox::geometry::feature_collection<int16_t> features;
+    mapbox::feature::feature_collection<int16_t> features;
     uint32_t num_points = 0;
     uint32_t num_simplified = 0;
 };
@@ -68,14 +68,18 @@ public:
     }
 
 private:
+    void addFeature(const vt_empty& empty, const property_map& props, const identifier& id) {
+        tile.features.push_back({ transform(empty), props, id });
+    }
+
     void
-    addFeature(const vt_point& point, const property_map& props, const optional<identifier>& id) {
+    addFeature(const vt_point& point, const property_map& props, const identifier& id) {
         tile.features.push_back({ transform(point), props, id });
     }
 
     void addFeature(const vt_line_string& line,
                     const property_map& props,
-                    const optional<identifier>& id) {
+                    const identifier& id) {
         const auto new_line = transform(line);
         if (!new_line.empty()) {
             if (lineMetrics) {
@@ -90,7 +94,7 @@ private:
 
     void addFeature(const vt_polygon& polygon,
                     const property_map& props,
-                    const optional<identifier>& id) {
+                    const identifier& id) {
         const auto new_polygon = transform(polygon);
         if (!new_polygon.empty())
             tile.features.push_back({ std::move(new_polygon), props, id });
@@ -98,7 +102,7 @@ private:
 
     void addFeature(const vt_geometry_collection& collection,
                     const property_map& props,
-                    const optional<identifier>& id) {
+                    const identifier& id) {
         for (const auto& geom : collection) {
             vt_geometry::visit(geom, [&](const auto& g) {
                 // `this->` is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61636
@@ -108,7 +112,7 @@ private:
     }
 
     template <class T>
-    void addFeature(const T& multi, const property_map& props, const optional<identifier>& id) {
+    void addFeature(const T& multi, const property_map& props, const identifier& id) {
         const auto new_multi = transform(multi);
 
         switch (new_multi.size()) {
@@ -121,6 +125,10 @@ private:
             tile.features.push_back({ std::move(new_multi), props, id });
             break;
         }
+    }
+
+    mapbox::geometry::empty transform(const vt_empty& empty) {
+        return empty;
     }
 
     mapbox::geometry::point<int16_t> transform(const vt_point& p) {

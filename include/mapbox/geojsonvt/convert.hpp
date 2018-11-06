@@ -3,6 +3,7 @@
 #include <mapbox/geojsonvt/simplify.hpp>
 #include <mapbox/geojsonvt/types.hpp>
 #include <mapbox/geometry.hpp>
+#include <mapbox/feature.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -14,6 +15,10 @@ namespace detail {
 struct project {
     const double tolerance;
     using result_type = vt_geometry;
+
+    vt_empty operator()(const geometry::empty& empty) {
+        return empty;
+    }
 
     vt_point operator()(const geometry::point<double>& p) {
         const double sine = std::sin(p.y * M_PI / 180);
@@ -93,13 +98,13 @@ struct project {
     }
 };
 
-inline vt_features convert(const geometry::feature_collection<double>& features,
+inline vt_features convert(const feature::feature_collection<double>& features,
                            const double tolerance, bool generateId) {
     vt_features projected;
     projected.reserve(features.size());
     uint64_t genId = 0;
     for (const auto& feature : features) {
-        optional<identifier> featureId = feature.id;
+        identifier featureId = feature.id;
         if (generateId) {
             featureId = { uint64_t {genId++} };
         }

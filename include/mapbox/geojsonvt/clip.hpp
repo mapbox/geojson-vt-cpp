@@ -16,6 +16,10 @@ public:
     const double k2;
     const bool lineMetrics;
 
+    vt_geometry operator()(const vt_empty& empty) const {
+        return empty;
+    }
+
     vt_geometry operator()(const vt_point& point) const {
         return point;
     }

@@ -10,15 +10,15 @@ namespace mapbox {
 namespace geojsonvt {
 
 std::string loadFile(const std::string& filename);
-mapbox::geometry::feature_collection<int16_t> parseJSONTile(const std::string& data);
-std::map<std::string, mapbox::geometry::feature_collection<int16_t>>
+mapbox::feature::feature_collection<int16_t> parseJSONTile(const std::string& data);
+std::map<std::string, mapbox::feature::feature_collection<int16_t>>
 parseJSONTiles(const std::string& data);
-bool operator==(const mapbox::geometry::feature<short>& a,
-                const mapbox::geometry::feature<short>& b);
-bool operator==(const mapbox::geometry::feature_collection<short>& a,
-                const mapbox::geometry::feature_collection<short>& b);
-bool operator==(const std::map<std::string, mapbox::geometry::feature_collection<short>>& a,
-                const std::map<std::string, mapbox::geometry::feature_collection<short>>& b);
+bool operator==(const mapbox::feature::feature<short>& a,
+                const mapbox::feature::feature<short>& b);
+bool operator==(const mapbox::feature::feature_collection<short>& a,
+                const mapbox::feature::feature_collection<short>& b);
+bool operator==(const std::map<std::string, mapbox::feature::feature_collection<short>>& a,
+                const std::map<std::string, mapbox::feature::feature_collection<short>>& b);
 bool operator==(const mapbox::geojsonvt::Tile& a, const mapbox::geojsonvt::Tile& b);
 
 namespace detail {

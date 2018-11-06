@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mapbox/geometry.hpp>
+#include <mapbox/feature.hpp>
 #include <mapbox/variant.hpp>
 
 #include <algorithm>
@@ -11,6 +12,8 @@
 namespace mapbox {
 namespace geojsonvt {
 namespace detail {
+
+using vt_empty = mapbox::geometry::empty;
 
 struct vt_point : mapbox::geometry::point<double> {
     double z = 0.0; // simplification tolerance
@@ -97,7 +100,8 @@ using vt_multi_polygon = std::vector<vt_polygon>;
 
 struct vt_geometry_collection;
 
-using vt_geometry = mapbox::util::variant<vt_point,
+using vt_geometry = mapbox::util::variant<vt_empty,
+                                          vt_point,
                                           vt_line_string,
                                           vt_polygon,
                                           vt_multi_point,
@@ -107,15 +111,17 @@ using vt_geometry = mapbox::util::variant<vt_point,
 
 struct vt_geometry_collection : std::vector<vt_geometry> {};
 
-using property_map = mapbox::geometry::property_map;
-using identifier = mapbox::geometry::identifier;
-
-template <class T>
-using optional = std::experimental::optional<T>;
+using null_value = mapbox::feature::null_value_t;
+using property_map = mapbox::feature::property_map;
+using identifier = mapbox::feature::identifier;
 
 template <class T>
 struct vt_geometry_type;
 
+template <>
+struct vt_geometry_type<geometry::empty> {
+    using type = vt_empty;
+};
 template <>
 struct vt_geometry_type<geometry::point<double>> {
     using type = vt_point;
@@ -152,12 +158,12 @@ struct vt_geometry_type<geometry::geometry_collection<double>> {
 struct vt_feature {
     vt_geometry geometry;
     property_map properties;
-    optional<identifier> id;
+    identifier id;
 
     mapbox::geometry::box<double> bbox = { { 2, 1 }, { -1, 0 } };
     uint32_t num_points = 0;
 
-    vt_feature(const vt_geometry& geom, const property_map& props, const optional<identifier>& id_)
+    vt_feature(const vt_geometry& geom, const property_map& props, const identifier& id_)
         : geometry(geom), properties(props), id(id_) {
 
         mapbox::geometry::for_each_point(geom, [&](const vt_point& p) {
