@@ -5,6 +5,8 @@
 #include <mapbox/geojsonvt/types.hpp>
 #include <mapbox/geojsonvt/wrap.hpp>
 
+#include <mapbox/feature.hpp>
+
 #include <chrono>
 #include <cmath>
 #include <map>
@@ -14,8 +16,8 @@ namespace mapbox {
 namespace geojsonvt {
 
 using geometry = mapbox::geometry::geometry<double>;
-using feature = mapbox::geometry::feature<double>;
-using feature_collection = mapbox::geometry::feature_collection<double>;
+using feature = mapbox::feature::feature<double>;
+using feature_collection = mapbox::feature::feature_collection<double>;
 using geometry_collection = mapbox::geometry::geometry_collection<double>;
 using geojson = mapbox::util::variant<geometry, feature, feature_collection>;
 
@@ -93,7 +95,7 @@ class GeoJSONVT {
 public:
     const Options options;
 
-    GeoJSONVT(const mapbox::geometry::feature_collection<double>& features_,
+    GeoJSONVT(const mapbox::feature::feature_collection<double>& features_,
               const Options& options_ = Options())
         : options(options_) {
 

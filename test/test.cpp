@@ -337,7 +337,7 @@ TEST(GetTile, Projection) {
     }
 }
 
-std::map<std::string, mapbox::geometry::feature_collection<int16_t>>
+std::map<std::string, mapbox::feature::feature_collection<int16_t>>
 genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 10000, bool lineMetrics = false) {
     Options options;
     options.maxZoom = 14;
@@ -348,7 +348,7 @@ genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 1000
     const auto geojson = mapbox::geojson::parse(data);
     GeoJSONVT index{ geojson, options };
 
-    std::map<std::string, mapbox::geometry::feature_collection<int16_t>> output;
+    std::map<std::string, mapbox::feature::feature_collection<int16_t>> output;
 
     for (const auto& pair : index.getInternalTiles()) {
         auto& tile = pair.second;

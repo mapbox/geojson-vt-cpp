@@ -18,8 +18,9 @@ void drawLine(const T points) {
 }
 
 struct DrawFeature {
-    void operator()(const mapbox::geometry::point<int16_t>&) {
-    }
+    void operator()(const mapbox::geometry::empty&) {}
+
+    void operator()(const mapbox::geometry::point<int16_t>&) {}
 
     void operator()(const mapbox::geometry::line_string<int16_t>& points) {
         drawLine(points);

@@ -5,8 +5,8 @@ DEBUG_FLAGS ?= -g -O0 -DDEBUG
 MASON ?= .mason/mason
 
 VARIANT = variant 1.1.5
-GEOMETRY = geometry 0.9.3
-GEOJSON = geojson 0.4.2
+GEOMETRY = geometry 1.0.0
+GEOJSON = geojson 0.4.3
 GLFW = glfw 3.1.2
 GTEST = gtest 1.8.0
 RAPIDJSON = rapidjson 1.1.0
