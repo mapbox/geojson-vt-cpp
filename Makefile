@@ -1,4 +1,4 @@
-CXXFLAGS += -I include -std=c++14 -Wall -Wextra -D_GLIBCXX_USE_CXX11_ABI=0
+CXXFLAGS += -I include -fsanitize=undefined -std=c++14 -Wall -Wextra -D_GLIBCXX_USE_CXX11_ABI=0
 RELEASE_FLAGS ?= -O3 -DNDEBUG
 DEBUG_FLAGS ?= -g -O0 -DDEBUG
 
