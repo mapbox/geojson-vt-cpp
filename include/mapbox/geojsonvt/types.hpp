@@ -114,6 +114,7 @@ struct vt_geometry_collection : std::vector<vt_geometry> {};
 using null_value = mapbox::feature::null_value_t;
 using property_map = mapbox::feature::property_map;
 using identifier = mapbox::feature::identifier;
+using value = mapbox::feature::value;
 
 template <class T>
 struct vt_geometry_type;

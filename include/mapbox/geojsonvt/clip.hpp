@@ -29,7 +29,7 @@ public:
         for (const auto& p : points) {
             const double ak = get<I>(p);
             if (ak >= k1 && ak <= k2)
-                part.push_back(p);
+                part.emplace_back(p);
         }
         return part;
     }
@@ -59,7 +59,7 @@ public:
         for (const auto& ring : polygon) {
             const auto new_ring = clipRing(ring);
             if (!new_ring.empty())
-                result.push_back(new_ring);
+                result.emplace_back(new_ring);
         }
         return result;
     }
@@ -71,10 +71,10 @@ public:
             for (const auto& ring : polygon) {
                 const auto new_ring = clipRing(ring);
                 if (!new_ring.empty())
-                    p.push_back(new_ring);
+                    p.emplace_back(std::move(new_ring));
             }
             if (!p.empty())
-                result.push_back(p);
+                result.emplace_back(std::move(p));
         }
         return result;
     }
@@ -83,7 +83,7 @@ public:
         vt_geometry_collection result;
         for (const auto& geometry : geometries) {
             vt_geometry::visit(geometry,
-                               [&](const auto& g) { result.push_back(this->operator()(g)); });
+                               [&](const auto& g) { result.emplace_back(this->operator()(g)); });
         }
         return result;
     }
@@ -121,64 +121,64 @@ private:
             if (ak < k1) {
                 if (bk > k2) { // ---|-----|-->
                     t = calc_progress<I>(a, b, k1);
-                    slice.push_back(intersect<I>(a, b, k1, t));
+                    slice.emplace_back(intersect<I>(a, b, k1, t));
                     if (lineMetrics) slice.segStart = lineLen + segLen * t;
 
                     t = calc_progress<I>(a, b, k2);
-                    slice.push_back(intersect<I>(a, b, k2, t));
+                    slice.emplace_back(intersect<I>(a, b, k2, t));
                     if (lineMetrics) slice.segEnd = lineLen + segLen * t;
-                    slices.push_back(std::move(slice));
+                    slices.emplace_back(std::move(slice));
 
                     slice = newSlice(line);
 
                 } else if (bk > k1) { // ---|-->  |
                     t = calc_progress<I>(a, b, k1);
-                    slice.push_back(intersect<I>(a, b, k1, t));
+                    slice.emplace_back(intersect<I>(a, b, k1, t));
                     if (lineMetrics) slice.segStart = lineLen + segLen * t;
 
                     if (i == len - 2)
-                        slice.push_back(b); // last point
+                        slice.emplace_back(b); // last point
                 }
             } else if (ak > k2) {
                 if (bk < k1) { // <--|-----|---
                     t = calc_progress<I>(a, b, k2);
-                    slice.push_back(intersect<I>(a, b, k2, t));
+                    slice.emplace_back(intersect<I>(a, b, k2, t));
                     if (lineMetrics) slice.segStart = lineLen + segLen * t;
 
                     t = calc_progress<I>(a, b, k1);
-                    slice.push_back(intersect<I>(a, b, k1, t));
+                    slice.emplace_back(intersect<I>(a, b, k1, t));
                     if (lineMetrics) slice.segEnd = lineLen + segLen * t;
 
-                    slices.push_back(std::move(slice));
+                    slices.emplace_back(std::move(slice));
 
                     slice = newSlice(line);
                 } else if (bk < k2) { // |  <--|---
                     t = calc_progress<I>(a, b, k2);
-                    slice.push_back(intersect<I>(a, b, k2, t));
+                    slice.emplace_back(intersect<I>(a, b, k2, t));
                     if (lineMetrics) slice.segStart = lineLen + segLen * t;
 
                     if (i == len - 2)
-                        slice.push_back(b); // last point
+                        slice.emplace_back(b); // last point
                 }
             } else {
-                slice.push_back(a);
+                slice.emplace_back(a);
 
                 if (bk < k1) { // <--|---  |
                     t = calc_progress<I>(a, b, k1);
-                    slice.push_back(intersect<I>(a, b, k1, t));
+                    slice.emplace_back(intersect<I>(a, b, k1, t));
                     if (lineMetrics) slice.segEnd = lineLen + segLen * t;
-                    slices.push_back(std::move(slice));
+                    slices.emplace_back(std::move(slice));
                     slice = newSlice(line);
 
                 } else if (bk > k2) { // |  ---|-->
                     t = calc_progress<I>(a, b, k2);
-                    slice.push_back(intersect<I>(a, b, k2, t));
+                    slice.emplace_back(intersect<I>(a, b, k2, t));
                     if (lineMetrics) slice.segEnd = lineLen + segLen * t;
-                    slices.push_back(std::move(slice));
+                    slices.emplace_back(std::move(slice));
                     slice = newSlice(line);
 
                 } else if (i == len - 2) { // | --> |
-                    slice.push_back(b);
+                    slice.emplace_back(b);
                 }
             }
 
@@ -187,7 +187,7 @@ private:
 
         if (!slice.empty()) { // add the final slice
             slice.segEnd = lineLen;
-            slices.push_back(std::move(slice));
+            slices.emplace_back(std::move(slice));
         }
     }
 
@@ -208,30 +208,30 @@ private:
             if (ak < k1) {
                 if (bk > k1) {
                     // ---|-->  |
-                    slice.push_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
+                    slice.emplace_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
                     if (bk > k2)
                         // ---|-----|-->
-                        slice.push_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
+                        slice.emplace_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
                     else if (i == len - 2)
-                        slice.push_back(b); // last point
+                        slice.emplace_back(b); // last point
                 }
             } else if (ak > k2) {
                 if (bk < k2) { // |  <--|---
-                    slice.push_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
+                    slice.emplace_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
                     if (bk < k1) // <--|-----|---
-                        slice.push_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
+                        slice.emplace_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
                     else if (i == len - 2)
-                        slice.push_back(b); // last point
+                        slice.emplace_back(b); // last point
                 }
             } else {
                 // | --> |
-                slice.push_back(a);
+                slice.emplace_back(a);
                 if (bk < k1)
                     // <--|---  |
-                    slice.push_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
+                    slice.emplace_back(intersect<I>(a, b, k1, calc_progress<I>(a, b, k1)));
                 else if (bk > k2)
                     // |  ---|-->
-                    slice.push_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
+                    slice.emplace_back(intersect<I>(a, b, k2, calc_progress<I>(a, b, k2)));
             }
         }
 
@@ -240,7 +240,7 @@ private:
             const auto& first = slice.front();
             const auto& last = slice.back();
             if (first != last) {
-                slice.push_back(first);
+                slice.emplace_back(first);
             }
         }
 
@@ -270,6 +270,7 @@ inline vt_features clip(const vt_features& features,
         return {};
 
     vt_features clipped;
+    clipped.reserve(features.size());
 
     for (const auto& feature : features) {
         const auto& geom = feature.geometry;
@@ -280,7 +281,7 @@ inline vt_features clip(const vt_features& features,
         const double max = get<I>(feature.bbox.max);
 
         if (min >= k1 && max < k2) { // trivial accept
-            clipped.push_back(feature);
+            clipped.emplace_back(feature);
 
         } else if (max < k1 || min >= k2) { // trivial reject
             continue;
