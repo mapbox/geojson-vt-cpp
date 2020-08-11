@@ -57,9 +57,9 @@ public:
     vt_geometry operator()(const vt_polygon& polygon) const {
         vt_polygon result;
         for (const auto& ring : polygon) {
-            const auto new_ring = clipRing(ring);
+            auto new_ring = clipRing(ring);
             if (!new_ring.empty())
-                result.emplace_back(new_ring);
+                result.emplace_back(std::move(new_ring));
         }
         return result;
     }
@@ -69,7 +69,7 @@ public:
         for (const auto& polygon : polygons) {
             vt_polygon p;
             for (const auto& ring : polygon) {
-                const auto new_ring = clipRing(ring);
+                auto new_ring = clipRing(ring);
                 if (!new_ring.empty())
                     p.emplace_back(std::move(new_ring));
             }
