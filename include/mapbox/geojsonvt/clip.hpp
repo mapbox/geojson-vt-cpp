@@ -274,6 +274,7 @@ inline vt_features clip(const vt_features& features,
 
     for (const auto& feature : features) {
         const auto& geom = feature.geometry;
+        assert(feature.properties);
         const auto& props = feature.properties;
         const auto& id = feature.id;
 

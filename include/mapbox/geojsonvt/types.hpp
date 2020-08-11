@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <memory>
 
 namespace mapbox {
 namespace geojsonvt {
@@ -158,16 +159,26 @@ struct vt_geometry_type<geometry::geometry_collection<double>> {
 
 struct vt_feature {
     vt_geometry geometry;
-    property_map properties;
+    std::shared_ptr<const property_map> properties;
     identifier id;
 
     mapbox::geometry::box<double> bbox = { { 2, 1 }, { -1, 0 } };
     uint32_t num_points = 0;
 
-    vt_feature(const vt_geometry& geom, const property_map& props, const identifier& id_)
-        : geometry(geom), properties(props), id(id_) {
+    vt_feature(const vt_geometry& geom, std::shared_ptr<const property_map> props, const identifier& id_)
+        : geometry(geom), properties(std::move(props)), id(id_) {
+        assert(properties);
+        processGeometry();
+    }
 
-        mapbox::geometry::for_each_point(geom, [&](const vt_point& p) {
+    vt_feature(const vt_geometry& geom, const property_map& props, const identifier& id_)
+        : geometry(geom), properties(std::make_shared<property_map>(props)), id(id_) {
+        processGeometry();
+    }
+
+private:
+    void processGeometry() {
+        mapbox::geometry::for_each_point(geometry, [&](const vt_point& p) {
             bbox.min.x = std::min(p.x, bbox.min.x);
             bbox.min.y = std::min(p.y, bbox.min.y);
             bbox.max.x = std::max(p.x, bbox.max.x);

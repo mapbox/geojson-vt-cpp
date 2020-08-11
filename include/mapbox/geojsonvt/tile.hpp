@@ -51,6 +51,7 @@ public:
         tile.features.reserve(source.size());
         for (const auto& feature : source) {
             const auto& geom = feature.geometry;
+            assert(feature.properties);
             const auto& props = feature.properties;
             const auto& id = feature.id;
 
@@ -58,7 +59,7 @@ public:
 
             vt_geometry::visit(geom, [&](const auto& g) {
                 // `this->` is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61636
-                this->addFeature(g, props, id);
+                this->addFeature(g, *props, id);
             });
 
             bbox.min.x = std::min(feature.bbox.min.x, bbox.min.x);
