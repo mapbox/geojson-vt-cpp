@@ -475,3 +475,41 @@ TEST(geoJSONToTile, Metrics) {
     double rightClipEnd = (rightProps.find("mapbox_clip_end")->second).get<double>();
     EXPECT_DOUBLE_EQ(rightClipEnd, 1.0);
 }
+
+TEST(GeoJSONVT, ClipVertexOnTileBorder) {
+    std::string data = R"geojson({
+        "type": "Feature",
+        "geometry": {
+            "type": "LineString",
+            "coordinates":[
+                [-77.031373697916663,38.895516493055553],
+                [-77.01416015625,38.887532552083336],
+                [-76.99,38.87]
+            ]
+        }
+    })geojson"; // The second node is exactly on the (13, 2344, 3134) tile border.
+    auto geojson = mapbox::geojson::parse(data);
+    mapbox::geojsonvt::Options options;
+    options.lineMetrics = true;
+    options.buffer = 2048;
+    options.extent = 8192;
+
+    const double kEpsilon = 1e-5;
+
+    mapbox::geojsonvt::GeoJSONVT index{geojson,options};
+
+    const Tile& tile = index.getTile(13, 2344, 3134);
+    ASSERT_FALSE(tile.features.empty());
+    const mapbox::geometry::line_string<int16_t> expected{
+        {-2048, 2747}, {408, 5037}
+    };
+    const auto actual = tile.features[0].geometry.get<mapbox::geometry::line_string<int16_t>>();
+    ASSERT_EQ(actual, expected);
+
+    // Check line metrics
+    auto& props = tile.features[0].properties;
+    double clipStart1 = (props.find("mapbox_clip_start")->second).get<double>();
+    double clipEnd1 = (props.find("mapbox_clip_end")->second).get<double>();
+    EXPECT_NEAR(0.660622, clipStart1, kEpsilon);
+    EXPECT_NEAR(1.0, clipEnd1, kEpsilon);
+}
