@@ -115,6 +115,7 @@ private:
             const auto& b = line[i + 1];
             const double ak = get<I>(a);
             const double bk = get<I>(b);
+            const bool isLastSeg = (i == (len - 2));
 
             if (lineMetrics) segLen = ::hypot((b.x - a.x), (b.y - a.y));
 
@@ -135,9 +136,11 @@ private:
                     t = calc_progress<I>(a, b, k1);
                     slice.emplace_back(intersect<I>(a, b, k1, t));
                     if (lineMetrics) slice.segStart = lineLen + segLen * t;
+                    if (isLastSeg) slice.emplace_back(b); // last point
 
-                    if (i == len - 2)
-                        slice.emplace_back(b); // last point
+                } else if (bk == k1 && !isLastSeg) { // --->|..  |
+                    if (lineMetrics) slice.segStart = lineLen + segLen;
+                    slice.emplace_back(b);
                 }
             } else if (ak > k2) {
                 if (bk < k1) { // <--|-----|---
@@ -152,13 +155,16 @@ private:
                     slices.emplace_back(std::move(slice));
 
                     slice = newSlice(line);
+
                 } else if (bk < k2) { // |  <--|---
                     t = calc_progress<I>(a, b, k2);
                     slice.emplace_back(intersect<I>(a, b, k2, t));
                     if (lineMetrics) slice.segStart = lineLen + segLen * t;
+                    if (isLastSeg) slice.emplace_back(b); // last point
 
-                    if (i == len - 2)
-                        slice.emplace_back(b); // last point
+                } else if (bk == k2 && !isLastSeg) { // |  ..|<---
+                    if (lineMetrics) slice.segStart = lineLen + segLen;
+                    slice.emplace_back(b);
                 }
             } else {
                 slice.emplace_back(a);
@@ -177,7 +183,7 @@ private:
                     slices.emplace_back(std::move(slice));
                     slice = newSlice(line);
 
-                } else if (i == len - 2) { // | --> |
+                } else if (isLastSeg) { // | --> |
                     slice.emplace_back(b);
                 }
             }
@@ -186,7 +192,7 @@ private:
         }
 
         if (!slice.empty()) { // add the final slice
-            slice.segEnd = lineLen;
+            if (lineMetrics) slice.segEnd = lineLen;
             slices.emplace_back(std::move(slice));
         }
     }
