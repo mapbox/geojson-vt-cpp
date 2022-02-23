@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <set>
 
 using namespace mapbox::geojsonvt;
 
@@ -204,15 +205,14 @@ TEST(GetTile, USStates) {
     const auto geojson = mapbox::geojson::parse(loadFile("test/fixtures/us-states.json"));
     GeoJSONVT index{ geojson.get<mapbox::geojson::feature_collection>() };
 
-    const auto features = index.getTile(7, 37, 48).features;
+    const auto features = index.getTilePointer(7, 37, 48)->features;
     const auto expected = parseJSONTile(loadFile("test/fixtures/us-states-z7-37-48.json"));
     ASSERT_EQ(features == expected, true);
 
     const auto square = parseJSONTile(loadFile("test/fixtures/us-states-square.json"));
-    ASSERT_EQ(square == index.getTile(9, 148, 192).features, true); // clipped square
+    ASSERT_EQ(square == index.getTilePointer(9, 148, 192)->features, true); // clipped square
 
-    ASSERT_EQ(empty_tile == index.getTile(11, 800, 400), true);   // non-existing tile
-    ASSERT_EQ(&empty_tile == &index.getTile(11, 800, 400), true); // non-existing tile
+    ASSERT_EQ(*empty_tile == *index.getTilePointer(11, 800, 400), true);   // non-existing tile
 
     // This test does not make sense in C++, since the parameters are cast to integers anyway.
     // ASSERT_EQ(isEmpty(index.getTile(-5, 123.25, 400.25)), true); // invalid tile
@@ -230,7 +230,7 @@ TEST(GetTile, GenerateIds) {
 
     GeoJSONVT index{ geojson, options };
 
-    const auto features = index.getTile(7, 37, 48).features;
+    const auto features = index.getTilePointer(7, 37, 48)->features;
     const auto expected = parseJSONTile(loadFile("test/fixtures/us-states-z7-37-48-gen-ids.json"));
     ASSERT_EQ(features == expected, true);
 }
@@ -252,9 +252,9 @@ TEST(GetTile, AntimeridianTriangle) {
     };
 
     for (const auto tileCoordinate : tileCoordinates) {
-        auto tile = index.getTile(tileCoordinate.z, tileCoordinate.x, tileCoordinate.y);
-        ASSERT_EQ(tile.num_points, tile.num_simplified);
-        ASSERT_EQ(tile.features.size(), 1);
+        auto tile = index.getTilePointer(tileCoordinate.z, tileCoordinate.x, tileCoordinate.y);
+        ASSERT_EQ(tile->num_points, tile->num_simplified);
+        ASSERT_EQ(tile->features.size(), 1);
     }
 }
 
@@ -266,15 +266,15 @@ TEST(GetTile, PolygonClippingBug) {
 
     GeoJSONVT index{ geojson, options };
 
-    auto tile = index.getTile(5, 19, 9);
-    ASSERT_EQ(tile.features.size(), 1);
-    ASSERT_EQ(tile.num_points, 5);
+    auto tile = index.getTilePointer(5, 19, 9);
+    ASSERT_EQ(tile->features.size(), 1);
+    ASSERT_EQ(tile->num_points, 5);
 
     const mapbox::geometry::polygon<int16_t> expected{
         { {3072, 3072}, {5120, 3072}, {5120, 5120}, {3072, 5120}, {3072, 3072} }
     };
 
-    const auto actual = tile.features[0].geometry.get<mapbox::geometry::polygon<int16_t>>();
+    const auto actual = tile->features[0].geometry.get<mapbox::geometry::polygon<int16_t>>();
 
     ASSERT_EQ(actual, expected);
 }
@@ -306,10 +306,10 @@ TEST(GetTile, Projection) {
     };
 
     for (const auto tileCoordinate : tileCoordinates) {
-        auto tile = index.getTile(tileCoordinate.z, tileCoordinate.x, tileCoordinate.y);
-        ASSERT_EQ(tile.num_points, tile.num_simplified);
-        ASSERT_EQ(tile.features.size(), 1);
-        const auto& geometry = tile.features.front().geometry;
+        auto tile = index.getTilePointer(tileCoordinate.z, tileCoordinate.x, tileCoordinate.y);
+        ASSERT_EQ(tile->num_points, tile->num_simplified);
+        ASSERT_EQ(tile->features.size(), 1);
+        const auto& geometry = tile->features.front().geometry;
         ASSERT_TRUE(geometry.is<mapbox::geometry::line_string<int16_t>>());
         const auto& lineString = geometry.get<mapbox::geometry::line_string<int16_t>>();
         ASSERT_EQ(lineString.size(), 2);
@@ -354,7 +354,7 @@ genTiles(const std::string& data, uint8_t maxZoom = 0, uint32_t maxPoints = 1000
         auto& tile = pair.second;
         const std::string key = std::string("z") + std::to_string(tile.z) + "-" +
                                 std::to_string(tile.x) + "-" + std::to_string(tile.y);
-        output.emplace(key, index.getTile(tile.z, tile.x, tile.y).features);
+        output.emplace(key, index.getTilePointer(tile.z, tile.x, tile.y)->features);
     }
 
     return output;
@@ -457,10 +457,10 @@ TEST(geoJSONToTile, Metrics) {
     options.tolerance = 3;
     const double kEpsilon = 1e-5;
 
-    const Tile& tileLeft = mapbox::geojsonvt::geoJSONToTile(geojson, 13, 2342, 3133, options);
+    const auto tileLeft = mapbox::geojsonvt::geoJSONToTile(geojson, 13, 2342, 3133, options);
     ASSERT_EQ(tileLeft.features.size(), 1u);
 
-    const Tile& tileRight = mapbox::geojsonvt::geoJSONToTile(geojson, 13, 2343, 3133, options);
+    const auto tileRight = mapbox::geojsonvt::geoJSONToTile(geojson, 13, 2343, 3133, options);
     ASSERT_EQ(tileRight.features.size(), 1u);
 
     auto& leftProps = tileLeft.features.at(0).properties;
@@ -498,18 +498,120 @@ TEST(GeoJSONVT, ClipVertexOnTileBorder) {
 
     mapbox::geojsonvt::GeoJSONVT index{geojson,options};
 
-    const Tile& tile = index.getTile(13, 2344, 3134);
-    ASSERT_FALSE(tile.features.empty());
+    const auto& tile = index.getTilePointer(13, 2344, 3134);
+    ASSERT_FALSE(tile->features.empty());
     const mapbox::geometry::line_string<int16_t> expected{
         {-2048, 2747}, {408, 5037}
     };
-    const auto actual = tile.features[0].geometry.get<mapbox::geometry::line_string<int16_t>>();
+    const auto actual = tile->features[0].geometry.get<mapbox::geometry::line_string<int16_t>>();
     ASSERT_EQ(actual, expected);
 
     // Check line metrics
-    auto& props = tile.features[0].properties;
+    auto& props = tile->features[0].properties;
     double clipStart1 = (props.find("mapbox_clip_start")->second).get<double>();
     double clipEnd1 = (props.find("mapbox_clip_end")->second).get<double>();
     EXPECT_NEAR(0.660622, clipStart1, kEpsilon);
     EXPECT_NEAR(1.0, clipEnd1, kEpsilon);
+}
+
+TEST(GeoJSONVT, update) {
+    std::string data = R"geojson({
+        "type": "Feature",
+        "id" : 42,
+        "geometry": {
+            "type": "Point",
+            "coordinates":[0, 0]
+        }
+    })geojson";
+    auto geojson = mapbox::geojson::parse(data);
+    mapbox::geojsonvt::Options options;
+    options.buffer = 2048;
+    options.extent = 8192;
+
+    const double kEpsilon = 1e-5;
+
+    mapbox::geojsonvt::GeoJSONVT index{geojson,options};
+
+    {
+        const auto& tile = index.getTilePointer(0, 0, 0);
+        ASSERT_FALSE(tile->features.empty());
+        const mapbox::geometry::point<int16_t> expected{4096, 4096};
+        const auto actual = tile->features[0].geometry.get<mapbox::geometry::point<int16_t>>();
+        ASSERT_EQ(actual, expected);
+    }
+
+    // update feature
+    mapbox::feature::feature<double> newFeature;
+    newFeature.id = uint64_t(42);
+    newFeature.geometry = mapbox::geometry::point<double>{-90, 0};
+
+    index.updateFeatures({{{uint64_t(42)}, {newFeature}}});
+    {
+        const auto& tile = index.getTilePointer(0, 0, 0);
+        ASSERT_FALSE(tile->features.empty());
+        const mapbox::geometry::point<int16_t> expected{2048, 4096};
+        const auto actual = tile->features[0].geometry.get<mapbox::geometry::point<int16_t>>();
+        ASSERT_EQ(actual, expected);
+    }
+    // add feature
+    newFeature.id = uint64_t(43);
+    newFeature.geometry = mapbox::geometry::point<double>{0, 0};
+    index.updateFeatures({{{uint64_t(43)}, {newFeature}}});
+    {
+        const auto& tile = index.getTilePointer(0, 0, 0);
+        ASSERT_EQ(tile->features.size(), 2);
+        std::set<uint64_t> ids{42, 43};
+        for (const auto &f: tile->features) {
+            ASSERT_NE(ids.find(f.id.get_unchecked<uint64_t>()), ids.end());
+        }
+        const mapbox::geometry::point<int16_t> expected{4096, 4096};
+        const auto actual = tile->features[1].geometry.get<mapbox::geometry::point<int16_t>>();
+        ASSERT_EQ(actual, expected);
+    }
+
+    // delete feature
+    index.updateFeatures({{{uint64_t(43)}, {}}});
+    {
+        const auto& tile = index.getTilePointer(0, 0, 0);
+        ASSERT_EQ(tile->features.size(), 1);
+        std::set<uint64_t> ids{42};
+        for (const auto &f: tile->features) {
+            ASSERT_NE(ids.find(f.id.get_unchecked<uint64_t>()), ids.end());
+        }
+    }
+
+    // add feature without ID
+    newFeature.id = {};
+    newFeature.geometry = mapbox::geometry::point<double>{0, 0};
+    index.updateFeatures({{{}, {newFeature}}});
+    {
+        const auto& tile = index.getTilePointer(0, 0, 0);
+        ASSERT_EQ(tile->features.size(), 2);
+        ASSERT_EQ(tile->features[0].id, mapbox::feature::identifier(uint64_t(42)));
+        ASSERT_EQ(tile->features[1].id, mapbox::feature::identifier());
+    }
+
+    // insert nothing, should result in unchanged tile
+    index.updateFeatures({{{}, {}}});
+    {
+        const auto& tile = index.getTilePointer(0, 0, 0);
+        ASSERT_EQ(tile->features.size(), 2);
+        ASSERT_EQ(tile->features[0].id, mapbox::feature::identifier(uint64_t(42)));
+        ASSERT_EQ(tile->features[1].id, mapbox::feature::identifier());
+    }
+
+    // Add feature without ID, use generateId
+    options.generateId = true;
+    mapbox::geojsonvt::GeoJSONVT index2{geojson,options};
+    newFeature.id = {};
+    newFeature.geometry = mapbox::geometry::point<double>{0, 0};
+    index2.updateFeatures({{{}, {newFeature}}});
+    {
+        const auto& tile = index2.getTilePointer(0, 0, 0);
+        ASSERT_EQ(tile->features.size(), 2);
+        std::set<uint64_t> ids{0, 1};
+        for (const auto &f: tile->features) {
+            ASSERT_NE(ids.find(f.id.get_unchecked<uint64_t>()), ids.end());
+        }
+    }
 }

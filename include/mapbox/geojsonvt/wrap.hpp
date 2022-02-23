@@ -7,7 +7,8 @@ namespace mapbox {
 namespace geojsonvt {
 namespace detail {
 
-inline void shiftCoords(vt_features& features, double offset) {
+template <template <typename...> class Cont>
+inline void shiftCoords(Cont<vt_feature>& features, double offset) {
     for (auto& feature : features) {
         mapbox::geometry::for_each_point(feature.geometry,
                                          [offset](vt_point& point) { point.x += offset; });
@@ -16,7 +17,8 @@ inline void shiftCoords(vt_features& features, double offset) {
     }
 }
 
-inline vt_features wrap(const vt_features& features, double buffer, const bool lineMetrics) {
+template <template <typename...> class InputCont, template <typename...> class OutputCont = InputCont>
+inline OutputCont<vt_feature> wrap(const InputCont<vt_feature>& features, double buffer, const bool lineMetrics) {
     // left world copy
     auto left = clip<0>(features, -1 - buffer, buffer, -1, 2, lineMetrics);
     // right world copy

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <set>
 #include <cmath>
 #include <mapbox/geojsonvt/types.hpp>
 
@@ -9,9 +10,13 @@ namespace geojsonvt {
 
 struct Tile {
     mapbox::feature::feature_collection<int16_t> features;
+
+    // The following are here for testing purposes
     uint32_t num_points = 0;
     uint32_t num_simplified = 0;
 };
+
+using TileFeatures = Tile;
 
 namespace detail {
 
@@ -27,12 +32,15 @@ public:
     const double sq_tolerance;
     const bool lineMetrics;
 
-    vt_features source_features;
+    feature_container<vt_feature> source_features;
     mapbox::geometry::box<double> bbox = { { 2, 1 }, { -1, 0 } };
 
-    Tile tile;
+    std::shared_ptr<const Tile> tile;
+    feature_container<mapbox::feature::feature<int16_t>> features;
+    uint32_t num_points = 0;
+    uint32_t num_simplified = 0;
 
-    InternalTile(const vt_features& source,
+    InternalTile(const detail::vt_features& source,
                  const uint8_t z_,
                  const uint32_t x_,
                  const uint32_t y_,
@@ -48,35 +56,89 @@ public:
           sq_tolerance(tolerance_ * tolerance_),
           lineMetrics(lineMetrics_) {
 
-        tile.features.reserve(source.size());
-        for (const auto& feature : source) {
+        insertFeatures(source);
+    }
+
+    std::shared_ptr<const Tile> getTile() {
+        if (tile) {
+            return tile;
+        }
+        auto tile_ = std::make_shared<Tile>();
+        features.getFeatures(tile_->features);
+        tile_->num_points = num_points;
+        tile_->num_simplified = num_simplified;
+        tile = tile_;
+        return tile;
+    }
+
+    void insertFeatures(const vt_features& features_) {
+        tile.reset();
+        for (const auto& feature : features_) {
             const auto& geom = feature.geometry;
             assert(feature.properties);
             const auto& props = feature.properties;
             const auto& id = feature.id;
 
-            tile.num_points += feature.num_points;
+            if (source_features.size() || !features.size()) { // Note that if these ever both go to 0, retaining will restart even if fully split
+                source_features.push_back(feature);
+            }
+
+            num_points += feature.num_points;
 
             vt_geometry::visit(geom, [&](const auto& g) {
                 // `this->` is a workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61636
                 this->addFeature(g, *props, id);
             });
-
-            bbox.min.x = std::min(feature.bbox.min.x, bbox.min.x);
-            bbox.min.y = std::min(feature.bbox.min.y, bbox.min.y);
-            bbox.max.x = std::max(feature.bbox.max.x, bbox.max.x);
-            bbox.max.y = std::max(feature.bbox.max.y, bbox.max.y);
+            extendBox(bbox, feature.bbox);
         }
     }
 
+    void removeFeature(const mapbox::feature::identifier& id) {
+        if (id.is<mapbox::feature::null_value_t>() || !hasFeature(id)) {
+            return;
+        }
+
+        source_features.erase(id);
+        tile.reset();
+        // ToDo: figure a way to decrease num_points (dependent on vt_features)
+        features.erase(id);
+    }
+
+    bool hasFeature(const mapbox::feature::identifier &id) const {
+        return features.hasFeature(id);
+    }
+
+    static void extendBox(mapbox::geometry::box<double> &bbox, const mapbox::geometry::box<double>& toAdd) {
+        bbox.min.x = std::min(toAdd.min.x, bbox.min.x);
+        bbox.min.y = std::min(toAdd.min.y, bbox.min.y);
+        bbox.max.x = std::max(toAdd.max.x, bbox.max.x);
+        bbox.max.y = std::max(toAdd.max.y, bbox.max.y);
+    }
+
+    static inline uint64_t toID(uint8_t z, uint32_t x, uint32_t y) {
+        return (((1ull << z) * y + x) * 32) + z;
+    }
+
+    static inline std::tuple<uint32_t, uint32_t, uint8_t> fromID(uint64_t id) {
+        uint8_t z = id & 31; // 0b11111
+        const uint64_t d = (1ull << uint32_t(z));
+        const uint64_t xy = id >> 5;
+        return std::make_tuple<uint32_t, uint32_t, uint8_t>(
+                    xy % d,
+                    xy / d,
+                    std::move(z));
+    }
+
 private:
+
+
     void addFeature(const vt_empty& empty, const property_map& props, const identifier& id) {
-        tile.features.emplace_back(transform(empty), props, id);
+        features.emplace_back(transform(empty), props, id);
     }
 
     void
     addFeature(const vt_point& point, const property_map& props, const identifier& id) {
-        tile.features.emplace_back(transform(point), props, id);
+        features.emplace_back(transform(point), props, id);
     }
 
     void addFeature(const vt_line_string& line,
@@ -88,9 +150,9 @@ private:
                 property_map newProps = props;
                 newProps.emplace(std::make_pair<std::string, value>("mapbox_clip_start", line.segStart / line.dist));
                 newProps.emplace(std::make_pair<std::string, value>("mapbox_clip_end", line.segEnd / line.dist));
-                tile.features.emplace_back(std::move(new_line), std::move(newProps), id);
+                features.emplace_back(std::move(new_line), std::move(newProps), id);
             } else
-                tile.features.emplace_back(std::move(new_line), props, id);
+                features.emplace_back(std::move(new_line), props, id);
         }
     }
 
@@ -99,7 +161,7 @@ private:
                     const identifier& id) {
         const auto new_polygon = transform(polygon);
         if (!new_polygon.empty())
-            tile.features.emplace_back(std::move(new_polygon), props, id);
+            features.emplace_back(std::move(new_polygon), props, id);
     }
 
     void addFeature(const vt_geometry_collection& collection,
@@ -121,10 +183,10 @@ private:
         case 0:
             break;
         case 1:
-            tile.features.emplace_back(std::move(new_multi[0]), props, id);
+            features.emplace_back(std::move(new_multi[0]), props, id);
             break;
         default:
-            tile.features.emplace_back(std::move(new_multi), props, id);
+            features.emplace_back(std::move(new_multi), props, id);
             break;
         }
     }
@@ -134,7 +196,7 @@ private:
     }
 
     mapbox::geometry::point<int16_t> transform(const vt_point& p) {
-        ++tile.num_simplified;
+        ++num_simplified;
         return { static_cast<int16_t>(::round((p.x * z2 - x) * extent)),
                  static_cast<int16_t>(::round((p.y * z2 - y) * extent)) };
     }

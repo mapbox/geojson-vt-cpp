@@ -6,6 +6,8 @@ namespace mapbox {
 namespace geojsonvt {
 namespace detail {
 
+// I = 0 -> clip x
+// I = 1 -> clip y
 template <uint8_t I>
 class clipper {
 public:
@@ -259,10 +261,14 @@ private:
  *  ___|___     |     /
  * /   |   \____|____/
  *     |        |
+ *
+ * k1 and k2 are the line coordinates
+ * axis: 0 for x, 1 for y
+ * minAll and maxAll: minimum and maximum coordinate value for all features
  */
 
-template <uint8_t I>
-inline vt_features clip(const vt_features& features,
+template <uint8_t I, template <typename...> class InputCont, template <typename...> class OutputCont = InputCont>
+inline OutputCont<vt_feature> clip(const InputCont<vt_feature>& features,
                         const double k1,
                         const double k2,
                         const double minAll,
@@ -275,8 +281,7 @@ inline vt_features clip(const vt_features& features,
     if (maxAll < k1 || minAll >= k2) // trivial reject
         return {};
 
-    vt_features clipped;
-    clipped.reserve(features.size());
+    OutputCont<vt_feature> clipped;
 
     for (const auto& feature : features) {
         const auto& geom = feature.geometry;

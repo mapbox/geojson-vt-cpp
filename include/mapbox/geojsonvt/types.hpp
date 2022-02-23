@@ -8,7 +8,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <list>
+#include <map>
+#include <stack>
 #include <memory>
+#include <mutex>
 
 namespace mapbox {
 namespace geojsonvt {
@@ -188,8 +192,116 @@ private:
     }
 };
 
-using vt_features = std::vector<vt_feature>;
+using vt_features = std::list<vt_feature>;
 
 } // namespace detail
 } // namespace geojsonvt
 } // namespace mapbox
+
+// Needed for unordered_map<std::list<..>::iterator, ..>
+namespace std {
+template<> struct hash<std::list<mapbox::geojsonvt::detail::vt_feature>::iterator> {
+    std::size_t operator()(std::list<mapbox::geojsonvt::detail::vt_feature>::iterator const& iter) const noexcept {
+        return  (std::size_t)&(*iter);
+    }
+};
+
+template<> struct hash<std::list<mapbox::feature::feature<int16_t>>::iterator> {
+    std::size_t operator()(std::list<mapbox::feature::feature<int16_t>>::iterator const& iter) const noexcept {
+        return  (std::size_t)&(*iter);
+    }
+};
+}
+
+namespace mapbox {
+namespace geojsonvt {
+template <typename FeatureType = detail::vt_feature>
+struct feature_container {
+    typedef typename std::list<FeatureType>::iterator Ite;
+    template<typename Iter>
+    // Needed for map<std::list<..>::iterator, ..>
+    struct element_address_less {
+        bool operator()(Iter left, Iter right) const {
+            return std::less<>()(&*left, &*right);
+        }
+    };
+    using list_it_less = element_address_less<Ite>;
+    std::list<FeatureType> features;
+    std::map<mapbox::feature::identifier, std::list<Ite>> featurePointers;
+
+    size_t size() const {
+        return features.size();
+    }
+
+    bool hasFeature(const mapbox::feature::identifier& id) const { // only called geojson-vt side, so no locking
+        return featurePointers.find(id) != featurePointers.end();
+    }
+
+    void clear() {
+        features.clear();
+        featurePointers.clear();
+    }
+
+    void getFeatures(mapbox::feature::feature_collection<int16_t> &tile) const {
+        tile.clear();
+        tile.reserve(features.size());
+        for (auto f: features) {
+            tile.push_back(f);
+        }
+    }
+
+    template<class... Args>
+    void emplace_back(Args&&... args) {
+        features.emplace_back(std::forward<Args>(args)...);
+        Ite it = std::prev(features.end());
+        auto &feature = features.back();
+        if (!feature.id.template is<mapbox::feature::null_value_t>()) { // only track features with proper identifier
+            featurePointers[feature.id].push_back(it);
+        }
+    }
+
+    void push_back(const FeatureType& feature) {
+        return emplace_back(feature);
+    }
+
+    void erase(const mapbox::feature::identifier& id) {
+        auto it = featurePointers.find(id);
+        if (it != featurePointers.end()) {
+            auto &elements = it->second;
+            for (auto &e: elements) {
+                features.erase(e);
+            }
+            featurePointers.erase(it);
+        }
+    }
+};
+
+} // namespace geojsonvt
+} // namespace mapbox
+
+namespace  {
+template<template <typename...> class Cont>
+void container_reserve(Cont<mapbox::geojsonvt::detail::vt_feature>&, const size_t) {
+}
+
+template<>
+void container_reserve(std::vector<mapbox::geojsonvt::detail::vt_feature>& vec, const size_t size) {
+    vec.reserve(size);
+}
+template<template <typename...> class Cont>
+void container_reserve(Cont<mapbox::feature::feature<double>>&, const size_t) {
+}
+
+template<>
+void container_reserve(std::vector<mapbox::feature::feature<double>>& vec, const size_t size) {
+    vec.reserve(size);
+}
+template<template <typename...> class Cont>
+void container_reserve(Cont<mapbox::feature::feature<int16_t>>&, const size_t) {
+}
+
+template<>
+void container_reserve(std::vector<mapbox::feature::feature<int16_t>>& vec, const size_t size) {
+    vec.reserve(size);
+}
+}

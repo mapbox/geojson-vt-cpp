@@ -6,6 +6,7 @@
 #include <mapbox/feature.hpp>
 
 #include <algorithm>
+#include <vector>
 #include <cmath>
 
 namespace mapbox {
@@ -98,14 +99,15 @@ struct project {
     }
 };
 
-inline vt_features convert(const feature::feature_collection<double>& features,
-                           const double tolerance, bool generateId) {
-    vt_features projected;
-    projected.reserve(features.size());
-    uint64_t genId = 0;
+template <template <typename...> class InputCont, template <typename...> class OutputCont = InputCont>
+inline OutputCont<vt_feature> convert(const feature::feature_collection<double, InputCont>& features,
+                           const double tolerance, bool generateId, uint64_t &genId, bool updating) {
+    OutputCont<vt_feature> projected;
+    container_reserve(projected, features.size());
     for (const auto& feature : features) {
         identifier featureId = feature.id;
-        if (generateId) {
+        if (generateId &&
+                (!updating || featureId.is<mapbox::feature::null_value_t>())) {
             featureId = { uint64_t {genId++} };
         }
         projected.emplace_back(
