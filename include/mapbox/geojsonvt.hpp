@@ -11,6 +11,7 @@
 #include <chrono>
 #include <cmath>
 #include <map>
+#include <set>
 #include <unordered_map>
 
 namespace mapbox {
@@ -64,6 +65,104 @@ struct Options : TileOptions {
     bool generateId = false;
 };
 
+template<class T>
+struct NumericIdContainer {
+    std::map<T, T> ranges;
+
+    void init(T last) {
+        ranges[0] = last;
+    }
+
+    void insert(T id) {
+        if (ranges.empty()) {
+            ranges[id] = id;
+            return;
+        }
+        if (contains(id)) {
+            return;
+        }
+        auto it = ranges.lower_bound(id);
+        if (it == ranges.begin()) {
+            if (id == it->first - 1) { // extend first range
+                auto tmp = it->second;
+                ranges.erase(it);
+                ranges[id] = tmp;
+            } else {
+                ranges[id] = id;
+            }
+        } else {
+            if (it != ranges.end() && id == it->first - 1) { // extend first range
+                auto prev = it;
+                std::advance(prev, -1);
+                auto tmp = it->second;
+                ranges.erase(it);
+
+                // merge 2 ranges if the single element in between is being added
+                if (prev->second == id - 1) {
+                    prev->second = tmp;
+                } else {
+                    ranges[id] = tmp;
+                }
+            } else { // it == end || id < it->first - 1
+                std::advance(it, -1);
+                if (id == it->second + 1) {
+                    ranges[it->first] = id;
+                } else {
+                    ranges[id] = id;
+                }
+            }
+        }
+    }
+
+    bool contains(T id) const {
+        auto it = ranges.lower_bound(id);
+        if (it->first == id) {
+            return true;
+        }
+
+        if (it == ranges.begin()) {
+            return false;
+        }
+
+        std::advance(it, -1);
+        if (it->second >= id) {
+            return true;
+        }
+
+        return false;
+    }
+
+    void remove(T id) {
+        if (!contains(id)) {
+            return;
+        }
+        auto it = ranges.lower_bound(id);
+        if (it != ranges.end() && id == it->first) {
+            auto tmp = it->second;
+            ranges.erase(id);
+            if (tmp > id) {
+                ranges[id + 1] = tmp;
+            }
+        } else {
+            std::advance(it, -1);
+            if (id == it->second) {
+                ranges[it->first] = id - 1; // this range can't be single element, or previous condition would hit
+            } else { // split range
+                auto tmp = it->second;
+                ranges[it->first] = id - 1;
+                ranges[id + 1] = tmp;
+            }
+        }
+    }
+
+//    void print() {
+//        for (auto it=ranges.begin(); it!=ranges.end(); ++it) {
+//            std::cout << it->first << " => " << it->second << std::endl;
+//        }
+//        std::cout << "=====" << std::endl;
+//    }
+};
+
 const std::shared_ptr<const Tile> empty_tile =
         std::make_shared<const Tile>();
 
@@ -106,6 +205,9 @@ class GeoJSONVT {
 public:
     const Options options;
     uint64_t genId = 0;
+    NumericIdContainer<uint64_t> uintIDs;
+    NumericIdContainer<int64_t> intIDs;
+    std::set<double> doubleIDs;
 
     GeoJSONVT(const mapbox::feature::feature_collection<double>& features_,
               const Options& options_ = Options())
@@ -119,8 +221,32 @@ public:
                                                                  genId,
                                                                  false);
         auto features = detail::wrap(converted, double(options.buffer) / options.extent, options.lineMetrics);
-
+        if (options.generateId && genId > 0) { // generateId overrides provided IDs
+            uintIDs.init(genId - 1);
+        } else {
+            for (const auto &f: features_) {
+                if (f.id.is<uint64_t>()) {
+                    uintIDs.insert(f.id.get_unchecked<uint64_t>());
+                } else if (f.id.is<int64_t>()) {
+                    intIDs.insert(f.id.get_unchecked<int64_t>());
+                } else if (f.id.is<double>()) {
+                    doubleIDs.insert(f.id.get_unchecked<double>());
+                }
+            }
+        }
         splitTile(features, 0, 0, 0);
+    }
+
+    bool existsAsUint(uint64_t id) const {
+        return uintIDs.contains(id);
+    }
+
+    bool existsAsInt(int64_t id) const {
+        return intIDs.contains(id);
+    }
+
+    bool existsAsDouble(double id) const {
+        return doubleIDs.find(id) != doubleIDs.end();
     }
 
     GeoJSONVT(const geojson& geojson_, const Options& options_ = Options())
@@ -186,20 +312,38 @@ public:
         // 2.1 Add features to a feature collection to feed to detail::convert, and calculate the bounding box.
         mapbox::feature::feature_collection<double, std::list> newFeatures;
         for (auto u: update) {
+            bool removal = true;
             for (auto f: u.second) {
                 if (!f.is<mapbox::feature::null_value_t>()) {
                     newFeatures.push_back(f.get_unchecked<feature>());
-
+                    removal = false;
+                }
+            }
+            if (removal) {
+                if (u.first.is<uint64_t>()) {
+                    uintIDs.remove(u.first.get_unchecked<uint64_t>());
+                } else if (u.first.is<int64_t>()) {
+                    intIDs.remove(u.first.get_unchecked<int64_t>());
+                } else if (u.first.is<double>()) {
+                    doubleIDs.erase(u.first.get_unchecked<double>());
                 }
             }
         }
         uint32_t z2 = 1u << options.maxZoom;
+        uint64_t genId_preAddition = genId;
         auto converted = detail::convert(newFeatures,
                                          (options.tolerance / options.extent) / z2,
                                          options.generateId,
                                          genId,
                                          true);
         auto features = detail::wrap(converted, double(options.buffer) / options.extent, options.lineMetrics);
+
+        // Beware: using generated ID and user-provided numeric IDs is going to clash.
+        if (options.generateId) {
+            for (uint64_t gid = genId_preAddition; gid < genId; ++gid) {
+                uintIDs.insert(gid);
+            }
+        }
 
         // Calculate the bbox to help with trivial accept/reject
         mapbox::geometry::box<double> newDataBbox = { { 2, 1 }, { -1, 0 } };
