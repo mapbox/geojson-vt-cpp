@@ -23,8 +23,14 @@ struct project {
     vt_point operator()(const geometry::point<double>& p) {
         const double sine = std::sin(p.y * M_PI / 180);
         const double x = p.x / 360 + 0.5;
-        const double y =
-            std::max(std::min(0.5 - 0.25 * std::log((1 + sine) / (1 - sine)) / M_PI, 1.0), 0.0);
+
+        double oneMinusSine = 1.0 - sine;
+        const double epsilon = 0.0000001;
+        if (oneMinusSine < epsilon) {  // Avoid overflow.
+            oneMinusSine = epsilon;
+        }
+        const double y = std::max(std::min(0.5 - 0.25 * std::log((1 + sine) / oneMinusSine) / M_PI, 1.0), 0.0);
+
         return { x, y, 0.0 };
     }
 
