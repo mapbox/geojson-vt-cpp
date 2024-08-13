@@ -37,7 +37,7 @@ inline double getSqSegDist(const vt_point& p, const vt_point& a, const vt_point&
 inline void simplify(std::vector<vt_point>& points, size_t first, size_t last, double sqTolerance) {
     double maxSqDist = sqTolerance;
     size_t index = 0;
-    const int64_t mid = first + (last - first) >> 1;
+    const int64_t mid = first + ((last - first) >> 1);
     int64_t minPosToMid = last - first;
 
     for (auto i = first + 1; i < last; i++) {
