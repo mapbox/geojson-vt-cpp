@@ -195,6 +195,13 @@ private:
             if (lineMetrics) slice.segEnd = lineLen;
             slices.emplace_back(std::move(slice));
         }
+        
+        for (auto& current_sice : slices) {
+            if (current_sice.size() > 2) {
+                current_sice[0].z = 1.0;
+                current_sice[current_sice.size() - 1].z = 1.0;
+            }
+        }
     }
 
     vt_linear_ring clipRing(const vt_linear_ring& ring) const {
